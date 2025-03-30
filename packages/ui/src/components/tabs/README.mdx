@@ -1,0 +1,107 @@
+# Tabs Component
+
+## Overview
+
+The Tabs component is a flexible and accessible way to organize content into multiple selectable tabs. It provides a structured layout for presenting related information or sections that can be viewed independently.
+
+## Features
+
+- Accessible, using appropriate ARIA roles and attributes
+- Customizable appearance through className props
+- Support for keyboard navigation
+- Active tab highlighting
+- Flexible content organization
+- Controllable and uncontrollable modes
+
+## Installation
+
+To use the Tabs component, ensure you have the necessary dependencies installed in your project:
+
+```bash
+npm install @jsandy/ui
+```
+
+## Usage
+
+Here's a basic example of how to use the Tabs component:
+
+```jsx
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@jsandy/ui/tabs';
+
+function BasicTabs() {
+  return (
+    <Tabs defaultValue="tab1">
+      <TabsList>
+        <TabsTrigger value="tab1">Tab 1</TabsTrigger>
+        <TabsTrigger value="tab2">Tab 2</TabsTrigger>
+        <TabsTrigger value="tab3">Tab 3</TabsTrigger>
+      </TabsList>
+      <TabsContent value="tab1">Content for Tab 1</TabsContent>
+      <TabsContent value="tab2">Content for Tab 2</TabsContent>
+      <TabsContent value="tab3">Content for Tab 3</TabsContent>
+    </Tabs>
+  );
+}
+```
+
+## API
+
+### Tabs
+
+The main wrapper component for the entire tabs structure.
+
+#### Props
+
+- `value`: string - The controlled value of the tab to activate
+- `defaultValue`: string - The value of the tab to activate by default (uncontrolled)
+- `onValueChange`: (value: string) => void - Callback fired when a tab is activated
+- `orientation`: 'horizontal' | 'vertical' - The orientation of the tabs
+- `dir`: 'ltr' | 'rtl' - The reading direction of the tabs
+- `activationMode`: 'automatic' | 'manual' - Whether tabs are activated automatically on focus or manually
+
+### TabsList
+
+Component for grouping tab triggers.
+
+#### Props
+
+- `loop`: boolean - Whether keyboard navigation should loop from last tab to first and vice versa
+
+### TabsTrigger
+
+Component for individual tab triggers.
+
+#### Props
+
+- `value`: string - The unique value of the tab
+- `disabled`: boolean - Whether the tab is disabled
+
+### TabsContent
+
+Component for the content associated with each tab.
+
+#### Props
+
+- `value`: string - The unique value of the tab this content belongs to
+- `forceMount`: boolean - If `true`, forces mounting when more control is needed (e.g., for animations)
+
+## Accessibility
+
+The Tabs component follows accessibility best practices:
+
+- Proper ARIA roles and attributes are automatically applied
+- Keyboard navigation is supported (arrow keys, Home, End)
+- Focus management ensures a good experience for keyboard and screen reader users
+
+## Customization
+
+All components accept a `className` prop for custom styling. They use Tailwind CSS classes by default, which can be overridden or extended.
+
+## Best Practices
+
+1. Use clear and concise labels for tab triggers
+2. Limit the number of tabs to a reasonable amount to avoid overwhelming users
+3. Ensure content within each tab is related and relevant
+4. Use consistent styling for active and inactive tabs
+5. Consider the impact of tab content on layout and scrolling
+6. Provide clear visual indication of the active tab

@@ -1,0 +1,139 @@
+# Button Component
+
+The Button component is a versatile and customizable element used for triggering actions or navigation in a user interface. It supports various visual styles and sizes to accommodate different design needs and interaction contexts.
+
+## Features
+
+- Multiple visual variants (default, destructive, outline, secondary, ghost, link)
+- Size options (default, sm, lg, icon)
+- Support for custom styling through className prop
+- Accessible focus states for keyboard navigation
+- Disabled state styling
+- Option to render as a different element using the `asChild` prop
+
+## Installation
+
+```bash
+npm install @jsandy/ui
+```
+
+## Usage
+
+```tsx
+import { Button } from '@jsandy/ui/button';
+
+function MyComponent() {
+  return (
+    <div>
+      <Button>Default Button</Button>
+      <Button variant="destructive">Destructive Action</Button>
+      <Button variant="outline" size="sm">
+        Small Outline
+      </Button>
+      <Button variant="ghost" size="lg">
+        Large Ghost
+      </Button>
+    </div>
+  );
+}
+```
+
+## Props
+
+| Prop      | Type      | Default       | Description                                                                       |
+| --------- | --------- | ------------- | --------------------------------------------------------------------------------- | ----------- | --------- | ---------------------- | --------- | ------------------------------ |
+| variant   | 'default' | 'destructive' | 'outline'                                                                         | 'secondary' | 'ghost'   | 'link'                 | 'default' | The visual style of the button |
+| size      | 'default' | 'sm'          | 'lg'                                                                              | 'icon'      | 'default' | The size of the button |
+| asChild   | boolean   | false         | When true, renders children directly instead of wrapping them in a button element |
+| className | string    | undefined     | Additional CSS classes to apply                                                   |
+
+All other props are passed directly to the underlying button element.
+
+## Variants
+
+- `default`: Primary color background with white text
+- `destructive`: Destructive color background (usually red) with appropriate text color
+- `outline`: Transparent background with a border
+- `secondary`: Secondary color background with appropriate text color
+- `ghost`: No background, only shows on hover
+- `link`: Appears as a text link with an underline on hover
+
+## Sizes
+
+- `default`: Standard size button
+- `sm`: Smaller button
+- `lg`: Larger button
+- `icon`: Square button, typically used for buttons with only an icon
+
+## Customization
+
+### Custom Styles
+
+You can customize the appearance of the Button component by passing additional classes through the `className` prop:
+
+```tsx
+<Button className="bg-purple-500 hover:bg-purple-700">Custom Button</Button>
+```
+
+### Using as a Different Element
+
+You can use the `asChild` prop to render the Button's children directly, allowing you to create custom button-like components:
+
+```tsx
+<Button asChild>
+  <a href="/some-page">Link that looks like a button</a>
+</Button>
+```
+
+## Accessibility
+
+The Button component includes focus styles for keyboard navigation and supports disabled states. When using buttons, ensure that:
+
+- The button's purpose is clear from its label or icon
+- Buttons used for navigation have appropriate ARIA roles
+- Disabled buttons have an `aria-disabled` attribute
+
+## Best Practices
+
+- Use the appropriate variant to match the importance and context of the action
+- Choose a size that fits well with surrounding elements and the overall layout
+- Use clear and concise labels that describe the action
+- Group related buttons together
+- Consider using icons alongside text to reinforce the button's purpose
+
+## Examples
+
+### Basic Buttons
+
+```tsx
+<Button>Submit</Button>
+<Button variant="destructive">Delete</Button>
+<Button variant="outline">Cancel</Button>
+```
+
+### Sized Buttons
+
+```tsx
+<Button size="sm">Small</Button>
+<Button>Default</Button>
+<Button size="lg">Large</Button>
+```
+
+### Icon Buttons
+
+```tsx
+import { Plus } from 'lucide-react';
+
+<Button size="icon">
+  <Plus />
+</Button>;
+```
+
+### Disabled Buttons
+
+```tsx
+<Button disabled>Disabled</Button>
+<Button variant="outline" disabled>Disabled Outline</Button>
+```
+
+By following these guidelines and examples, you can effectively use and customize the Button component in your application to provide clear and consistent user interactions.

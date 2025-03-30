@@ -1,0 +1,100 @@
+# Collection Utility
+
+The Collection Utility is a powerful tool for creating and managing collections of components in React applications. It provides a flexible and performant way to handle groups of related items, with built-in context management and ordering capabilities.
+
+## Key Features
+
+1. Create collections with custom names and item types
+2. Context-based management of collection items
+3. Automatic ordering of items based on DOM structure
+4. Flexible API with provider, slots, and hooks
+
+## Main Function: createCollection
+
+Creates a collection of components with context-based management.
+
+Usage:
+
+```typescript
+import { createCollection } from '@jsandy/ui/collection';
+
+const [
+  { Provider: ListProvider, Slot: ListSlot, ItemSlot: ListItemSlot },
+  useListItems,
+  createListScope,
+] = createCollection<HTMLLIElement>('List');
+
+function List({ children }) {
+  const listScope = createListScope();
+  return (
+    <ListProvider scope={listScope}>
+      <ul>
+        <ListSlot scope={listScope}>{children}</ListSlot>
+      </ul>
+    </ListProvider>
+  );
+}
+
+function ListItem({ children }) {
+  const listScope = useContext(ListScopeContext);
+  return <ListItemSlot scope={listScope}>{children}</ListItemSlot>;
+}
+
+function ListItemsCount() {
+  const listScope = useContext(ListScopeContext);
+  const getItems = useListItems(listScope);
+  const count = getItems().length;
+  return <div>{count} items</div>;
+}
+```
+
+### Return Value
+
+The `createCollection` function returns a tuple containing:
+
+1. An object with `Provider`, `Slot`, and `ItemSlot` components
+2. A `useCollection` hook for accessing collection items
+3. A `createCollectionScope` function for creating scoped instances of the collection
+
+## Components
+
+### Provider
+
+The context provider for the collection.
+
+### Slot
+
+A slot component for the entire collection.
+
+### ItemSlot
+
+A slot component for individual items in the collection.
+
+## Hook: useCollection
+
+A hook to access the collection items.
+
+Usage:
+
+```typescript
+function MyComponent() {
+  const getItems = useCollection(scope);
+  const items = getItems();
+  // Use items...
+}
+```
+
+## Use Cases
+
+- Creating dynamic lists or grids of items
+- Building complex UI components like menus, tabs, or carousels
+- Managing collections of form fields
+- Implementing virtualized lists with automatic item tracking
+
+## Performance Considerations
+
+- Uses React's context API for efficient updates
+- Automatically tracks item additions and removals
+- Provides a callback-based API to avoid unnecessary re-renders
+
+By using this Collection Utility, you can easily create and manage collections of components in your React applications, with built-in support for ordering, context management, and performance optimizations.

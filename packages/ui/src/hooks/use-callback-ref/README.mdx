@@ -1,0 +1,115 @@
+# useCallbackRef Hook
+
+The `useCallbackRef` hook is a utility hook that converts a callback function to a ref. This is useful for avoiding unnecessary re-renders when passing callbacks as props or preventing effects from re-executing when the callback is a dependency.
+
+## Features
+
+- Converts a callback function to a ref
+- Prevents unnecessary re-renders
+- Avoids effect re-executions
+- Maintains the latest callback reference
+
+## Usage
+
+```jsx
+import { useCallbackRef } from '@jsandy/ui/use-callback-ref';
+
+function MyComponent({ onSomeEvent }) {
+  const onSomeEventRef = useCallbackRef(onSomeEvent);
+
+  React.useEffect(() => {
+    // This effect will not re-run when `onSomeEvent` changes
+    document.addEventListener('event', onSomeEventRef);
+    return () => document.removeEventListener('event', onSomeEventRef);
+  }, [onSomeEventRef]); // onSomeEventRef is stable and doesn't cause re-renders
+
+  // Rest of the component...
+}
+```
+
+Here's the README file for the useCallbackRef hook:
+
+```markdown project="useCallbackRef Hook" file="README.md"
+...
+```
+
+## API
+
+```typescript
+function useCallbackRef<T extends (...args: any[]) => any>(callback: T | undefined): T;
+```
+
+### Parameters
+
+- `callback`: The callback function to be converted to a ref. It can be of any function type or undefined.
+
+### Returns
+
+- A stable function reference that internally calls the latest provided callback.
+
+## Examples
+
+1. Preventing unnecessary effect re-executions:
+
+   ```tsx
+   function DataFetcher({ onDataFetch }) {
+     const onDataFetchRef = useCallbackRef(onDataFetch);
+
+     React.useEffect(() => {
+       const fetchData = async () => {
+         const data = await fetch('/api/data');
+         onDataFetchRef(data);
+       };
+
+       fetchData();
+     }, [onDataFetchRef]); // Effect doesn't re-run when `onDataFetch` changes
+
+     // Rest of the component...
+   }
+   ```
+
+2. Stable event listener callbacks:
+
+   ```tsx
+   function EventListener({ onEvent }) {
+     const onEventRef = useCallbackRef(onEvent);
+
+     React.useEffect(() => {
+       const handleEvent = (event) => {
+         onEventRef(event);
+       };
+
+       window.addEventListener('customEvent', handleEvent);
+       return () => window.removeEventListener('customEvent', handleEvent);
+     }, [onEventRef]); // Stable dependency, doesn't cause effect to re-run
+
+     // Rest of the component...
+   }
+   ```
+
+## Implementation Details
+
+The `useCallbackRef` hook uses a combination of `useRef`, `useEffect`, and `useMemo` to achieve its functionality:
+
+1. It creates a ref (`callbackRef`) to store the latest callback.
+2. An effect updates this ref whenever the callback changes.
+3. A memoized function is returned that, when called, invokes the latest callback stored in the ref.
+
+This implementation ensures that:
+
+- The returned function reference remains stable across re-renders.
+- The latest callback is always used when the returned function is invoked.
+- Effects or callbacks using this hook don't unnecessarily re-execute due to callback reference changes.
+
+## Best Practices
+
+- Use `useCallbackRef` when you need to pass a callback to child components or effects that shouldn't re-render or re-execute when the callback changes.
+- Be aware that while the hook provides a stable reference, it always uses the latest provided callback internally.
+- Consider using `useCallbackRef` in performance-critical scenarios where preventing unnecessary re-renders is important.
+
+## Caveats
+
+- The returned function from `useCallbackRef` is not identical to the original callback. It's a wrapper that calls the latest version of the callback.
+- If you need to compare the callback identity (e.g., with `useEffect` dependencies), use the returned function from `useCallbackRef`, not the original callback.
+
+By using the `useCallbackRef` hook, you can optimize your React components by reducing unnecessary re-renders and effect re-executions caused by callback prop changes.

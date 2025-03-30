@@ -1,0 +1,94 @@
+# Arrow Component
+
+The Arrow component is a customizable SVG-based arrow that can be used in various UI elements such as tooltips, popovers, or custom indicators.
+
+## Features
+
+- Customizable width and height
+- Option to replace the default arrow with custom SVG content
+- Preserves aspect ratio for consistent appearance
+- Fully typed with TypeScript
+
+## Installation
+
+```bash
+npm install @jsandy/ui
+```
+
+## Usage
+
+```tsx
+import { Arrow } from '@jsandy/ui/arrow';
+
+function MyComponent() {
+  return (
+    <div>
+      <Arrow width={20} height={10} />
+    </div>
+  );
+}
+```
+
+All other props are passed directly to the underlying `svg` element.
+
+## Customization
+
+### Custom Size
+
+You can customize the size of the arrow by adjusting the `width` and `height` props:
+
+```tsx
+<Arrow width={30} height={15} />
+```
+
+### Custom Color
+
+To change the color of the arrow, you can use the `fill` prop:
+
+```tsx
+<Arrow fill="red" />
+```
+
+### Custom Shape
+
+If you need a completely custom arrow shape, you can use the `asChild` prop and provide your own SVG content:
+
+```tsx
+<Arrow asChild>
+  <path d="M0,0 L10,0 L5,5 Z" />
+</Arrow>
+```
+
+## Accessibility
+
+The Arrow component is purely presentational and does not require any specific accessibility considerations. However, when using it as part of a larger component (e.g., a tooltip), ensure that the parent component meets all necessary accessibility requirements.
+
+## Best Practices
+
+- Use consistent sizes for arrows throughout your application to maintain visual harmony.
+- When using custom SVG content, ensure it fits within the specified viewBox (0 0 30 10) for predictable results.
+- Consider using the Arrow component in conjunction with other components like tooltips or dropdown menus for a cohesive design.
+
+## Examples
+
+### Default Arrow
+
+```tsx
+<Arrow />
+```
+
+### Customized Arrow
+
+```tsx
+<Arrow width={20} height={10} fill="blue" />
+```
+
+### Custom SVG Content
+
+```tsx
+<Arrow asChild width={20} height={10}>
+  <polygon points="0,10 20,10 10,0" />
+</Arrow>
+```
+
+By following these guidelines and examples, you can effectively use and customize the Arrow component in your application.

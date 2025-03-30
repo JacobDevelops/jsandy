@@ -1,0 +1,109 @@
+# Spinner Component
+
+## Overview
+
+The Spinner component is a utility for displaying loading indicators in your application. It provides a simple and customizable way to show a visual cue while content is being loaded.
+
+## Features
+
+- Lightweight and easy to use
+- Supports different sizes (`sm`, `md`, `lg`)
+- Configurable color options (`primary`, `secondary`, `accent`)
+- Customizable via props
+- TypeScript support with proper type definitions
+- Accessibility-friendly with ARIA labels
+
+## Installation
+
+To use the Spinner component, ensure you have the necessary dependencies installed in your project:
+
+```bash
+npm install @jsandy/ui
+```
+
+## Usage
+
+Here's a basic example of how to use the Spinner component:
+
+```tsx
+import { Spinner } from '@jsandy/ui/spinner';
+
+function LoadingComponent() {
+  return (
+    <div>
+      <Spinner />
+      <p>Loading...</p>
+    </div>
+  );
+}
+```
+
+## API
+
+### Spinner
+
+The main component for displaying a loading indicator.
+
+#### Props
+
+- `size`: `'sm' | 'md' | 'lg'` (default: `'md'`)
+
+  - Determines the size of the spinner.
+
+- `color`: `'primary' | 'secondary' | 'accent'` (default: `'primary'`)
+
+  - Sets the color of the spinner.
+
+- `className`: `string`
+
+  - Allows for additional custom styling via class names.
+
+- `...props`: `React.HTMLAttributes<HTMLDivElement>`
+  - Additional HTML attributes for customization.
+
+## Accessibility
+
+When using the Spinner component, consider the following accessibility implications:
+
+1. The `role="status"` and `aria-label="Loading"` attributes ensure screen readers can properly announce the loading state.
+2. Avoid using spinners as the only method of communicating loading state; consider pairing them with text.
+3. Ensure the spinner does not run indefinitely without user feedback.
+
+## Best Practices
+
+1. Use the Spinner component to indicate loading states in a non-blocking manner.
+2. Choose an appropriate size based on the context where the spinner is used.
+3. Keep the color scheme consistent with your application's design system.
+4. Avoid overusing spinners, as excessive loading indicators can create a poor user experience.
+
+## Examples
+
+### Basic Usage
+
+```tsx
+<Spinner />
+```
+
+### Custom Size
+
+```tsx
+<Spinner size="lg" />
+```
+
+### Custom Color
+
+```tsx
+<Spinner color="secondary" />
+```
+
+### With Custom Class Name
+
+```tsx
+<Spinner className="my-custom-spinner" />
+```
+
+### Accessibility Example
+
+```tsx
+<Spinner aria-label="Fetching data..." />
+```

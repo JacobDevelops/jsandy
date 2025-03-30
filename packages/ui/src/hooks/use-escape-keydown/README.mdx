@@ -1,0 +1,117 @@
+# useEscapeKeydown Hook
+
+The `useEscapeKeydown` hook is a utility for listening to the Escape key press event in React components. It provides an easy way to handle Escape key presses, which is commonly used for closing modals, dismissing popovers, or canceling forms.
+
+## Features
+
+- Easy integration with React components
+- Customizable callback for Escape key press
+- Option to specify the target document (useful for iframes or testing environments)
+- Uses event capturing for reliable key detection
+- Automatically cleans up event listeners on component unmount
+
+## Installation
+
+```bash
+npm install @jsandy/ui
+```
+
+## Usage
+
+```tsx
+import { useEscapeKeydown } from '@jsandy/ui/use-escape-keydown';
+
+function Modal({ onClose }) {
+  useEscapeKeydown(onClose);
+
+  return (
+    <div className="modal">
+      <h2>Modal Content</h2>
+      <p>Press Escape to close this modal.</p>
+    </div>
+  );
+}
+```
+
+## API
+
+```typescript
+function useEscapeKeydown(
+  onEscapeKeyDownProp?: (event: KeyboardEvent) => void,
+  ownerDocument: Document = globalThis?.document
+): void;
+```
+
+### Parameters
+
+- `onEscapeKeyDownProp` (optional): A callback function that will be called when the Escape key is pressed.
+- `ownerDocument` (optional): The target Document object to attach the event listener to. Defaults to the global document.
+
+## Examples
+
+### Basic Usage
+
+```tsx
+import { useEscapeKeydown } from '@jsandy/ui/use-escape-keydown';
+
+function Popover({ onClose }) {
+  useEscapeKeydown(onClose);
+
+  return (
+    <div className="popover">
+      <p>Press Escape to close this popover.</p>
+    </div>
+  );
+}
+```
+
+### Using with Custom Document (e.g., in an iframe)
+
+```tsx
+import { useEscapeKeydown } from '@jsandy/ui/use-escape-keydown';
+
+function IframeContent({ onExit, iframeDocument }) {
+  useEscapeKeydown(onExit, iframeDocument);
+
+  return (
+    <div>
+      <p>Press Escape to exit the iframe content.</p>
+    </div>
+  );
+}
+```
+
+### Conditional Usage
+
+```tsx
+import { useEscapeKeydown } from '@jsandy/ui/use-escape-keydown';
+
+function ConditionalEscapeHandler({ isActive, onEscape }) {
+  useEscapeKeydown(isActive ? onEscape : undefined);
+
+  return (
+    <div>
+      <p>{isActive ? 'Press Escape to trigger action' : 'Escape handling is inactive'}</p>
+    </div>
+  );
+}
+```
+
+## Best Practices
+
+1. Use `useEscapeKeydown` in components that need to respond to the Escape key, such as modals, dialogs, or custom overlays.
+2. Ensure that the callback provided to `useEscapeKeydown` is memoized (e.g., using `useCallback`) if it's defined inline, to prevent unnecessary re-renders.
+3. When using in a modal or overlay, combine with a focus trap to ensure proper keyboard navigation and accessibility.
+4. Consider the order of multiple Escape key handlers in your application to prevent conflicts.
+
+## Caveats
+
+- The hook uses event capturing, which means it will detect the Escape key press before it reaches other event listeners using the bubbling phase.
+- If multiple components in the component tree use this hook, all of their callbacks will be triggered on an Escape key press. Manage this behavior appropriately in your application logic.
+- The hook attaches the event listener to the provided `ownerDocument`. Ensure that the correct document is used, especially when working with iframes or in testing environments.
+
+## Implementation Details
+
+The `useEscapeKeydown` hook utilizes the `useCallbackRef` hook internally to ensure that the latest callback is always used without causing unnecessary effect re-runs. It sets up an event listener for the 'keydown' event on the specified document (or the global document by default) and checks if the pressed key is 'Escape'. When the Escape key is detected, it calls the provided callback function.
+
+By using the `useEscapeKeydown` hook, you can easily add Escape key functionality to your React components, enhancing user experience and accessibility in your applications.

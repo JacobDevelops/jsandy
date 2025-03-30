@@ -1,0 +1,123 @@
+# Alert Component
+
+The Alert component is a customizable notification element designed to display important messages or information to users. It consists of three main parts: Alert, AlertTitle, and AlertDescription.
+
+## Features
+
+- Customizable appearance with variants
+- Accessible design with proper ARIA roles
+- Composable structure with separate title and description components
+- Tailwind CSS classes for easy styling
+- Responsive design
+
+## Installation
+
+```bash
+npm install @jsandy/ui
+```
+
+## Usage
+
+```tsx
+import { Alert, AlertTitle, AlertDescription } from '@jsandy/ui/alert';
+
+function MyComponent() {
+  return (
+    <Alert>
+      <AlertTitle>Heads up!</AlertTitle>
+      <AlertDescription>
+        You can add components and dependencies to your app using the cli.
+      </AlertDescription>
+    </Alert>
+  );
+}
+```
+
+## Components
+
+### Alert
+
+The main container for the alert message.
+
+#### Props
+
+- `variant`: 'default' | 'destructive' (optional, default: 'default')
+- `className`: string (optional)
+- All other props are passed to the underlying `div` element
+
+### AlertTitle
+
+The title component for the alert message.
+
+#### Props
+
+- `className`: string (optional)
+- All other props are passed to the underlying `h5` element
+
+### AlertDescription
+
+The description component for the alert message.
+
+#### Props
+
+- `className`: string (optional)
+- All other props are passed to the underlying `div` element
+
+## Examples
+
+### Default Alert
+
+```tsx
+<Alert>
+  <AlertTitle>Note</AlertTitle>
+  <AlertDescription>This is a default alert message.</AlertDescription>
+</Alert>
+```
+
+### Destructive Alert
+
+```tsx
+<Alert variant="destructive">
+  <AlertTitle>Error</AlertTitle>
+  <AlertDescription>Your session has expired. Please log in again.</AlertDescription>
+</Alert>
+```
+
+### Alert with Custom Icon
+
+```tsx
+import { AlertCircle } from 'lucide-react';
+
+<Alert>
+  <AlertCircle className="h-4 w-4" />
+  <AlertTitle>Heads up!</AlertTitle>
+  <AlertDescription>You can add components to your app using the cli.</AlertDescription>
+</Alert>;
+```
+
+## Customization
+
+The Alert component uses Tailwind CSS classes and can be easily customized by modifying the `alertVariants` configuration or by passing additional classes through the `className` prop.
+
+```tsx
+<Alert className="border-blue-500 bg-blue-50">
+  <AlertTitle className="text-blue-800">Custom Alert</AlertTitle>
+  <AlertDescription className="text-blue-600">This is a custom styled alert.</AlertDescription>
+</Alert>
+```
+
+## Accessibility
+
+The Alert component is designed with accessibility in mind:
+
+- It uses the `role="alert"` attribute to ensure screen readers announce the content as soon as it appears.
+- The structure with separate title and description components allows for proper heading hierarchy.
+
+## Best Practices
+
+1. Use clear and concise language in your alert messages.
+2. Choose the appropriate variant based on the severity or nature of the message.
+3. Provide both a title and description for most alerts to give users context and details.
+4. Use icons sparingly and ensure they add value to the message.
+
+By using the Alert component, you can create consistent and accessible notification elements throughout your application, enhancing user experience and information delivery.

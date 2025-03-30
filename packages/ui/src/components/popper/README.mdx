@@ -1,0 +1,84 @@
+# Popper Component
+
+## Overview
+
+The Popper component is a flexible and powerful positioning engine for React applications. It provides a way to create tooltips, popovers, dropdowns, and other floating elements that are positioned relative to a reference element.
+
+## Features
+
+- Flexible positioning with support for different sides and alignments
+- Collision detection and avoidance
+- Arrow support with automatic positioning
+- Customizable offsets and padding
+- Support for sticky positioning
+- Hide when detached option
+- Optimized or continuous position updates
+
+## Installation
+
+To use the Popper component, ensure you have the necessary dependencies installed in your project:
+
+```bash
+npm install @floating-ui/react-dom @jsandy/ui
+```
+
+## Usage
+
+Here's a basic example of how to use the Popper component:
+
+```jsx
+import { Popper, PopperAnchor, PopperContent, PopperArrow } from './Popper';
+
+function MyPopper() {
+  return (
+    <Popper>
+      <PopperAnchor>
+        <button>Hover me</button>
+      </PopperAnchor>
+      <PopperContent>
+        This is the popper content
+        <PopperArrow />
+      </PopperContent>
+    </Popper>
+  );
+}
+```
+
+## Components
+
+### Popper
+
+The root component that manages the overall state of the popper.
+
+### PopperAnchor
+
+Wraps the reference element that the popper will be positioned relative to.
+
+### PopperContent
+
+Contains the content of the popper. This is the element that will be positioned.
+
+**Props:**
+
+- `side`: The preferred side of the anchor to render the content against (default: 'bottom')
+- `sideOffset`: The distance between the content and the anchor (default: 0)
+- `align`: The preferred alignment against the anchor (default: 'center')
+- `alignOffset`: The distance from the start or end of the anchor (default: 0)
+- `arrowPadding`: The padding between the arrow and the edges of the content (default: 0)
+- `collisionBoundary`: The element to use as the boundary for collision detection
+- `collisionPadding`: The padding between the collision boundary and the content
+- `sticky`: The sticky behavior on the specified axis (default: 'partial')
+- `hideWhenDetached`: Whether to hide the content when it's detached from the anchor
+- `avoidCollisions`: Whether to automatically adjust the content's placement to avoid collisions (default: true)
+
+### PopperArrow
+
+Renders an arrow pointing to the anchor.
+
+## Customization
+
+The Popper component is highly customizable. You can adjust its behavior and appearance through props and CSS custom properties.
+
+## Accessibility
+
+The Popper component is built with accessibility in mind. It uses appropriate ARIA attributes and supports keyboard navigation.

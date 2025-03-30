@@ -1,20 +1,22 @@
 {
-  "name": "jsandy",
-  "private": true,
-  "scripts": {
-    "build": "turbo run build",
-    "dev": "turbo run dev",
-    "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "check-types": "turbo run check-types"
-  },
-  "devDependencies": {
-    "prettier": "^3.5.3",
-    "turbo": "^2.4.4",
-    "typescript": "5.8.2"
-  },
-  "packageManager": "pnpm@9.0.0",
-  "engines": {
-    "node": ">=18"
-  }
+	"name": "jsandy",
+	"private": true,
+	"scripts": {
+		"build": "turbo run build",
+		"dev": "turbo run dev",
+		"lint": "turbo run lint",
+		"format": "biome format --write .",
+		"check-types": "turbo run check-types"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "1.9.4",
+		"knip": "^5.46.3",
+		"prettier": "^3.5.3",
+		"turbo": "^2.4.4",
+		"typescript": "5.8.2"
+	},
+	"packageManager": "pnpm@10.7.0",
+	"engines": {
+		"node": ">=18"
+	}
 }

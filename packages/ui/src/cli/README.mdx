@@ -1,0 +1,93 @@
+# JSandy UI CLI
+
+This directory contains the Command Line Interface (CLI) for the JSandy UI. The CLI provides a set of commands to help users initialize and manage the design system in their projects.
+
+## Overview
+
+The CLI is built using TypeScript and [Commander.js](https://github.com/tj/commander.js/), providing a structured and type-safe approach to building command-line tools. It's designed to be modular and extensible, making it easy to add new commands in the future.
+
+## Directory Structure
+
+```
+src/cli/
+├── index.ts              # Main entry point for the CLI
+├── commands/             # Command implementations
+│   └── init.ts           # Implementation of the 'init' command
+└── utils/                # Utility functions
+    ├── detect-package-manager.ts   # Package manager detection utils
+    ├── file-helpers.ts             # File operations utilities
+    ├── tailwind-setup.ts           # Tailwind configuration utilities
+    └── css-setup.ts                # CSS setup utilities
+```
+
+## Commands
+
+### `init`
+
+The `init` command initializes the JSandy UI in a project. It:
+
+- Detects the package manager being used (npm, yarn, pnpm)
+- Configures Tailwind CSS (if requested)
+- Sets up CSS variables in the project's globals.css
+- Creates a flag file to indicate successful installation
+
+#### Options
+
+- `--skip-tailwind`: Skip Tailwind CSS setup
+- `--skip-css`: Skip CSS setup
+- `-y, --yes`: Skip all prompts and use defaults
+
+## Development Guidelines
+
+### Adding a New Command
+
+1. Create a new file in the `commands` directory (e.g., `commands/new-command.ts`)
+2. Implement your command logic, exporting a main function
+3. Register the command in `index.ts` using the Commander.js API
+
+Example:
+
+```typescript
+// commands/new-command.ts
+export async function newCommand(options: any): Promise<void> {
+  // Command implementation
+}
+
+// index.ts
+import { newCommand } from './commands/new-command';
+
+// ... existing code ...
+
+program
+  .command('new-command')
+  .description('Description of new command')
+  .option('--flag', 'Description of flag')
+  .action(async (options) => {
+    try {
+      await newCommand(options);
+    } catch (error) {
+      console.error('Error:', error);
+      process.exit(1);
+    }
+  });
+```
+
+### Adding Utilities
+
+Add new utility functions in the appropriate files in the `utils` directory, or create new utility files if needed.
+
+### Error Handling
+
+- Use try/catch blocks to handle errors in commands
+- Provide helpful error messages
+- Exit with non-zero status codes on failure
+
+## Building and Testing
+
+The CLI is built using esbuild as part of the main package build process. The build configuration is in `build.mjs`.
+
+To test the CLI locally:
+
+1. Build the package: `npm run build`
+2. Link the package locally: `npm link`
+3. Run the CLI: `jsandy-design init`

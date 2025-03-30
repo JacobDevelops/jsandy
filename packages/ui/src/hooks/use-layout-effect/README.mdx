@@ -1,0 +1,123 @@
+# useLayoutEffect Hook
+
+The `useLayoutEffect` hook is a custom implementation that provides a safe way to use React's `useLayoutEffect` in both client-side and server-side rendering environments. It addresses the warning that React emits when calling `useLayoutEffect` on the server by replacing it with a no-op function in server-side contexts.
+
+## Features
+
+- Provides a consistent API for `useLayoutEffect` across client and server environments
+- Suppresses React warnings during server-side rendering
+- Behaves identically to React's native `useLayoutEffect` in browser environments
+- Zero-cost abstraction in client-side rendering
+
+## Installation
+
+```bash
+npm install @jsandy/ui
+```
+
+## Usage
+
+```tsx
+import { useLayoutEffect } from '@jsandy/ui/use-layout-effect';
+
+function MyComponent() {
+  useLayoutEffect(() => {
+    // This effect will run synchronously after all DOM mutations
+    // It's safe to use in both client and server environments
+  }, []);
+
+  return <div>My Component</div>;
+}
+```
+
+## API
+
+```typescript
+const useLayoutEffect: typeof React.useLayoutEffect;
+```
+
+The API is identical to React's built-in `useLayoutEffect` hook.
+
+### Parameters
+
+- `effect`: A function that contains imperative, possibly effectful code.
+- `deps` (optional): An array of dependencies. If present, the effect will only rerun when one of these dependencies changes.
+
+## Examples
+
+### Measuring DOM nodes
+
+```tsx
+import { useLayoutEffect } from '@jsandy/ui/use-layout-effect';
+import { useState, useRef } from 'react';
+
+function MeasureExample() {
+  const [height, setHeight] = useState(0);
+  const ref = useRef(null);
+
+  useLayoutEffect(() => {
+    if (ref.current) {
+      setHeight(ref.current.getBoundingClientRect().height);
+    }
+  }, []);
+
+  return (
+    <div>
+      <div ref={ref}>
+        <p>This div's height will be measured</p>
+      </div>
+      <p>The above div is {Math.round(height)}px tall</p>
+    </div>
+  );
+}
+```
+
+### Synchronizing with external libraries
+
+```tsx
+import { useLayoutEffect } from '@jsandy/ui/use-layout-effect';
+import { useRef } from 'react';
+import SomeExternalLibrary from 'some-external-library';
+
+function ExternalLibraryComponent() {
+  const elementRef = useRef(null);
+
+  useLayoutEffect(() => {
+    if (elementRef.current) {
+      const instance = new SomeExternalLibrary(elementRef.current);
+      return () => {
+        instance.destroy();
+      };
+    }
+  }, []);
+
+  return <div ref={elementRef}>External Library Container</div>;
+}
+```
+
+## Best Practices
+
+1. Use `useLayoutEffect` when you need to perform DOM measurements or updates that should be synchronized with the browser's paint cycle.
+2. Prefer `useEffect` for most side effects, unless you specifically need the synchronous behavior of `useLayoutEffect`.
+3. Keep the logic inside `useLayoutEffect` as minimal as possible to avoid blocking visual updates.
+4. Always provide a cleanup function if your effect creates subscriptions or allocates resources.
+
+## Caveats
+
+- While this implementation suppresses the warning on the server, remember that the effect still won't run in a server-side environment. Ensure your component can render correctly without relying on the effect for its initial state.
+- Using `useLayoutEffect` can impact performance if the effect takes a long time to complete, as it blocks the browser from updating the screen.
+- This implementation uses `globalThis?.document` to detect the environment. Ensure your bundler and runtime support this syntax.
+
+## Implementation Details
+
+The custom `useLayoutEffect` hook checks for the presence of `document` in the global scope to determine if it's running in a browser environment:
+
+```javascript
+const useLayoutEffect = Boolean(globalThis?.document) ? React.useLayoutEffect : () => {};
+```
+
+In a browser environment, it uses React's native `useLayoutEffect`. In a server-side environment (where `document` is not defined), it replaces `useLayoutEffect` with an empty function, effectively making it a no-op.
+
+This approach allows you to use `useLayoutEffect` in your components without worrying about server-side rendering warnings or errors, while still maintaining the expected behavior in the browser.
+
+By using this custom `useLayoutEffect` hook, you can write components that work seamlessly in both client-side and server-side rendering contexts, improving the overall reliability and consistency of your React applications.

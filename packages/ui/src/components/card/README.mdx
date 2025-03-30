@@ -1,0 +1,168 @@
+# Button Component
+
+The Button component is a versatile and customizable element used for triggering actions or navigation in a user interface. It supports various visual styles and sizes to accommodate different design needs and interaction contexts.
+
+## Features
+
+- Multiple visual variants (default, destructive, outline, secondary, ghost, link)
+- Size options (default, sm, lg, icon)
+- Support for custom styling through className prop
+- Accessible focus states for keyboard navigation
+- Disabled state styling
+- Option to render as a different element using the `asChild` prop
+
+## Installation
+
+```bash
+npm install @jsandy/ui
+```
+
+## Usage
+
+```tsx
+import {
+  Card,
+  CardHeader,
+  CardFooter,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from '@jsandy/ui/card';
+
+function ExampleCard() {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Card Title</CardTitle>
+        <CardDescription>Card Description</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <p>Card Content</p>
+      </CardContent>
+      <CardFooter>
+        <p>Card Footer</p>
+      </CardFooter>
+    </Card>
+  );
+}
+```
+
+## Components
+
+### Card
+
+The main container component for the card.
+
+### CardHeader
+
+Container for the top section of a card, typically containing the title and description.
+
+### CardFooter
+
+Container for the bottom section of a card, typically containing actions or summary information.
+
+### CardTitle
+
+Component for rendering the main heading of a card.
+
+### CardDescription
+
+Component for rendering supplementary information or context for the card's content.
+
+### CardContent
+
+Container for the main content area of a card.
+
+## Customization
+
+### Custom Styles
+
+You can customize the appearance of the Card and its subcomponents by passing additional classes through the `className` prop:
+
+```tsx
+<Card className="bg-primary text-primary-foreground">
+  <CardHeader className="border-b border-primary-foreground/10">
+    <CardTitle className="text-3xl">Custom Card</CardTitle>
+  </CardHeader>
+  <CardContent className="pt-6">Custom content</CardContent>
+</Card>
+```
+
+## Accessibility
+
+The Card component and its subcomponents use semantic HTML elements to ensure proper structure and accessibility. When using cards, consider the following:
+
+- Use clear and descriptive titles in `CardTitle`
+- Provide context with `CardDescription` when necessary
+- Ensure any interactive elements within the card are keyboard accessible
+
+## Best Practices
+
+- Use cards to group related information and actions
+- Maintain consistent padding and spacing within cards for a polished look
+- Consider using CardTitle and CardDescription within CardHeader for clear content hierarchy
+- Utilize CardFooter for actions or additional information related to the card's content
+- Keep card content concise and focused
+- Use consistent card layouts within the same view or page
+
+## Examples
+
+### Basic Card
+
+```tsx
+<Card>
+  <CardHeader>
+    <CardTitle>Welcome back!</CardTitle>
+    <CardDescription>Deploy your new project in one-click.</CardDescription>
+  </CardHeader>
+  <CardContent>
+    <p>Your projects will appear here once created.</p>
+  </CardContent>
+  <CardFooter>
+    <button>Create project</button>
+  </CardFooter>
+</Card>
+```
+
+### Product Card
+
+```tsx
+<Card>
+  <CardHeader>
+    <CardTitle>Premium Plan</CardTitle>
+    <CardDescription>Perfect for growing businesses</CardDescription>
+  </CardHeader>
+  <CardContent>
+    <p className="text-3xl font-bold">$29.99/mo</p>
+    <ul className="mt-4 space-y-2">
+      <li>Unlimited projects</li>
+      <li>24/7 support</li>
+      <li>Advanced analytics</li>
+    </ul>
+  </CardContent>
+  <CardFooter>
+    <button className="w-full">Choose Plan</button>
+  </CardFooter>
+</Card>
+```
+
+### User Profile Card
+
+```tsx
+<Card>
+  <CardHeader>
+    <img src="/avatar.jpg" alt="User Avatar" className="w-16 h-16 rounded-full mx-auto" />
+    <CardTitle>John Doe</CardTitle>
+    <CardDescription>Software Developer</CardDescription>
+  </CardHeader>
+  <CardContent>
+    <p>Passionate about creating intuitive user experiences and scalable applications.</p>
+  </CardContent>
+  <CardFooter className="justify-center space-x-4">
+    <button>Connect</button>
+    <button>Message</button>
+  </CardFooter>
+</Card>
+```
+
+By following these guidelines and examples, you can effectively use and customize the Card component and its subcomponents in your application to create structured and visually appealing content containers.

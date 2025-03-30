@@ -1,0 +1,471 @@
+# Form Component
+
+## Overview
+
+The Form component is a comprehensive form management system inspired by React Hook Form. It provides a controlled way to handle form state, validation, and error handling for building complex forms. It utilizes a context-based approach with form fields that register themselves with the form.
+
+## Features
+
+- **Form State Management**: Manages form values, errors, and other state
+- **Field Registration**: Fields register themselves with the form
+- **Context-Based Architecture**: Uses context to share form state across components
+- **Accessibility**: Proper ARIA attributes and error associations
+- **Flexible Styling**: Consistent styling with Tailwind integration
+- **Form Organization**: Structured approach to creating form layouts with proper labeling
+
+## Installation
+
+```bash
+npm install @jsandy/ui
+```
+
+## Basic Usage
+
+```tsx
+import {
+  useForm,
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from '@jsandy/ui/form';
+
+// Define your form values type
+interface LoginFormValues {
+  email: string;
+  password: string;
+  rememberMe: boolean;
+}
+
+function LoginForm() {
+  // Initialize the form with default values
+  const form = useForm<LoginFormValues>({
+    defaultValues: {
+      email: '',
+      password: '',
+      rememberMe: false,
+    },
+  });
+
+  // Form submission handler
+  function onSubmit(data: LoginFormValues) {
+    console.log('Form submitted:', data);
+    // Process form data...
+  }
+
+  return (
+    <Form {...form} onSubmit={onSubmit}>
+      <FormField
+        control={form.control}
+        name="email"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Email</FormLabel>
+            <FormControl>
+              <input type="email" {...field} className="input" />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="password"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Password</FormLabel>
+            <FormControl>
+              <input type="password" {...field} className="input" />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="rememberMe"
+        render={({ field }) => (
+          <FormItem className="flex items-center gap-2">
+            <FormControl>
+              <input
+                type="checkbox"
+                checked={field.value}
+                onChange={field.onChange}
+                className="checkbox"
+              />
+            </FormControl>
+            <FormLabel>Remember me</FormLabel>
+          </FormItem>
+        )}
+      />
+
+      <button type="submit" className="button">
+        Login
+      </button>
+    </Form>
+  );
+}
+```
+
+## Form Validation
+
+You can validate your forms using a custom resolver function:
+
+```tsx
+import { useForm } from '@jsandy/ui/form';
+
+interface SignupFormValues {
+  username: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
+function SignupForm() {
+  const form = useForm<SignupFormValues>({
+    defaultValues: {
+      username: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+    },
+    // Custom validation resolver
+    resolver: (values) => {
+      const errors = {};
+
+      if (!values.username) {
+        errors.username = { message: 'Username is required' };
+      }
+
+      if (!values.email) {
+        errors.email = { message: 'Email is required' };
+      } else if (!/\S+@\S+\.\S+/.test(values.email)) {
+        errors.email = { message: 'Email is invalid' };
+      }
+
+      if (!values.password) {
+        errors.password = { message: 'Password is required' };
+      } else if (values.password.length < 8) {
+        errors.password = { message: 'Password must be at least 8 characters' };
+      }
+
+      if (values.password !== values.confirmPassword) {
+        errors.confirmPassword = { message: 'Passwords do not match' };
+      }
+
+      return {
+        values,
+        errors,
+      };
+    },
+    // Validate on field change
+    mode: 'onChange',
+  });
+
+  // Rest of component...
+}
+```
+
+## Field Arrays
+
+For dynamic forms with repeating sections:
+
+```tsx
+import { useForm, useFieldArray } from '@jsandy/ui/form';
+
+interface OrderFormValues {
+  customer: {
+    name: string;
+    email: string;
+  };
+  items: {
+    product: string;
+    quantity: number;
+    price: number;
+  }[];
+}
+
+function OrderForm() {
+  const form = useForm<OrderFormValues>({
+    defaultValues: {
+      customer: {
+        name: '',
+        email: '',
+      },
+      items: [{ product: '', quantity: 1, price: 0 }],
+    },
+  });
+
+  // Initialize field array for order items
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: 'items',
+  });
+
+  return (
+    <Form {...form} onSubmit={form.handleSubmit((data) => console.log(data))}>
+      {/* Customer fields... */}
+
+      <div>
+        <h3>Order Items</h3>
+
+        {fields.map((field, index) => (
+          <div key={field.id} className="flex gap-4">
+            <FormField
+              control={form.control}
+              name={`items.${index}.product`}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Product</FormLabel>
+                  <FormControl>
+                    <input {...field} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name={`items.${index}.quantity`}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Quantity</FormLabel>
+                  <FormControl>
+                    <input
+                      type="number"
+                      {...field}
+                      onChange={(e) => field.onChange(parseInt(e.target.value, 10))}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name={`items.${index}.price`}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Price</FormLabel>
+                  <FormControl>
+                    <input
+                      type="number"
+                      step="0.01"
+                      {...field}
+                      onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            <button type="button" onClick={() => remove(index)} className="button-danger">
+              Remove
+            </button>
+          </div>
+        ))}
+
+        <button
+          type="button"
+          onClick={() => append({ product: '', quantity: 1, price: 0 })}
+          className="button"
+        >
+          Add Item
+        </button>
+      </div>
+
+      <button type="submit" className="button-primary">
+        Submit Order
+      </button>
+    </Form>
+  );
+}
+```
+
+## Watching Form Values
+
+You can watch form values to create reactive interfaces:
+
+```tsx
+function PricingCalculator() {
+  const form = useForm({
+    defaultValues: {
+      basePrice: 100,
+      quantity: 1,
+      discount: 0,
+    },
+  });
+
+  // Watch specific fields
+  const basePrice = form.watch('basePrice');
+  const quantity = form.watch('quantity');
+  const discount = form.watch('discount');
+
+  // Calculate total
+  const total = basePrice * quantity * (1 - discount / 100);
+
+  return (
+    <Form {...form}>
+      {/* Form fields... */}
+
+      <div className="summary">
+        <p>Base Price: ${basePrice}</p>
+        <p>Quantity: {quantity}</p>
+        <p>Discount: {discount}%</p>
+        <p className="total">Total: ${total.toFixed(2)}</p>
+      </div>
+    </Form>
+  );
+}
+```
+
+## API Reference
+
+### useForm
+
+The main hook for form state management.
+
+```tsx
+const form = useForm<YourFormType>({
+  defaultValues: {...},  // Initial form values
+  mode: 'onChange',      // When to validate: 'onChange', 'onBlur', 'onSubmit'
+  reValidateMode: 'onChange',  // When to re-validate after initial validation
+  resolver: (values) => {...},  // Custom validation function
+});
+```
+
+Returns:
+
+- `register`: Function to register fields with the form
+- `control`: Object for use with controlled components
+- `handleSubmit`: Function to create form submission handlers
+- `setValue`: Function to programmatically set field values
+- `getValues`: Function to get current form values
+- `watch`: Function to observe form value changes
+- `formState`: Object containing form state (errors, dirty state, etc.)
+- `reset`: Function to reset the form to default values
+
+### useFieldArray
+
+Hook for managing arrays of form fields.
+
+```tsx
+const { fields, append, remove, ... } = useFieldArray({
+  control: form.control,
+  name: 'fieldArrayName',
+});
+```
+
+Returns:
+
+- `fields`: Current array of fields with unique IDs
+- `append`: Function to add items to the end of the array
+- `prepend`: Function to add items to the beginning of the array
+- `insert`: Function to insert items at a specific position
+- `remove`: Function to remove items
+- `swap`: Function to swap two items
+- `move`: Function to move an item from one position to another
+- `update`: Function to update an item at a specific position
+- `replace`: Function to replace all items
+
+### Form Components
+
+- `Form`: The root form component
+- `FormField`: Connects form state to field components
+- `FormItem`: Container for a form field and its associated components
+- `FormLabel`: Label for a form field
+- `FormControl`: Wrapper for input elements with proper accessibility
+- `FormDescription`: Descriptive text for a form field
+- `FormMessage`: Displays validation error messages
+
+## Advanced Usage
+
+### Conditional Fields
+
+```tsx
+function SubscriptionForm() {
+  const form = useForm({
+    defaultValues: {
+      plan: 'monthly',
+      autoRenew: false,
+      paymentMethod: 'credit',
+      // Conditional fields
+      creditCardNumber: '',
+      paypalEmail: '',
+    },
+  });
+
+  const paymentMethod = form.watch('paymentMethod');
+
+  return (
+    <Form {...form}>
+      {/* Plan selection... */}
+
+      <FormField
+        control={form.control}
+        name="paymentMethod"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Payment Method</FormLabel>
+            <select {...field}>
+              <option value="credit">Credit Card</option>
+              <option value="paypal">PayPal</option>
+            </select>
+          </FormItem>
+        )}
+      />
+
+      {/* Conditional fields based on payment method */}
+      {paymentMethod === 'credit' && (
+        <FormField
+          control={form.control}
+          name="creditCardNumber"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Credit Card Number</FormLabel>
+              <FormControl>
+                <input {...field} />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+      )}
+
+      {paymentMethod === 'paypal' && (
+        <FormField
+          control={form.control}
+          name="paypalEmail"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>PayPal Email</FormLabel>
+              <FormControl>
+                <input type="email" {...field} />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+      )}
+    </Form>
+  );
+}
+```
+
+## TypeScript Support
+
+The library comes with full TypeScript support, including:
+
+- Type inference for form values
+- Type-safe field paths with dot notation
+- Type checking for nested fields and arrays
+- Proper type definitions for all return values
+
+## Performance Considerations
+
+- Each form field is isolated through context to minimize re-renders
+- Input event handlers are memoized to maintain reference stability
+- Field arrays use optimized updates to avoid unnecessary re-renders
+- Form state updates are batched when possible

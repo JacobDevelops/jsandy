@@ -1,0 +1,81 @@
+# Context Utility
+
+The Context Utility provides advanced tools for creating and managing React contexts with enhanced features such as scoping and composition. This utility is designed to simplify the creation of complex, nested contexts in large React applications.
+
+## Key Features
+
+1. Create contexts with custom providers and hooks
+2. Support for default context values
+3. Context scoping for better organization and performance
+4. Composition of multiple context scopes
+
+## Main Functions
+
+### createContext
+
+Creates a context with a custom provider and a hook to use the context.
+
+Usage:
+
+```typescript
+const [Provider, useContext] = createContext('MyComponent');
+
+function MyComponent({ children }) {
+  return <Provider value={{ someValue: 'example' }}>{children}</Provider>;
+}
+
+function ChildComponent() {
+  const context = useContext('ChildComponent');
+  // Use context here
+}
+```
+
+### createContextScope
+
+Creates a scoped context that can be composed with other scoped contexts.
+
+Usage:
+
+```typescript
+const [createContext, createScope] = createContextScope('MyScope');
+
+const [Provider, useContext] = createContext('MyComponent');
+
+const useScope = createScope();
+
+function MyComponent({ children, scope }) {
+  const scopeProps = useScope(scope);
+  return (
+    <Provider {...scopeProps} value={{ someValue: 'example' }}>
+      {children}
+    </Provider>
+  );
+}
+```
+
+### composeContextScopes
+
+Composes multiple context scopes into a single scope.
+
+Usage:
+
+```typescript
+const ScopeA = createContextScope('ScopeA');
+const ScopeB = createContextScope('ScopeB');
+
+const ComposedScope = composeContextScopes(ScopeA, ScopeB);
+```
+
+## Use Cases
+
+- Creating reusable component libraries with self-contained contexts
+- Managing complex state in large React applications
+- Implementing feature flags or theming systems
+- Creating nested contexts with clear boundaries and scopes
+
+## Performance Considerations
+
+- Context values are memoized to prevent unnecessary re-renders
+- Scoped contexts allow for more granular updates, potentially improving performance in large applications
+
+By using this Context Utility, you can create more organized, efficient, and flexible context systems in your React applications, enabling better state management and component composition.

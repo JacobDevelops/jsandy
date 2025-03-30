@@ -1,0 +1,209 @@
+# Popover
+
+The Popover component displays floating content that appears when a user interacts with a trigger element. It's perfect for temporary, contextual information and actions without disrupting the flow of the main UI.
+
+## Features
+
+- **Floating Content**: Creates a panel that appears above other page content
+- **Customizable Positioning**: Configurable placement relative to the trigger
+- **Focus Management**: Automatically handles focus for accessibility
+- **Modal Option**: Can prevent interaction with the underlying UI when needed
+- **Dismissal Behaviors**: Multiple ways to dismiss, including click outside and escape key
+- **Animation**: Smooth entrance and exit animations
+- **Arrow Indicator**: Optional visual indicator pointing to the trigger
+
+## Installation
+
+```bash
+npm install @jsandy/ui
+```
+
+## Usage
+
+### Basic Example
+
+```tsx
+import { Popover, PopoverTrigger, PopoverContent } from '@jsandy/ui/popover';
+
+export function PopoverDemo() {
+  return (
+    <Popover>
+      <PopoverTrigger>Open popover</PopoverTrigger>
+      <PopoverContent>
+        <p>This is the content of the popover.</p>
+      </PopoverContent>
+    </Popover>
+  );
+}
+```
+
+### With Arrow
+
+```tsx
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverArrow,
+} from '@jsandy/ui/popover';
+
+export function PopoverWithArrowDemo() {
+  return (
+    <Popover>
+      <PopoverTrigger>Open popover</PopoverTrigger>
+      <PopoverContent>
+        <PopoverArrow />
+        <p>This popover has an arrow pointing to the trigger.</p>
+      </PopoverContent>
+    </Popover>
+  );
+}
+```
+
+### With Close Button
+
+```tsx
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverClose,
+} from '@jsandy/ui/popover';
+import { Close } from 'lucide-react';
+
+export function PopoverWithCloseDemo() {
+  return (
+    <Popover>
+      <PopoverTrigger>Open popover</PopoverTrigger>
+      <PopoverContent>
+        <div className="flex justify-between items-center">
+          <h4 className="font-medium">Popover Title</h4>
+          <PopoverClose className="rounded-full h-4 w-4 inline-flex items-center justify-center">
+            <Close className="h-4 w-4" />
+          </PopoverClose>
+        </div>
+        <p className="mt-2">This popover has an explicit close button.</p>
+      </PopoverContent>
+    </Popover>
+  );
+}
+```
+
+### Controlled Example
+
+```tsx
+import { useState } from 'react';
+import { Popover, PopoverTrigger, PopoverContent } from '@jsandy/ui/popover';
+
+export function ControlledPopoverDemo() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger>{open ? 'Close' : 'Open'} popover</PopoverTrigger>
+        <PopoverContent>
+          <p>This is a controlled popover.</p>
+          <button onClick={() => setOpen(false)}>Close</button>
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+}
+```
+
+### Modal Popover
+
+```tsx
+import { Popover, PopoverTrigger, PopoverContent } from '@jsandy/ui/popover';
+
+export function ModalPopoverDemo() {
+  return (
+    <Popover modal>
+      <PopoverTrigger>Open modal popover</PopoverTrigger>
+      <PopoverContent>
+        <p>This popover is modal, blocking interaction with content behind it.</p>
+      </PopoverContent>
+    </Popover>
+  );
+}
+```
+
+## Accessibility
+
+The Popover component follows accessibility best practices:
+
+- **ARIA Attributes**: Proper `role="dialog"` and associated attributes are automatically applied
+- **Focus Management**: Focus is appropriately trapped when in modal mode
+- **Keyboard Navigation**: Support for Escape key to close the popover
+- **Screen Reader Support**: Announcements for content changes and state
+- **Focus Return**: Focus returns to the trigger element when the popover is closed
+
+## Keyboard Interactions
+
+| Key                | Description                                              |
+| ------------------ | -------------------------------------------------------- |
+| `Enter` or `Space` | When focus is on the trigger, opens the popover          |
+| `Escape`           | Closes an open popover                                   |
+| `Tab`              | Moves focus through tabbable elements within the popover |
+| `Shift + Tab`      | Moves focus to the previous tabbable element             |
+
+## Composition
+
+The Popover is designed to be composed with other components:
+
+```tsx
+import { Popover, PopoverTrigger, PopoverContent } from '@jsandy/ui/popover';
+import { Button } from '@jsandy/ui/button';
+import { Input } from '@jsandy/ui/input';
+
+export function ComposedPopoverDemo() {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="outline">Edit profile</Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-80">
+        <div className="grid gap-4">
+          <div className="space-y-2">
+            <h4 className="font-medium leading-none">Dimensions</h4>
+            <p className="text-sm text-muted-foreground">Set the dimensions for the layer.</p>
+          </div>
+          <div className="grid gap-2">
+            <div className="grid grid-cols-3 items-center gap-4">
+              <label htmlFor="width">Width</label>
+              <Input id="width" className="col-span-2 h-8" />
+            </div>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <label htmlFor="height">Height</label>
+              <Input id="height" className="col-span-2 h-8" />
+            </div>
+          </div>
+          <Button>Save changes</Button>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+```
+
+## Design Considerations
+
+- **Content Size**: Keep content concise and focused on a single task or piece of information
+- **Placement**: Position the popover to avoid obscuring related content when possible
+- **Context Retention**: Ensure the trigger remains visible when the popover is open
+- **Visual Hierarchy**: Design popovers to appear above other UI elements but below critical elements like modals
+- **Mobile Considerations**: Ensure popovers are fully responsive and accessible on touch devices
+- **Dismissal Patterns**: Provide clear ways to dismiss the popover, especially for task-focused content
+
+## When to Use Popovers
+
+Popovers are ideal for:
+
+- **Contextual Information**: Additional details or explanations related to an element
+- **Secondary Actions**: Options or actions that apply to a specific component
+- **Form Inputs**: Specialized input controls like date pickers or color selectors
+- **Help Content**: Contextual help or tooltips with interactive elements
+- **Feature Highlights**: Drawing attention to new features or functionality
+
+Consider alternatives like modals for more complex interactions, or tooltips for simpler non-interactive content.

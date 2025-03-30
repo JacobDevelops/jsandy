@@ -1,0 +1,154 @@
+# Collapsible Component
+
+The Collapsible component provides a way to toggle the visibility of content, allowing for a more compact UI that can expand to show additional information when needed. It's composed of three main parts: Collapsible, CollapsibleTrigger, and CollapsibleContent.
+
+## Features
+
+- Controlled visibility of content
+- Customizable trigger element
+- Smooth transition effects
+- Accessible keyboard navigation
+- Support for nested collapsibles
+- Controlled and uncontrolled usage
+
+## Installation
+
+```bash
+npm install @jsandy/ui
+```
+
+## Usage
+
+```tsx
+import {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from '@jsandy/ui/collapsible';
+
+function MyComponent() {
+  return (
+    <Collapsible>
+      <CollapsibleTrigger>Toggle</CollapsibleTrigger>
+      <CollapsibleContent>This content can be expanded or collapsed.</CollapsibleContent>
+    </Collapsible>
+  );
+}
+```
+
+## Components
+
+### Collapsible
+
+The main wrapper component that provides context for its children.
+
+### CollapsibleTrigger
+
+The button that toggles the collapsible content.
+
+#### Props
+
+This component extends the HTML button element props.
+
+### CollapsibleContent
+
+The container for the content that can be shown or hidden.
+
+## Customization
+
+### Custom Trigger
+
+You can customize the trigger by using the `asChild` prop:
+
+```tsx
+<CollapsibleTrigger asChild>
+  <button className="custom-button">
+    Toggle
+    <ArrowIcon />
+  </button>
+</CollapsibleTrigger>
+```
+
+### Styling
+
+You can apply custom styles to each component:
+
+```tsx
+<Collapsible className="border rounded-lg">
+  <CollapsibleTrigger className="p-4 w-full text-left">Toggle</CollapsibleTrigger>
+  <CollapsibleContent className="p-4 bg-gray-100">Collapsible content</CollapsibleContent>
+</Collapsible>
+```
+
+## Accessibility
+
+The Collapsible component follows accessibility best practices:
+
+- The trigger is a button with appropriate ARIA attributes
+- The content has `aria-hidden` set correctly based on its visibility
+- Keyboard navigation is supported
+
+## Examples
+
+### Basic Usage
+
+```tsx
+<Collapsible>
+  <CollapsibleTrigger>Toggle</CollapsibleTrigger>
+  <CollapsibleContent>This is the collapsible content.</CollapsibleContent>
+</Collapsible>
+```
+
+### Controlled Usage
+
+```tsx
+function ControlledCollapsible() {
+  const [isOpen, setIsOpen] = React.useState(false);
+
+  return (
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <CollapsibleTrigger>{isOpen ? 'Close' : 'Open'}</CollapsibleTrigger>
+      <CollapsibleContent>This is a controlled collapsible.</CollapsibleContent>
+    </Collapsible>
+  );
+}
+```
+
+### With Animation
+
+```tsx
+<Collapsible>
+  <CollapsibleTrigger>Toggle</CollapsibleTrigger>
+  <CollapsibleContent className="transition-all duration-300 ease-in-out">
+    {({ present }) => (
+      <div className={present ? 'animate-slideDown' : 'animate-slideUp'}>Animated content</div>
+    )}
+  </CollapsibleContent>
+</Collapsible>
+```
+
+### Nested Collapsibles
+
+```tsx
+<Collapsible>
+  <CollapsibleTrigger>Main Section</CollapsibleTrigger>
+  <CollapsibleContent>
+    <p>Main content</p>
+    <Collapsible>
+      <CollapsibleTrigger>Subsection</CollapsibleTrigger>
+      <CollapsibleContent>Nested content</CollapsibleContent>
+    </Collapsible>
+  </CollapsibleContent>
+</Collapsible>
+```
+
+## Best Practices
+
+- Use for secondary or supplementary information that doesn't need to be always visible
+- Ensure the trigger clearly indicates that there's hidden content
+- Consider the impact on page layout when content expands
+- Use in conjunction with icons or chevrons to indicate expandability
+- Group related content within a single collapsible
+- Avoid nesting too many levels of collapsibles to maintain clarity
+
+By following these guidelines and examples, you can effectively use and customize the Collapsible component in your application to create interactive and space-efficient user interfaces.

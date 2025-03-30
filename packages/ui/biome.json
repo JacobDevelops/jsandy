@@ -1,0 +1,15 @@
+{
+	"$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+	"extends": ["@jsandy/biome-config/base"],
+	"linter": {
+		"include": ["src/**/*.ts", "src/**/*.tsx"],
+		"rules": {
+			"suspicious": {
+				"noExplicitAny": "off"
+			},
+			"correctness": {
+				"useExhaustiveDependencies": "off"
+			}
+		}
+	}
+}

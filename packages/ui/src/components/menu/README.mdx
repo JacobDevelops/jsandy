@@ -1,0 +1,134 @@
+# Menu Component Library
+
+## Overview
+
+This is a comprehensive and accessible menu component library for React applications. It provides a set of composable components to create various types of menus, including dropdown menus, context menus, and nested submenus.
+
+## Features
+
+- Fully accessible, following WAI-ARIA guidelines
+- Keyboard navigation support
+- Type-ahead functionality for quick item selection
+- Support for checkable menu items (checkbox and radio)
+- Nested submenus with easy-to-use API
+- Flexible positioning with Popper.js integration
+- Customizable styling
+- Portal support for rendering menus in different DOM locations
+
+## Installation
+
+To install the menu component library, use your preferred package manager:
+
+```bash
+npm install @jsandy/ui
+```
+
+or
+
+```bash
+yarn add @jsandy/ui
+```
+
+## Basic Usage
+
+Here's a simple example of how to use the menu components:
+
+```jsx
+import React from 'react';
+import { Menu, MenuAnchor, MenuContent, MenuItem } from '@jsandy/ui';
+
+const SimpleMenu = () => (
+  <Menu>
+    <MenuAnchor>
+      <button>Open Menu</button>
+    </MenuAnchor>
+    <MenuContent>
+      <MenuItem>Item 1</MenuItem>
+      <MenuItem>Item 2</MenuItem>
+      <MenuItem>Item 3</MenuItem>
+    </MenuContent>
+  </Menu>
+);
+
+export default SimpleMenu;
+```
+
+## Components
+
+The library includes the following main components:
+
+- `Menu`: The root component that manages the overall state of the menu.
+- `MenuAnchor`: Wraps the triggering element for the menu.
+- `MenuContent`: Contains the actual menu items and structure.
+- `MenuItem`: Represents a single menu item.
+- `MenuCheckboxItem`: A checkable menu item.
+- `MenuRadioGroup` and `MenuRadioItem`: For creating groups of radio-style menu items.
+- `MenuSeparator`: Used to create visual separators between menu items.
+- `MenuSub`, `MenuSubTrigger`, and `MenuSubContent`: For creating nested submenus.
+
+## Advanced Usage
+
+### Checkbox Items
+
+```jsx
+<Menu>
+  <MenuAnchor>
+    <button>Open Menu</button>
+  </MenuAnchor>
+  <MenuContent>
+    <MenuCheckboxItem checked={isChecked} onCheckedChange={setIsChecked}>
+      Toggle Feature
+    </MenuCheckboxItem>
+  </MenuContent>
+</Menu>
+```
+
+### Radio Groups
+
+```jsx
+<Menu>
+  <MenuAnchor>
+    <button>Open Menu</button>
+  </MenuAnchor>
+  <MenuContent>
+    <MenuRadioGroup value={selectedValue} onValueChange={setSelectedValue}>
+      <MenuRadioItem value="option1">Option 1</MenuRadioItem>
+      <MenuRadioItem value="option2">Option 2</MenuRadioItem>
+      <MenuRadioItem value="option3">Option 3</MenuRadioItem>
+    </MenuRadioGroup>
+  </MenuContent>
+</Menu>
+```
+
+### Nested Submenus
+
+```jsx
+<Menu>
+  <MenuAnchor>
+    <button>Open Menu</button>
+  </MenuAnchor>
+  <MenuContent>
+    <MenuItem>Item 1</MenuItem>
+    <MenuSub>
+      <MenuSubTrigger>More Options</MenuSubTrigger>
+      <MenuSubContent>
+        <MenuItem>Sub-Item 1</MenuItem>
+        <MenuItem>Sub-Item 2</MenuItem>
+      </MenuSubContent>
+    </MenuSub>
+  </MenuContent>
+</Menu>
+```
+
+## Accessibility
+
+This menu component library is built with accessibility in mind, following WAI-ARIA guidelines for menus. It supports:
+
+- Proper ARIA attributes for roles, states, and properties
+- Keyboard navigation using arrow keys, Enter, Space, and Escape
+- Type-ahead functionality for quick item selection
+- Focus management for opening, closing, and navigating menus
+
+## Customization
+
+The components accept className props for custom styling. You can also use the provided data attributes for targeting specific states in your CSS.

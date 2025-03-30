@@ -1,0 +1,87 @@
+# Switch Component
+
+## Overview
+
+The Switch component is a customizable, accessible toggle component for React applications. It provides a visual way to switch between two mutually exclusive states, typically used for enabling or disabling a feature.
+
+## Features
+
+- Clear visual indication of current state
+- Smooth transition animation between states
+- Customizable appearance through className prop
+- Accessible, using appropriate ARIA attributes
+- Support for keyboard interaction
+- Form integration with native checkbox behavior
+
+## Installation
+
+To use the Switch component, ensure you have the necessary dependencies installed in your project:
+
+```bash
+npm install @jsandy/ui
+```
+
+## Usage
+
+Here's a basic example of how to use the Switch component:
+
+```jsx
+import { Switch } from '@jsandy/ui/switch';
+
+function FeatureToggle() {
+  const [enabled, setEnabled] = React.useState(false);
+
+  return <Switch checked={enabled} onCheckedChange={setEnabled} aria-label="Enable feature" />;
+}
+```
+
+## API
+
+### Switch
+
+The main component for creating a switch toggle.
+
+#### Props
+
+- `checked`: boolean
+  - Indicates whether the switch is checked (controlled).
+- `defaultChecked`: boolean
+  - The default checked state of the switch (uncontrolled).
+- `onCheckedChange`: (checked: boolean) => void
+  - Callback function triggered when the checked state changes.
+- `disabled`: boolean
+  - If true, disables the switch.
+- `required`: boolean
+  - If true, indicates that the switch is required in a form.
+- `name`: string
+  - The name of the switch when used in a form.
+- `value`: string
+  - The value of the switch when used in a form. Defaults to "on".
+- `form`: string
+  - The id of the form the switch belongs to.
+
+All other props are passed to the underlying button element.
+
+### SwitchThumb
+
+A sub-component that represents the movable part of the switch. This is already included in the main Switch component and typically doesn't need to be used separately.
+
+## Accessibility
+
+The Switch component follows accessibility best practices:
+
+- It uses the appropriate ARIA role ("switch").
+- It manages focus and keyboard interactions.
+- It integrates with forms for native form validation and events.
+
+## Customization
+
+The Switch component can be customized using the `className` prop. It uses Tailwind CSS classes by default, which can be overridden or extended.
+
+## Best Practices
+
+1. Use switches for boolean settings that can be turned on or off.
+2. Provide clear labels to indicate what the switch controls.
+3. Use the switch for immediate actions, where the effect is instantaneous.
+4. Ensure sufficient color contrast between the switch states for visibility.
+5. Use in forms or settings panels where binary choices are appropriate.

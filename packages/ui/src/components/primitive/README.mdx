@@ -1,0 +1,135 @@
+# Primitive Component
+
+## Overview
+
+The Primitive component is a foundational building block in the @jsandy/ui library. It provides a set of basic HTML elements with enhanced functionality, including the ability to render as a child component and forward refs.
+
+## Features
+
+- Supports common HTML elements (a, button, div, form, h2, h3, img, input, label, li, nav, ol, p, span, svg, ul)
+- Allows rendering as a child component using the `asChild` prop
+- Forwards refs to the underlying DOM element
+- Provides TypeScript support with proper type definitions
+- Includes a utility function for dispatching discrete custom events
+
+## Installation
+
+To use the Primitive component, ensure you have the necessary dependencies installed in your project:
+
+```bash
+npm install @jsandy/ui
+```
+
+## Usage
+
+Here's a basic example of how to use the Primitive component:
+
+```jsx
+import { Primitive } from '@jsandy/ui/primitive';
+
+function MyComponent() {
+  return (
+    <Primitive.div>
+      <Primitive.h2>Hello, World!</Primitive.h2>
+      <Primitive.p>This is a paragraph using the Primitive component.</Primitive.p>
+    </Primitive.div>
+  );
+}
+```
+
+## API
+
+### Primitive
+
+The Primitive object contains components for various HTML elements. Each component accepts the following props:
+
+- All props accepted by the corresponding HTML element
+- `asChild?: boolean` - When true, the component will render its children instead of the default element
+- `ref?: React.Ref` - Forwarded to the underlying element
+
+Available Primitive components:
+`a`, `button`, `div`, `form`, `h2`, `h3`, `img`, `input`, `label`, `li`, `nav`, `ol`, `p`, `span`, `svg`, `ul`
+
+### dispatchDiscreteCustomEvent
+
+A utility function for dispatching custom events within discrete events to ensure proper batching in React 18+.
+
+```typescript
+function dispatchDiscreteCustomEvent<E extends CustomEvent>(target: E['target'], event: E): void;
+```
+
+## Best Practices
+
+1. Use Primitive components as building blocks for more complex components in your design system.
+2. Leverage the `asChild` prop when you need to change the rendered element while maintaining the component's logic and props.
+3. When forwarding refs, ensure you're using them appropriately and not exposing unnecessary internals of your components.
+4. Use the `dispatchDiscreteCustomEvent` utility when dispatching custom events within discrete events like `onPointerDown` to ensure proper batching behavior.
+
+## Examples
+
+### Using asChild prop
+
+```jsx
+import { Primitive } from '@jsandy/ui/primitive';
+
+function CustomButton({ asChild, ...props }) {
+  const Comp = asChild ? Slot : Primitive.button;
+  return <Comp {...props} />;
+}
+
+function MyComponent() {
+  return (
+    <CustomButton asChild>
+      <a href="/some-link">Click me</a>
+    </CustomButton>
+  );
+}
+```
+
+### Forwarding Refs
+
+```jsx
+import React from 'react';
+import { Primitive } from '@jsandy/ui/primitive';
+
+const TextInput = React.forwardRef((props, forwardedRef) => {
+  return <Primitive.input type="text" {...props} ref={forwardedRef} />;
+});
+
+function MyForm() {
+  const inputRef = React.useRef(null);
+
+  React.useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, []);
+
+  return <TextInput ref={inputRef} placeholder="Enter text here" />;
+}
+```
+
+### Using dispatchDiscreteCustomEvent
+
+```jsx
+import { Primitive, dispatchDiscreteCustomEvent } from '@jsandy/ui/primitive';
+
+function MyComponent() {
+  const handlePointerDown = (event) => {
+    const customEvent = new CustomEvent('myCustomEvent', {
+      detail: { x: event.clientX, y: event.clientY },
+    });
+    dispatchDiscreteCustomEvent(event.target, customEvent);
+  };
+
+  return <Primitive.button onPointerDown={handlePointerDown}>Click me</Primitive.button>;
+}
+```
+
+## Accessibility
+
+When using Primitive components, keep in mind:
+
+1. Use semantic HTML elements appropriately to ensure proper accessibility.
+2. When using `asChild`, make sure the rendered child component maintains the necessary accessibility attributes.
+3. Always provide proper labels, ARIA attributes, and keyboard navigation support when building interactive components with Primitives.

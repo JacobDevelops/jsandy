@@ -1,0 +1,45 @@
+# Clamp Utility
+
+The Clamp Utility provides a simple function to restrict a number within a specified range. This is useful in various scenarios where you need to ensure a value doesn't exceed certain boundaries.
+
+## Function: clamp
+
+The `clamp` function takes a number and constrains it within a given range.
+
+### Usage
+
+```typescript
+import { clamp } from '@jsandy/ui/number';
+
+const clampedValue = clamp(15, [0, 10]);
+console.log(clampedValue); // Output: 10
+
+const anotherClampedValue = clamp(-5, [0, 10]);
+console.log(anotherClampedValue); // Output: 0
+```
+
+### Parameters
+
+- `value`: The number you want to clamp.
+- `[min, max]`: An array containing the minimum and maximum values of the range.
+
+### Return Value
+
+The function returns the clamped value:
+
+- If the input value is less than the minimum, it returns the minimum.
+- If the input value is greater than the maximum, it returns the maximum.
+- If the input value is within the range, it returns the input value unchanged.
+
+## Use Cases
+
+1. **User Input Validation**: Ensure user-provided numbers stay within acceptable ranges.
+2. **Graphics and Animations**: Limit values for properties like opacity, scale, or position.
+3. **Game Development**: Restrict character movement within game boundaries.
+4. **Data Visualization**: Ensure data points fit within chart or graph limits.
+
+## Performance
+
+The `clamp` function uses JavaScript's built-in `Math.min()` and `Math.max()` methods, which are highly optimized. This makes it an efficient choice for frequent use in performance-critical applications.
+
+By using this Clamp Utility, you can easily ensure that numerical values in your application stay within desired ranges, helping to prevent errors and unexpected behavior.

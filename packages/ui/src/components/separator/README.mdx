@@ -1,0 +1,78 @@
+# Separator Component
+
+## Overview
+
+The Separator component is a versatile UI element designed to visually separate content in your application. It provides a simple yet effective way to create clear divisions between sections, items in a list, or any other elements that require visual separation.
+
+## Features
+
+- Supports both horizontal and vertical orientations
+- Customizable appearance through className prop
+- Accessible, using appropriate ARIA roles
+- Consistent styling with other UI components
+- Lightweight and easy to implement
+
+## Installation
+
+To use the Separator component, ensure you have the necessary dependencies installed in your project:
+
+```bash
+npm install @jsandy/ui
+```
+
+## Usage
+
+Here's a basic example of how to use the Separator component:
+
+```jsx
+import { Separator } from '@jsandy/ui/separator';
+
+function MyComponent() {
+  return (
+    <div>
+      <h2>Section 1</h2>
+      <p>Content for section 1</p>
+      <Separator />
+      <h2>Section 2</h2>
+      <p>Content for section 2</p>
+    </div>
+  );
+}
+```
+
+## API
+
+### Separator
+
+The main component for creating visual separators.
+
+#### Props
+
+- `orientation`: "horizontal" | "vertical" (default: "horizontal")
+  - Specifies the orientation of the separator.
+- `decorative`: boolean (default: true)
+  - When true, the separator is treated as purely decorative and removed from the accessibility tree.
+- `className`: string
+  - Additional CSS classes to apply to the separator.
+- All other props are passed directly to the underlying div element.
+
+## Accessibility
+
+The Separator component is designed with accessibility in mind:
+
+- It uses the appropriate `role="separator"` when not decorative.
+- The `aria-orientation` attribute is automatically set based on the orientation prop.
+- When `decorative` is true, it uses `role="none"` to remove it from the accessibility tree.
+
+## Customization
+
+The Separator component can be customized using the `className` prop. It uses Tailwind CSS classes by default, which can be overridden or extended.
+
+## Best Practices
+
+1. Use separators to improve the visual structure and readability of your content.
+2. Choose the appropriate orientation based on your layout (horizontal for row layouts, vertical for column layouts).
+3. Ensure sufficient contrast between the separator and its background for visibility.
+4. Use separators sparingly to avoid cluttering the interface.
+5. Consider using margin or padding instead for subtle separations.
+6. When using vertical separators, make sure to set an appropriate height.

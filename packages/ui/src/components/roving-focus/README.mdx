@@ -1,0 +1,95 @@
+import { Canvas, Meta } from '@storybook/blocks';
+
+import * as RovingFocusGroupStories from './RovingFocusGroup.stories';
+
+<Meta of={RovingFocusGroupStories} />
+
+# RovingFocusGroup Component
+
+## Overview
+
+The RovingFocusGroup component is a part of the @jsandy/ui package, providing an accessible way to manage focus within a group of elements. It's particularly useful for creating keyboard-navigable interfaces such as menus, toolbars, and tab lists.
+
+## Features
+
+- Keyboard navigation within the group (arrow keys, home, end)
+- Customizable orientation (horizontal or vertical)
+- Support for RTL (right-to-left) layouts
+- Loop navigation option
+- Automatic focus management
+- Accessible by default
+- TypeScript support
+
+## Installation
+
+To use the RovingFocusGroup component, ensure you have the @jsandy/ui package installed in your project:
+
+```bash
+npm install @jsandy/ui
+```
+
+## Usage
+
+Here's a basic example of how to use the RovingFocusGroup and RovingFocusGroupItem components:
+
+```jsx
+import {
+  RovingFocusGroup,
+  RovingFocusGroupItem,
+} from '@jsandy/ui/roving-focus-group';
+
+function MyToolbar() {
+  return (
+    <RovingFocusGroup orientation="horizontal">
+      <RovingFocusGroupItem>
+        <button>Cut</button>
+      </RovingFocusGroupItem>
+      <RovingFocusGroupItem>
+        <button>Copy</button>
+      </RovingFocusGroupItem>
+      <RovingFocusGroupItem>
+        <button>Paste</button>
+      </RovingFocusGroupItem>
+    </RovingFocusGroup>
+  );
+}
+```
+
+## API
+
+### RovingFocusGroup
+
+The main component that wraps the focusable items.
+
+#### Props
+
+- `orientation`: 'horizontal' | 'vertical' - The orientation of the group.
+- `dir`: 'ltr' | 'rtl' - The direction of navigation between items.
+- `loop`: boolean - Whether keyboard navigation should loop around (default: false).
+- `currentTabStopId`: string - The ID of the current tab stop (for controlled usage).
+- `defaultCurrentTabStopId`: string - The default ID of the current tab stop (for uncontrolled usage).
+- `onCurrentTabStopIdChange`: (tabStopId: string | null) => void - Callback when the current tab stop changes.
+- `onEntryFocus`: (event: Event) => void - Callback when focus enters the group.
+- `preventScrollOnEntryFocus`: boolean - Prevents scrolling when focus enters the group (default: false).
+
+### RovingFocusGroupItem
+
+The component for individual focusable items within the group.
+
+#### Props
+
+- `tabStopId`: string - A unique identifier for the item (optional, will use an auto-generated ID if not provided).
+- `focusable`: boolean - Whether the item is focusable (default: true).
+- `active`: boolean - Whether the item is currently active (default: false).
+
+## Accessibility
+
+The RovingFocusGroup component implements the roving tabindex pattern, which ensures that only one item in the group is tabbable at a time while allowing navigation within the group using arrow keys. This approach improves keyboard accessibility and adheres to WCAG guidelines.
+
+## Best Practices
+
+1. Use RovingFocusGroup for components like toolbars, menus, and tab lists where users need to navigate between multiple focusable items.
+2. Provide a clear visual indication of the currently focused item.
+3. Use the `orientation` prop appropriately based on your layout (horizontal for row-based layouts, vertical for column-based layouts).
+4. Consider using the `loop` prop for circular navigation in smaller groups.
+5. Ensure that the content within RovingFocusGroupItem is accessible and has appropriate ARIA attributes when necessary.

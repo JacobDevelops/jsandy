@@ -1,0 +1,107 @@
+# Input Component
+
+## Overview
+
+The Input component is a flexible and customizable text input field designed for use in React applications. It provides a consistent styling across your application while allowing for easy customization to fit various use cases.
+
+## Features
+
+- Supports common input types: text, password, email, and number
+- Consistent styling with other form components
+- Customizable appearance through className prop
+- Accessible focus states
+- Support for disabled state
+- File input styling
+
+## Installation
+
+To use the Input component, ensure you have the necessary dependencies installed in your project:
+
+```bash
+npm install @jsandy/ui
+```
+
+## Usage
+
+Here's a basic example of how to use the Input component:
+
+```jsx
+import { Input } from '@jsandy/ui/input';
+
+function MyForm() {
+  return (
+    <form>
+      <Input type="text" placeholder="Enter your name" />
+      <Input type="email" placeholder="Enter your email" required />
+      <Input type="password" placeholder="Enter your password" />
+    </form>
+  );
+}
+```
+
+## Props
+
+The Input component accepts all standard HTML input attributes. Some commonly used props include:
+
+- `type`: The type of input (e.g., 'text', 'password', 'email', 'number')
+- `placeholder`: Placeholder text for the input
+- `value`: The current value of the input
+- `onChange`: Function to handle value changes
+- `disabled`: Boolean to disable the input
+- `required`: Boolean to mark the input as required
+- `className`: Additional CSS classes to apply to the input
+
+## Customization
+
+The Input component uses Tailwind CSS classes for styling. You can further customize its appearance by:
+
+1. Passing additional classes via the `className` prop.
+2. Modifying the default classes in the component file.
+3. Extending the Tailwind CSS configuration in your project.
+
+## Accessibility
+
+The Input component includes focus states for improved accessibility. When using this component, consider the following:
+
+- Always provide clear labels or aria-labels for inputs
+- Use the 'required' attribute for mandatory fields
+- Implement proper form validation and error messaging
+
+## Examples
+
+1. Basic text input:
+
+```jsx
+<Input type="text" placeholder="Enter your name" />
+```
+
+2. Required email input:
+
+```jsx
+<Input type="email" placeholder="Enter your email" required />
+```
+
+3. Disabled input:
+
+```jsx
+<Input type="text" placeholder="Disabled input" disabled />
+```
+
+4. Password input:
+
+```jsx
+<Input type="password" placeholder="Enter your password" />
+```
+
+5. Custom styled input:
+
+```jsx
+<Input type="text" placeholder="Custom input" className="border-blue-500 focus:ring-blue-500" />
+```
+
+## Best Practices
+
+- Use appropriate input types for different kinds of data (e.g., 'email' for email addresses)
+- Provide clear labels or placeholders to indicate the expected input
+- Implement proper form validation for user inputs
+- Ensure sufficient color contrast for placeholder text

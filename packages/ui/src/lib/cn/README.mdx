@@ -1,0 +1,68 @@
+# CN (Class Names) Utility
+
+The CN (Class Names) Utility is a simple yet powerful function for combining and merging class names in React applications, with special handling for Tailwind CSS classes. It leverages the `clsx` library for class name combination and `tailwind-merge` for optimizing Tailwind CSS classes.
+
+## Key Features
+
+1. Combines multiple class names or class objects
+2. Merges Tailwind CSS classes efficiently
+3. Handles conditional classes seamlessly
+
+## Main Function: cn
+
+Combines and merges class names, optimizing for Tailwind CSS.
+
+Usage:
+
+```typescript
+import { cn } from '@jsandy/ui/cn';
+
+function MyComponent({ isActive, className }) {
+  return (
+    <div
+      className={cn('base-class', isActive && 'active-class', className, {
+        'conditional-class': someCondition,
+      })}
+    >
+      Content
+    </div>
+  );
+}
+```
+
+### Parameters
+
+- `...inputs`: Any number of class names, objects, or arrays to be combined and merged.
+
+### Return Value
+
+Returns a string of merged class names, optimized for Tailwind CSS.
+
+## Use Cases
+
+- Combining static and dynamic classes in React components
+- Merging prop-based classes with component-specific classes
+- Handling conditional classes based on component state or props
+- Optimizing Tailwind CSS classes to prevent conflicts and duplication
+
+## How It Works
+
+1. The `cn` function first uses `clsx` to combine all input classes. This handles:
+
+   - Strings of class names
+   - Objects where keys are class names and values are booleans
+   - Arrays of class names
+   - Nested combinations of the above
+
+2. The result from `clsx` is then passed through `twMerge`, which:
+   - Removes duplicate Tailwind CSS classes
+   - Resolves conflicts between Tailwind CSS classes (e.g., `text-red-500` and `text-blue-500`)
+   - Merges related Tailwind CSS classes efficiently
+
+## Performance Considerations
+
+- The `cn` function is designed to be lightweight and efficient
+- It optimizes Tailwind CSS classes, potentially reducing the overall size of your class strings
+- For extremely performance-critical applications, consider memoizing the result if inputs are stable
+
+By using this CN Utility, you can easily manage complex combinations of class names in your React components, with built-in optimization for Tailwind CSS classes. This leads to cleaner, more maintainable code and improved performance in your Tailwind CSS-based projects.

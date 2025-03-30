@@ -1,0 +1,104 @@
+# Presence Component
+
+## Overview
+
+The Presence component is a utility for managing the presence state of child components, particularly useful for animations and transitions. It provides a way to control the mounting and unmounting of components based on a `present` prop, with support for animation events.
+
+## Features
+
+- Control component presence based on a boolean prop
+- Support for enter and exit animations
+- Automatic handling of animation events
+- Flexible child rendering with render prop support
+- TypeScript support with proper type definitions
+
+## Installation
+
+To use the Presence component, ensure you have the necessary dependencies installed in your project:
+
+```bash
+npm install @jsandy/ui
+```
+
+## Usage
+
+Here's a basic example of how to use the Presence component:
+
+```jsx
+import { Presence } from '@jsandy/ui/presence';
+
+function MyComponent() {
+  const [isVisible, setIsVisible] = React.useState(false);
+
+  return (
+    <div>
+      <button onClick={() => setIsVisible(!isVisible)}>Toggle Presence</button>
+      <Presence present={isVisible}>
+        <div style={{ animation: 'fadeIn 0.3s' }}>I'm here when present is true!</div>
+      </Presence>
+    </div>
+  );
+}
+```
+
+## API
+
+### Presence
+
+The main component for managing presence state.
+
+#### Props
+
+- `present`: `boolean`
+
+  - Determines whether the child component should be present (mounted) or not.
+
+- `children`: `React.ReactElement` | `((props: { present: boolean }) => React.ReactElement)`
+  - The child element to render when present. Can be either a React element or a render prop function.
+
+## Accessibility
+
+When using the Presence component, consider the following accessibility implications:
+
+1. Ensure that any animations triggered by presence changes are not too rapid or flashy, as this can be disorienting for some users.
+2. When using the Presence component for important content, make sure that screen readers are properly notified of content changes.
+3. Consider using the `prefers-reduced-motion` media query to disable or reduce animations for users who have requested reduced motion in their system settings.
+
+## Best Practices
+
+1. Use the Presence component for managing mount/unmount states of components that require animations or transitions.
+2. When using animations, ensure they are smooth and not jarring to the user experience.
+3. Utilize the render prop pattern when you need more control over the rendering based on the presence state.
+4. Be mindful of performance when using many Presence components simultaneously, as it can impact the overall application performance.
+
+## Examples
+
+### Basic Usage
+
+```jsx
+<Presence present={isVisible}>
+  <div>This content is conditionally rendered</div>
+</Presence>
+```
+
+### With Animation
+
+```jsx
+<Presence present={isVisible}>
+  <div
+    style={{
+      animation: isVisible ? 'fadeIn 0.3s' : 'fadeOut 0.3s',
+    }}
+  >
+    Animated content
+  </div>
+</Presence>
+```
+
+### Using Render Prop
+
+```jsx
+<Presence present={isVisible}>
+  {({ present }) => <div style={{ opacity: present ? 1 : 0 }}>Content with dynamic opacity</div>}
+</Presence>
+```

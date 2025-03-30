@@ -1,0 +1,120 @@
+# Slot Component
+
+## Overview
+
+The Slot component is a powerful utility for component composition in React. It allows for flexible content insertion and prop merging, making it easier to create reusable and customizable components.
+
+## Features
+
+- Allows passing of children components with the ability to override or extend their props
+- Supports merging of event handlers, styles, and classNames
+- Provides a `Slottable` component for more granular control over which child components can be slotted
+- Handles ref forwarding and composition
+
+## Installation
+
+To use the Slot component, ensure you have the necessary dependencies installed in your project:
+
+```bash
+npm install @jsandy/ui
+```
+
+## Usage
+
+Here's a basic example of how to use the Slot component:
+
+```jsx
+import { Slot } from '@jsandy/ui/slot';
+
+function Button({ children, ...props }) {
+  return (
+    <Slot {...props}>
+      <button>{children}</button>
+    </Slot>
+  );
+}
+
+// Usage
+function App() {
+  return (
+    <Button className="custom-class" onClick={() => console.log('Clicked!')}>
+      Click me
+    </Button>
+  );
+}
+```
+
+## API
+
+### Slot
+
+The main component for creating slottable content.
+
+#### Props
+
+- `children`: React.ReactNode
+  - The children to be rendered within the Slot.
+- All other props are passed to the slotted element.
+
+### Slottable
+
+A component used to wrap children that should be treated as slottable content.
+
+#### Props
+
+- `children`: React.ReactNode
+  - The children to be treated as slottable content.
+
+## Advanced Usage
+
+### Using Slottable
+
+The `Slottable` component allows for more precise control over which children can be slotted:
+
+```jsx
+import { Slot, Slottable } from '@jsandy/ui/slot';
+
+function ComplexButton({ children, icon, ...props }) {
+  return (
+    <Slot {...props}>
+      <button>
+        {icon}
+        <Slottable>{children}</Slottable>
+      </button>
+    </Slot>
+  );
+}
+
+// Usage
+function App() {
+  return (
+    <ComplexButton icon={<Icon />} className="custom-class">
+      <span>Click me</span>
+    </ComplexButton>
+  );
+}
+```
+
+### Merging Props
+
+The Slot component intelligently merges props:
+
+- Event handlers are composed (both the slot's and the child's handlers will be called).
+- Styles are merged.
+- ClassNames are concatenated.
+- Other props from the child override those from the slot.
+
+## Best Practices
+
+1. Use Slot when you want to create flexible, reusable components that can be easily customized.
+2. Utilize `Slottable` when you need fine-grained control over which parts of your component can be replaced or extended.
+3. Be mindful of prop merging behavior, especially for event handlers and styles.
+4. Use TypeScript for better type safety when working with Slot components.
+
+## Accessibility
+
+While the Slot component itself doesn't directly impact accessibility, it's important to ensure that the components you create using Slot follow accessibility best practices:
+
+1. Preserve semantic HTML structure when using Slot.
+2. Ensure that merged props don't override important accessibility attributes.
+3. Test the resulting components with screen readers and keyboard navigation.

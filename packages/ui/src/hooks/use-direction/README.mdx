@@ -1,0 +1,147 @@
+# Direction Utility
+
+The Direction utility is a set of React components and hooks that provide a way to manage and consume directional context (Left-to-Right or Right-to-Left) throughout your application. This is particularly useful for creating internationalized user interfaces that support both LTR and RTL languages.
+
+## Features
+
+- Provides a context for managing directional information
+- Offers a hook for easy consumption of direction in components
+- Supports both global and local direction settings
+- TypeScript support for type safety
+
+## Installation
+
+```bash
+npm install @jsandy/ui
+```
+
+## Usage
+
+### Setting up the Direction Provider
+
+Wrap your application or a part of it with the `DirectionProvider`:
+
+```tsx
+import { DirectionProvider } from '@jsandy/ui/direction';
+
+function App() {
+  return <DirectionProvider dir="rtl">{/* Your app components */}</DirectionProvider>;
+}
+```
+
+### Using the useDirection Hook
+
+In your components, use the `useDirection` hook to access the current direction:
+
+```tsx
+import { useDirection } from '@jsandy/ui/direction';
+
+function MyComponent() {
+  const direction = useDirection();
+
+  return (
+    <div style={{ textAlign: direction === 'rtl' ? 'right' : 'left' }}>
+      This text will align based on the current direction.
+    </div>
+  );
+}
+```
+
+## API
+
+### DirectionProvider
+
+A React component that provides direction context to its children.
+
+#### Props
+
+- `dir`: 'ltr' | 'rtl' - The direction to set for the context
+- `children`: React.ReactNode - The child components that will have access to the direction context
+
+### useDirection
+
+A hook that returns the current direction.
+
+```typescript
+function useDirection(localDir?: 'ltr' | 'rtl'): 'ltr' | 'rtl';
+```
+
+#### Parameters
+
+- `localDir` (optional): A local direction that overrides the context direction
+
+#### Returns
+
+- The current direction: 'ltr' or 'rtl'
+
+## Examples
+
+### Global Direction Setting
+
+```tsx
+import { DirectionProvider } from '@jsandy/ui/direction';
+
+function App() {
+  return (
+    <DirectionProvider dir="rtl">
+      <Header />
+      <MainContent />
+      <Footer />
+    </DirectionProvider>
+  );
+}
+```
+
+### Using Direction in a Component
+
+```tsx
+import { useDirection } from '@jsandy/ui/direction';
+
+function TextInput({ label, value, onChange }) {
+  const dir = useDirection();
+
+  return (
+    <div style={{ display: 'flex', flexDirection: dir === 'rtl' ? 'row-reverse' : 'row' }}>
+      <label>{label}</label>
+      <input
+        type="text"
+        value={value}
+        onChange={onChange}
+        style={{ marginLeft: dir === 'rtl' ? 0 : '8px', marginRight: dir === 'rtl' ? '8px' : 0 }}
+      />
+    </div>
+  );
+}
+```
+
+### Overriding Direction Locally
+
+```tsx
+import { useDirection } from '@jsandy/ui/direction';
+
+function LocalizedComponent() {
+  const globalDir = useDirection();
+  const localDir = useDirection('ltr'); // Force LTR for this component
+
+  return (
+    <div>
+      <p>Global direction: {globalDir}</p>
+      <p>Local direction: {localDir}</p>
+    </div>
+  );
+}
+```
+
+## Best Practices
+
+1. Set the global direction at the highest level of your application, typically in the root component.
+2. Use the `useDirection` hook in components that need to be aware of the current direction.
+3. When creating reusable components, consider how they will behave in both LTR and RTL contexts.
+4. Use the local direction override sparingly, only when you need to force a specific direction for a component regardless of the global setting.
+
+## Caveats
+
+- The `DirectionProvider` uses React context, so be aware of potential re-renders in deeply nested components when the direction changes.
+- When using the local direction override, make sure it doesn't conflict with the overall layout and design of your application.
+
+By using the Direction utility, you can create flexible, internationalized React applications that support both LTR and RTL layouts with ease.

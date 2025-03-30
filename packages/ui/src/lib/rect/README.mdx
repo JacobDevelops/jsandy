@@ -1,0 +1,60 @@
+# Rect Utility
+
+The Rect Utility is a lightweight module designed to observe changes in an element's position and size on the screen. It provides a simple API to track elements and execute callbacks when their bounding rectangles change.
+
+## Key Features
+
+- Efficiently observe multiple elements simultaneously
+- Automatically starts and stops the observation loop based on observed elements
+- Provides a clean API for adding and removing observers
+
+## Main Function: observeElementRect
+
+The core of this utility is the `observeElementRect` function. It allows you to observe changes in an element's bounding rectangle and react to those changes.
+
+### Usage
+
+```typescript
+import { observeElementRect, Measurable } from '@jsandy/ui/rect';
+
+const element: Measurable = document.getElementById('my-element');
+
+const stopObserving = observeElementRect(element, (rect) => {
+  console.log('Element rect changed:', rect);
+  // Perform actions based on the new rect
+});
+
+// Later, when you want to stop observing:
+stopObserving();
+```
+
+### Parameters
+
+- `elementToObserve`: The element to observe. It must implement the `Measurable` interface, which requires a `getBoundingClientRect()` method.
+- `callback`: A function that will be called whenever the observed element's rectangle changes. It receives the new `DOMRect` as its argument.
+
+### Return Value
+
+The function returns a cleanup function. When called, it stops observing the element and removes the callback.
+
+## How It Works
+
+1. The utility maintains an internal map of observed elements and their callbacks.
+2. It uses `requestAnimationFrame` to efficiently check for changes in element rectangles.
+3. When changes are detected, it calls the registered callbacks with the new rectangle information.
+4. The observation loop automatically starts when the first element is observed and stops when the last element is no longer being observed.
+
+## Performance Considerations
+
+- The utility is designed to minimize DOM reads and writes by batching operations.
+- It only triggers callbacks for elements whose rectangles have actually changed.
+- The internal loop automatically stops when no elements are being observed, preventing unnecessary work.
+
+## Use Cases
+
+- Tracking the position of floating elements (tooltips, popovers, etc.)
+- Implementing scroll-based animations or effects
+- Building custom layout systems that need to react to element size changes
+- Creating responsive components that adapt to their container's size
+
+By using this Rect Utility, you can easily track and respond to changes in element positioning and sizing, enabling more dynamic and responsive user interfaces in your applications.
