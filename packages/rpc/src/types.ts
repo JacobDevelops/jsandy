@@ -1,6 +1,6 @@
 // types.ts - Fixed with better type inference
 
-import type superjson from "@squaredmade/superjson";
+import type superjson from "superjson";
 import type { Context, TypedResponse } from "hono";
 import type { Env, Input } from "hono/types";
 import type { StatusCode } from "hono/utils/http-status";

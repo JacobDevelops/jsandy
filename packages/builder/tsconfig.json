@@ -3,7 +3,11 @@
 	"compilerOptions": {
 		"rootDir": ".",
 		"outDir": "./dist",
-		"types": ["@cloudflare/workers-types/2023-07-01", "@types/node"]
+		"declaration": true,
+		"types": ["node"],
+		"module": "commonjs",
+		"target": "es2018",
+		"esModuleInterop": true
 	},
 	"exclude": ["node_modules", "dist"]
 }

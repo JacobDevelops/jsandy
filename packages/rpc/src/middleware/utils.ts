@@ -1,4 +1,4 @@
-import superjson from "@squaredmade/superjson";
+import superjson from "superjson";
 
 export const parseSuperJSON = (value: string) => {
 	try {

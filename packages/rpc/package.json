@@ -1,12 +1,16 @@
 {
 	"name": "@jsandy/rpc",
-	"version": "1.0.0",
+	"version": "0.0.0",
 	"publishConfig": {
 		"access": "public"
 	},
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
-	"files": ["dist", "README.md", "CHANGELOG.md"],
+	"files": [
+		"dist",
+		"README.md",
+		"CHANGELOG.md"
+	],
 	"exports": {
 		".": {
 			"import": {
@@ -29,22 +33,20 @@
 		"test:watch": "vitest",
 		"test:coverage": "vitest run --coverage"
 	},
-	"dependencies": {
-		"@squaredmade/logger": "1.1.2",
-		"@squaredmade/superjson": "1.0.1"
-	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20241218.0",
-		"@squaredmade/builder": "^1.0.1",
-		"@squaredmade/typescript-config": "^1.0.0",
+		"@jsandy/builder": "workspace:*",
+		"@jsandy/typescript-config": "workspace:*",
 		"@types/node": "^22.0.0",
 		"@vitest/coverage-v8": "^3.0.7",
-		"tslib": "^2.7.0",
 		"typescript": "^5.2.2",
 		"vitest": "^3.0.0"
 	},
 	"peerDependencies": {
 		"hono": "^4",
 		"zod": "^3.25 || ^4"
+	},
+	"dependencies": {
+		"superjson": "^2.2.2"
 	}
 }

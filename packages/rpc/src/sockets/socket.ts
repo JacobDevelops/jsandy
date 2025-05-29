@@ -1,7 +1,11 @@
-import createCustomLogger, { type Logger } from "@squaredmade/logger";
+import { logger } from "./logger";
 import { type ZodObject, type ZodType, z } from "zod/v4";
 import type { OptionalPromise } from "../types";
-import { EventEmitter } from "./event-emitter";
+import {
+	EventEmitter,
+	type EventHandler,
+	type InferSchemaType,
+} from "./event-emitter";
 
 interface ServerSocketOptions {
 	redisUrl: string;
@@ -15,13 +19,13 @@ export interface SystemEvents {
 	onError: Error;
 }
 
-type EventKeys<T> = T extends ZodObject
+export type EventKeys<T> = T extends ZodObject
 	? keyof T["shape"]
 	: T extends Record<PropertyKey, unknown>
 		? keyof T
 		: string;
 
-type EventData<T, K extends PropertyKey> = T extends ZodObject
+export type EventData<T, K extends PropertyKey> = T extends ZodObject
 	? K extends keyof T["shape"]
 		? T["shape"][K] extends ZodType
 			? z.infer<T["shape"][K]>
@@ -38,7 +42,6 @@ export class ServerSocket<IncomingEvents, OutgoingEvents> {
 	private ws: WebSocket;
 	private controllers: Map<string, AbortController> = new Map();
 	private emitter: EventEmitter;
-	private logger: Logger;
 
 	// private redis: Redis
 	private redisUrl: string;
@@ -64,7 +67,6 @@ export class ServerSocket<IncomingEvents, OutgoingEvents> {
 
 		this.ws = ws;
 		this.emitter = new EventEmitter(ws, { incomingSchema, outgoingSchema });
-		this.logger = createCustomLogger("rpc-socket");
 	}
 
 	get rooms() {
@@ -90,17 +92,16 @@ export class ServerSocket<IncomingEvents, OutgoingEvents> {
 
 	off<K extends keyof IncomingEvents & SystemEvents>(
 		event: K,
-
 		callback?: (data: IncomingEvents[K]) => unknown,
 	) {
-		return this.emitter.off(event as string, callback);
+		return this.emitter.off(event as string, callback as EventHandler);
 	}
 
 	on<K extends EventKeys<IncomingEvents>>(
 		event: K,
 		callback?: (data: EventData<IncomingEvents, K>) => unknown,
 	) {
-		return this.emitter.on(event as string, callback);
+		return this.emitter.on(event as string, callback as EventHandler);
 	}
 
 	emit<K extends EventKeys<OutgoingEvents>>(
@@ -110,18 +111,18 @@ export class ServerSocket<IncomingEvents, OutgoingEvents> {
 		return this.emitter.emit(event as string, data);
 	}
 
-	handleEvent(eventName: string, eventData: unknown) {
+	handleEvent(eventName: string, eventData: InferSchemaType<Schema>) {
 		this.emitter.handleEvent(eventName, eventData);
 	}
 
 	async join(room: string): Promise<void> {
 		this.room = room;
-		this.logger.info(`Socket trying to join room: "${room}".`);
+		logger.info(`Socket trying to join room: "${room}".`);
 		await this.subscribe(room)
 			.catch((error) => {
-				this.logger.error(`Subscription error for room ${room}:`, error);
+				logger.error(`Subscription error for room ${room}:`, error);
 			})
-			.then(() => this.logger.info(`Joined room: ${room}`))
+			.then(() => logger.info(`Joined room: ${room}`))
 			.then(() => this.createHeartbeat(room));
 	}
 
@@ -131,9 +132,9 @@ export class ServerSocket<IncomingEvents, OutgoingEvents> {
 		if (controller) {
 			controller.abort();
 			this.controllers.delete(room);
-			this.logger.info(`Left room: ${room}`);
+			logger.info(`Left room: ${room}`);
 		} else {
-			this.logger.warn(
+			logger.warn(
 				`Attempted to leave room "${room}" but no active controller found`,
 			);
 		}
@@ -156,7 +157,7 @@ export class ServerSocket<IncomingEvents, OutgoingEvents> {
 				const lastPingTime = this.lastPingTimes.get(room) ?? 0;
 
 				if (Date.now() - lastPingTime > 45000) {
-					this.logger.warn("Heartbeat timeout detected");
+					logger.warn("Heartbeat timeout detected");
 					this.unsubscribe(room).then(() => this.subscribe(room));
 				}
 			}, 5000),
@@ -191,7 +192,7 @@ export class ServerSocket<IncomingEvents, OutgoingEvents> {
 			// Return immediately after connection is established
 			return;
 		} catch (err) {
-			this.logger.error("Error establishing subscription:", err);
+			logger.error("Error establishing subscription:", err);
 			throw err;
 		}
 	}
@@ -216,7 +217,7 @@ export class ServerSocket<IncomingEvents, OutgoingEvents> {
 				newBuffer = messages.pop() || "";
 
 				for (const message of messages) {
-					this.logger.info("Received message:", message);
+					logger.info("Received message:", message);
 					if (message.startsWith("data: ")) {
 						const data = message.slice(6);
 						try {
@@ -226,37 +227,37 @@ export class ServerSocket<IncomingEvents, OutgoingEvents> {
 							const secondCommaIndex = data.indexOf(",", firstCommaIndex + 1);
 
 							if (firstCommaIndex === -1 || secondCommaIndex === -1) {
-								this.logger.warn("Invalid message format - missing commas");
+								logger.warn("Invalid message format - missing commas");
 								continue;
 							}
 
 							const payloadStr = data.slice(secondCommaIndex + 1);
 
 							if (!payloadStr) {
-								this.logger.warn("Missing payload in message");
+								logger.warn("Missing payload in message");
 								continue;
 							}
 
 							const parsed = JSON.parse(payloadStr);
 
 							if (parsed[0] === "ping") {
-								this.logger.info("Heartbeat received successfully");
+								logger.info("Heartbeat received successfully");
 								this.lastPingTimes.set(room, Date.now());
 							}
 
 							if (this.ws.readyState === WebSocket.OPEN) {
 								this.ws.send(JSON.stringify(parsed));
 							} else {
-								this.logger.debug("WebSocket not open, skipping message");
+								logger.debug("WebSocket not open, skipping message");
 							}
 						} catch (err) {
-							this.logger.debug("Failed to parse message payload", err);
+							logger.debug("Failed to parse message payload", err);
 						}
 					}
 				}
 			}
 		} catch (err) {
-			this.logger.error("Error processing stream messages:", err);
+			logger.error("Error processing stream messages:", err);
 		}
 	}
 
@@ -265,9 +266,9 @@ export class ServerSocket<IncomingEvents, OutgoingEvents> {
 		if (controller) {
 			controller.abort();
 			this.controllers.delete(room);
-			this.logger.info(`Unsubscribed from room: ${room}`);
+			logger.info(`Unsubscribed from room: ${room}`);
 		} else {
-			this.logger.warn(`No active subscription found for room: ${room}`);
+			logger.warn(`No active subscription found for room: ${room}`);
 		}
 	}
 }
@@ -396,7 +397,10 @@ Fix this issue: https://sqStack.app/docs/getting-started/local-development
 
 			if (parseResult.success) {
 				const [eventName, eventData] = parseResult.data;
-				this.emitter.handleEvent(eventName, eventData);
+				this.emitter.handleEvent(
+					eventName,
+					eventData as InferSchemaType<Schema>,
+				);
 			} else {
 				console.warn("Unable to parse event:", event.data);
 			}
@@ -415,7 +419,7 @@ Fix this issue: https://sqStack.app/docs/getting-started/local-development
 
 		callback?: (data: IncomingEvents[K]) => unknown,
 	) {
-		return this.emitter.off(event as string, callback);
+		return this.emitter.off(event as string, callback as EventHandler);
 	}
 
 	on<K extends keyof IncomingEvents>(
@@ -423,6 +427,6 @@ Fix this issue: https://sqStack.app/docs/getting-started/local-development
 
 		callback?: (data: IncomingEvents[K]) => unknown,
 	) {
-		return this.emitter.on(event as string, callback);
+		return this.emitter.on(event as string, callback as EventHandler);
 	}
 }

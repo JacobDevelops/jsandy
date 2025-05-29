@@ -1,6 +1,4 @@
-import createCustomLogger from "@squaredmade/logger";
-
-const logger = createCustomLogger("rpc-io");
+import { logger } from "./logger";
 
 export class IO<OutgoingEvents> {
 	private targetRoom: string | null = null;
@@ -30,7 +28,10 @@ export class IO<OutgoingEvents> {
 			});
 		}
 
-		logger.info(`IO emitted to room "${this.targetRoom}":`, [event, data]);
+		logger.info(`IO emitted to room "${this.targetRoom}":`, {
+			event,
+			data,
+		});
 
 		// Reset target room after emitting
 		this.targetRoom = null;

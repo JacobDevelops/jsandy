@@ -1,13 +1,12 @@
-import createCustomLogger from "@squaredmade/logger";
 import { type Context, Hono, type Next } from "hono";
 import { env } from "hono/adapter";
 import { HTTPException } from "hono/http-exception";
-import type { Env, ErrorHandler, MiddlewareHandler } from "hono/types";
+import type { Env, ErrorHandler, MiddlewareHandler, Schema } from "hono/types";
 import type { StatusCode } from "hono/utils/http-status";
 import type { ZodObject } from "zod/v4";
 import { z } from "zod/v4";
 import { bodyParsingMiddleware, queryParsingMiddleware } from "./middleware";
-import { IO, ServerSocket } from "./sockets";
+import { IO, ServerSocket, type InferSchemaType } from "./sockets";
 import type {
 	ContextWithSuperJSON,
 	GetOperation,
@@ -18,8 +17,7 @@ import type {
 	RouterConfig,
 	WebSocketOperation,
 } from "./types";
-
-const logger = createCustomLogger("rpc-router");
+import { logger } from "./sockets/logger";
 
 type FlattenRoutes<T> = {
 	[K in keyof T]: T[K] extends WebSocketOperation<ZodObject, ZodObject>
@@ -50,6 +48,7 @@ export type RouterSchema<T extends Record<string, unknown>> = {
 		? {
 				$get: {
 					input: InferInput<T[K]>;
+					// biome-ignore lint/complexity/noBannedTypes: Empty object for output since WebSocket connections don't have an initial response payload
 					output: {};
 					incoming: NonNullable<T[K]["incoming"]>;
 					outgoing: NonNullable<T[K]["outgoing"]>;
@@ -448,7 +447,10 @@ export class Router<
 								return;
 							}
 
-							socket.handleEvent(eventName, eventData);
+							socket.handleEvent(
+								eventName,
+								eventData as InferSchemaType<Schema>,
+							);
 						} catch (err) {
 							logger.error("Failed to process message:", err);
 						}

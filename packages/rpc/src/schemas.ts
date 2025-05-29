@@ -1,4 +1,4 @@
-import type z from "zod/v4";
+import type { z } from "zod/v4";
 
 type StrictEqual<T, U> = T extends U ? (U extends T ? true : false) : false;
 

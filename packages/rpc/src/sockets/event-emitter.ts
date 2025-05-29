@@ -1,10 +1,14 @@
-import createCustomLogger from "@squaredmade/logger";
-import { ZodError, type ZodObject, treeifyError } from "zod/v4";
+import { ZodError, type ZodObject, treeifyError, type z } from "zod/v4";
 import type { OptionalPromise } from "../types";
-
-const logger = createCustomLogger("rpc-event-emitter");
+import { logger } from "./logger";
 
 type Schema = ZodObject | void;
+export type InferSchemaType<T> = T extends ZodObject
+	? z.infer<T>
+	: T extends void
+		? undefined
+		: never;
+export type EventHandler = (data: InferSchemaType<Schema>) => unknown;
 
 interface SchemaConfig {
 	incomingSchema: Schema;
@@ -12,7 +16,8 @@ interface SchemaConfig {
 }
 
 export class EventEmitter {
-	eventHandlers = new Map<string, Function[]>();
+	eventHandlers = new Map<string, EventHandler[]>();
+
 	ws: WebSocket;
 
 	incomingSchema: Schema;
@@ -56,7 +61,7 @@ export class EventEmitter {
 		}
 	}
 
-	handleEvent(eventName: string, data: unknown) {
+	handleEvent(eventName: string, data: InferSchemaType<Schema>) {
 		const handlers = this.eventHandlers.get(eventName);
 
 		if (!handlers?.length) {
@@ -108,13 +113,13 @@ export class EventEmitter {
 		}
 	}
 
-	off(event: string, callback?: Function) {
+	off(event: string, callback?: EventHandler) {
 		if (!callback) {
 			this.eventHandlers.delete(event as string);
 		} else {
 			const handlers = this.eventHandlers.get(event as string);
 			if (handlers) {
-				const index = handlers.indexOf(callback);
+				const index = handlers.indexOf(callback as EventHandler);
 				if (index !== -1) {
 					handlers.splice(index, 1);
 					if (handlers.length === 0) {
@@ -125,12 +130,11 @@ export class EventEmitter {
 		}
 	}
 
-	on(event: string, callback?: Function): void {
+	on(event: string, callback?: EventHandler): void {
 		if (!callback) {
 			logger.error(
-				`No callback provided for event handler "${event.toString()}". Ppass a callback to handle this event.`,
+				`No callback provided for event handler "${event.toString()}". Pass a callback to handle this event.`,
 			);
-
 			return;
 		}
 

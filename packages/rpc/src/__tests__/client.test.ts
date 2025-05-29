@@ -5,7 +5,7 @@ import { type ClientRequest, createClient } from "../client";
 import { sqStack } from "../j";
 
 // Mock superjson
-vi.mock("@squaredmade/superjson", () => ({
+vi.mock("superjson", () => ({
 	default: {
 		parse: vi.fn((data) => JSON.parse(data)),
 		stringify: vi.fn((data) => JSON.stringify(data)),

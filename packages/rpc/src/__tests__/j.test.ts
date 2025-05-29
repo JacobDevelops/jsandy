@@ -186,6 +186,7 @@ describe("SQStack", () => {
 				error = e as ZodError;
 			}
 
+			// biome-ignore lint/style/noNonNullAssertion: We know this is not null
 			const response = j.defaults.errorHandler(error!);
 			expect(response).toBeInstanceOf(Response);
 		});

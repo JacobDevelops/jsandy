@@ -1,4 +1,4 @@
-import superjson from "@squaredmade/superjson";
+import superjson from "superjson";
 import type { Env } from "hono/types";
 import type { StatusCode } from "hono/utils/http-status";
 import type { ZodObject } from "zod/v4";

@@ -1,19 +1,16 @@
 {
-	"$schema": "https://json.schemastore.org/tsconfig",
 	"compilerOptions": {
-		"declaration": true,
-		"declarationMap": true,
-		"esModuleInterop": true,
-		"incremental": false,
-		"isolatedModules": true,
-		"lib": ["es2022", "DOM", "DOM.Iterable"],
-		"module": "NodeNext",
-		"moduleDetection": "force",
-		"moduleResolution": "NodeNext",
-		"noUncheckedIndexedAccess": true,
-		"resolveJsonModule": true,
-		"skipLibCheck": true,
+		"target": "ESNext",
 		"strict": true,
-		"target": "ES2022"
+		"lib": ["ES2019", "DOM", "DOM.Iterable", "ES2015.Iterable"],
+		"allowSyntheticDefaultImports": true,
+		"resolveJsonModule": true,
+		"jsx": "react-jsx",
+		"jsxImportSource": "react",
+		"module": "ES2022",
+		"moduleResolution": "node",
+		"outDir": "./dist",
+		"noEmit": true,
+		"skipLibCheck": true
 	}
 }

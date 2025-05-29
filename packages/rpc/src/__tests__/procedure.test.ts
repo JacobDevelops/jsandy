@@ -4,7 +4,7 @@ import { z } from "zod/v4";
 import { Procedure } from "../procedure";
 
 // Mock superjson
-vi.mock("@squaredmade/superjson", () => ({
+vi.mock("superjson", () => ({
 	default: {
 		stringify: vi.fn((data) => JSON.stringify(data)),
 	},

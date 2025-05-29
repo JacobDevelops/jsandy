@@ -3,7 +3,7 @@ import { bodyParsingMiddleware, queryParsingMiddleware } from "../middleware";
 import { parseSuperJSON } from "../middleware/utils";
 
 // Mock superjson
-vi.mock("@squaredmade/superjson", () => ({
+vi.mock("superjson", () => ({
 	default: {
 		parse: vi.fn((data) => {
 			try {

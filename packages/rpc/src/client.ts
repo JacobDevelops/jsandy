@@ -1,4 +1,4 @@
-import superjson from "@squaredmade/superjson";
+import superjson from "superjson";
 import type { Hono } from "hono";
 import {
 	type ClientRequestOptions,
@@ -59,8 +59,10 @@ export type ClientRequest<S extends Schema> = {
 					: { param: P }
 				: R extends { query: infer Q }
 					? { query: Q }
-					: {}
-			: {},
+					: // biome-ignore lint/complexity/noBannedTypes: URL without query or params won't have arguments
+						{}
+			: // biome-ignore lint/complexity/noBannedTypes: URL without query or params won't have arguments
+				{},
 	) => URL;
 } & (S["$get"] extends { outputFormat: "ws" }
 		? S["$get"] extends {

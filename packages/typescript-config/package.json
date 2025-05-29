@@ -4,5 +4,8 @@
 	"license": "MIT",
 	"publishConfig": {
 		"access": "public"
+	},
+	"peerDependencies": {
+		"typescript": "*"
 	}
 }
