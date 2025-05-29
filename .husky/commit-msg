@@ -1,0 +1,11 @@
+# Lint the commit message
+COMMIT_MSG=$(cat $1)
+
+# Check if the commit message is exactly "Version Packages"
+if [ "$COMMIT_MSG" = "Version Packages" ]; then
+  echo "✅ Commit with 'Version Packages' message detected - bypassing commitlint"
+  exit 0
+fi
+
+# Otherwise, run the regular commitlint
+npx commitlint --edit $1

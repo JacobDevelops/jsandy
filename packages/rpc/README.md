@@ -117,6 +117,7 @@ main().catch(console.error);
 Initializes the RPC stack and returns utilities for building procedures and routers.
 
 Returns:
+
 - `procedure`: Procedure builder for creating type-safe RPC operations
 - `router`: Function to create routers from procedures
 - `middleware`: Function to create type-safe middleware
@@ -127,6 +128,7 @@ Returns:
 Builder for creating type-safe RPC procedures.
 
 Methods:
+
 - `.input(schema)`: Define input validation schema
 - `.output(schema)`: Define output validation schema  
 - `.query(handler)`: Create a query operation (GET)
