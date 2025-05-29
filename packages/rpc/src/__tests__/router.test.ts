@@ -3,15 +3,6 @@ import { z } from "zod/v4";
 import { sqStack } from "../j";
 import { Router } from "../router";
 
-// Mock dependencies
-vi.mock("@squaredmade/logger", () => ({
-	default: vi.fn(() => ({
-		error: vi.fn(),
-		info: vi.fn(),
-		warn: vi.fn(),
-	})),
-}));
-
 vi.mock("../sockets", () => ({
 	IO: vi.fn(),
 	ServerSocket: vi.fn(),

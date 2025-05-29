@@ -9,7 +9,6 @@ JSandy Builder Tool is a powerful and flexible build utility designed to compile
 - Creates TypeScript declaration files (.d.ts)
 - Configurable external dependencies
 - Source map generation
-- Custom logging using @squaredmade/logger
 
 ## Usage
 

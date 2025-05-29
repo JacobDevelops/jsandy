@@ -4,16 +4,6 @@ import { EventEmitter } from "../sockets/event-emitter";
 import { IO } from "../sockets/io";
 import { ClientSocket, ServerSocket } from "../sockets/socket";
 
-// Mock logger
-vi.mock("@squaredmade/logger", () => ({
-	default: vi.fn(() => ({
-		info: vi.fn(),
-		warn: vi.fn(),
-		error: vi.fn(),
-		debug: vi.fn(),
-	})),
-}));
-
 // Mock fetch
 global.fetch = vi.fn();
 

@@ -1,108 +1,110 @@
-# @squaredmade/rpc
+# @jsandy/rpc
 
 ## Introduction
 
-`@squaredmade/rpc` is a lightweight, TypeScript-based HTTP-RPC (Remote Procedure Call) implementation designed for modern Node.js applications. It provides a simple and efficient way to create and consume RPC services over HTTP, with built-in support for context management, error handling, and schema validation.
+`@jsandy/rpc` is a lightweight, TypeScript-based RPC (Remote Procedure Call) framework built on top of Hono. It provides a simple and efficient way to create type-safe RPC services with built-in support for schema validation, error handling, and WebSocket communication.
 
 ## Features
 
-- TypeScript-first implementation
-- Context management using `@squaredmade/context`
-- Built-in error handling
-- Support for schema validation using Zod
-- Easy-to-use API for creating and consuming RPC services
-- Integration with Express.js for server-side implementation
-- Client-side implementation using Axios
+- TypeScript-first implementation with full type safety
+- Built on Hono for high performance and modern web standards
+- Support for schema validation using Zod v4
+- Built-in error handling with HTTP exceptions
+- WebSocket support for real-time communication
+- Procedure-based API design
+- Client-side implementation with type inference
+- Middleware support for custom functionality
 
 ## Usage
 
-### Defining a Service
+### Creating Procedures
 
-To define an RPC service, create a new TypeScript file and define your service interface and implementation:
+To define RPC procedures, use the procedure builder with schema validation:
 
 ```typescript
-import { Context } from "@squaredmade/context";
-import { z } from "zod/v4";
+import { sqStack } from "@jsandy/rpc";
+import { z } from "zod";
 
-// Define your service interface
-interface UserService {
-  getUser(
-    ctx: Context,
-    args: { id: string }
-  ): Promise<{ name: string; email: string }>;
-  createUser(
-    ctx: Context,
-    args: { name: string; email: string }
-  ): Promise<{ id: string }>;
-}
+const { procedure, router } = sqStack.init();
 
-// Implement your service
-class UserServiceImpl implements UserService {
-  async getUser(ctx: Context, args: { id: string }) {
+// Define input/output schemas
+const getUserSchema = z.object({ id: z.string() });
+const userOutputSchema = z.object({ 
+  name: z.string(), 
+  email: z.string() 
+});
+
+// Create procedures
+const getUser = procedure
+  .input(getUserSchema)
+  .output(userOutputSchema)
+  .query(async ({ input }) => {
     // Implementation here
     return { name: "John Doe", email: "john@example.com" };
-  }
+  });
 
-  async createUser(
-    ctx: Context,
-    args: { name: string; email: string }
-  ) {
+const createUser = procedure
+  .input(z.object({ name: z.string(), email: z.string() }))
+  .output(z.object({ id: z.string() }))
+  .mutation(async ({ input }) => {
     // Implementation here
     return { id: "new-user-id" };
-  }
-}
+  });
 
-// Define schemas for your methods
-const userServiceSchema = {
-  getUser: {
-    input: z.object({ id: z.string() }),
-    output: z.object({ name: z.string(), email: z.string() }),
-  },
-  createUser: {
-    input: z.object({ name: z.string(), email: z.string() }),
-    output: z.object({ id: z.string() }),
-  },
-};
+// Create router with procedures
+const userRouter = router({
+  getUser,
+  createUser,
+});
 
-export { UserService, UserServiceImpl, userServiceSchema };
+export { userRouter };
 ```
 
 ### Creating a Server
 
-To create an RPC server using Express.js:
+To create an RPC server using Hono:
 
 ```typescript
-import express from "express";
-import { createRpcHandler } from "@squaredmade/rpc";
-import { UserServiceImpl, userServiceSchema } from "./user-service";
+import { Hono } from "hono";
+import { serve } from "@hono/node-server";
+import { userRouter } from "./user-router";
 
-const app = express();
+const app = new Hono();
 
-const userService = new UserServiceImpl();
-const rpcHandler = createRpcHandler(userService, userServiceSchema);
+// Mount the router
+app.route("/api/users", userRouter.app);
 
-app.use("/rpc/user", rpcHandler);
-
-app.listen(3000, () => {
-  console.log("RPC server listening on port 3000");
+// Start the server
+serve({
+  fetch: app.fetch,
+  port: 3000,
 });
+
+console.log("RPC server listening on port 3000");
 ```
 
 ### Creating a Client
 
-To create an RPC client:
+To create a type-safe RPC client:
 
 ```typescript
-import { createRpcClient } from "@squaredmade/rpc";
-import { UserService } from "./user-service";
+import { createClient } from "@jsandy/rpc";
+import type { userRouter } from "./user-router";
 
-const userClient = createRpcClient<UserService>(
-  "http://localhost:3000/rpc/user"
+const client = createClient<typeof userRouter>(
+  "http://localhost:3000/api/users"
 );
 
 async function main() {
-  const user = await userClient.getUser({ id: "user-1" });
+  // Type-safe client calls
+  const user = await client.getUser.query({ id: "user-1" });
   console.log(user);
+  
+  const newUser = await client.createUser.mutate({
+    name: "Jane Doe",
+    email: "jane@example.com"
+  });
+  console.log(newUser);
 }
 
 main().catch(console.error);
@@ -110,27 +112,62 @@ main().catch(console.error);
 
 ## API Reference
 
-### `createRpcHandler(service, schema)`
+### `sqStack.init()`
 
-Creates an Express.js middleware for handling RPC requests.
+Initializes the RPC stack and returns utilities for building procedures and routers.
 
-- `service`: An instance of your service implementation.
-- `schema`: A Zod schema object defining the input and output types for each method.
+Returns:
+- `procedure`: Procedure builder for creating type-safe RPC operations
+- `router`: Function to create routers from procedures
+- `middleware`: Function to create type-safe middleware
+- `mergeRouters`: Function to merge multiple routers
 
-### `createRpcClient<T>(baseUrl)`
+### `procedure`
 
-Creates an RPC client for consuming a remote service.
+Builder for creating type-safe RPC procedures.
 
-- `T`: The interface type of your service.
-- `baseUrl`: The base URL of your RPC server.
+Methods:
+- `.input(schema)`: Define input validation schema
+- `.output(schema)`: Define output validation schema  
+- `.query(handler)`: Create a query operation (GET)
+- `.mutation(handler)`: Create a mutation operation (POST)
+
+### `createClient<T>(baseUrl)`
+
+Creates a type-safe RPC client for consuming a remote service.
+
+- `T`: The router type for full type safety
+- `baseUrl`: The base URL of your RPC server
 
 ## Error Handling
 
-`@squaredmade/rpc` provides built-in error handling. Errors thrown in your service methods will be automatically caught and returned as appropriate HTTP responses.
+`@jsandy/rpc` provides built-in error handling using Hono's HTTP exceptions. Errors thrown in your procedures will be automatically caught and returned as appropriate HTTP responses with proper status codes.
 
-## Context Management
+```typescript
+import { HTTPException } from "hono/http-exception";
 
-The package uses `@squaredmade/context` for context management. Each RPC method receives a `Context` object as its first argument, which can be used to pass request-scoped data and manage timeouts.
+const getUserProcedure = procedure
+  .input(z.object({ id: z.string() }))
+  .query(async ({ input }) => {
+    if (!input.id) {
+      throw new HTTPException(400, { message: "User ID is required" });
+    }
+    // Implementation here
+  });
+```
+
+## WebSocket Support
+
+The package includes built-in WebSocket support for real-time communication:
+
+```typescript
+const chatProcedure = procedure
+  .input(z.object({ message: z.string() }))
+  .subscription(async ({ input, emit }) => {
+    // Handle real-time messaging
+    emit("message", { text: input.message, timestamp: Date.now() });
+  });
+```
 
 ## Contributing
 

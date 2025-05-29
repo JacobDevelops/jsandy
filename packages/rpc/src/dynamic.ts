@@ -3,13 +3,11 @@ import { Router } from "./router";
 /**
  * Dynamically imports routers to enable code splitting. Improves performance and reduces cold starts.
  *
- * @see https://sqStack.app/docs/backend/performance
- *
  * @param importFn - Function that imports a router
  * @throws {Error} If module has no exports, multiple exports, or invalid Router
  *
  * @example
- * import { dynamic } from "sqStack"
+ * import { dynamic } from "@jsandy/rpc"
  *
  * const appRouter = j.mergeRouters(api, {
  *   router: dynamic(() => import("./routers/my-router")),
