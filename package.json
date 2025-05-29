@@ -4,7 +4,7 @@
 	"scripts": {
 		"build": "turbo run build",
 		"dev": "turbo run dev",
-		"lint": "turbo run lint",
+		"lint": "biome lint --write .",
 		"format": "biome format --write .",
 		"check-types": "turbo run check-types"
 	},
@@ -15,7 +15,7 @@
 		"turbo": "^2.4.4",
 		"typescript": "5.8.2"
 	},
-	"packageManager": "pnpm@10.7.0",
+	"packageManager": "pnpm@10.11.0",
 	"engines": {
 		"node": ">=18"
 	}

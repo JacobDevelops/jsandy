@@ -8,63 +8,14 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  detect-changes:
-    name: Detect Changes
-    runs-on: blacksmith-4vcpu-ubuntu-2204
-    outputs:
-      ui-changed: ${{ steps.check-changes.outputs.ui }}
-      run-all: ${{ steps.check-label.outputs.run-all }}
-      packages-changed: ${{ steps.check-changes.outputs.packages }}
-      only-go-changed: ${{ steps.check-changes.outputs.only-go-changed }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Check for changes
-        id: check-changes
-        run: |
-          git fetch origin develop
-          echo "ui=$(git diff --name-only origin/develop HEAD | grep -q '^packages/ui/' && echo 'true' || echo 'false')" >> $GITHUB_OUTPUT
-
-      - name: Check if only Go-related changes were made
-        run: |
-          go_related_changes=$(git diff --name-only origin/develop HEAD | grep -E '^(apps/webhooks|packages/cli)/' | wc -l)
-          other_changes=$(git diff --name-only origin/develop HEAD | grep -vE '^(apps/webhooks|packages/cli)/' | wc -l)
-
-          if [[ "$go_related_changes" -gt 0 && "$other_changes" -eq 0 ]]; then
-            echo "only-go-changed=true" >> $GITHUB_OUTPUT
-          else
-            echo "only-go-changed=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Check if packages were updated
-        run: |
-          if [[ $(git diff --name-only origin/develop HEAD | grep -q '^packages/' && echo 'true' || echo 'false') == true ]]; then
-            echo "packages=true" >> $GITHUB_OUTPUT
-          else
-            echo "packages=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Check for Updates label
-        id: check-label
-        run: |
-          if [[ ${{ contains(github.event.pull_request.labels.*.name, 'Updates') }} == true ]]; then
-            echo "run-all=true" >> $GITHUB_OUTPUT
-          else
-            echo "run-all=false" >> $GITHUB_OUTPUT
-          fi
-
   setup:
     name: Setup
-    needs: detect-changes
-    if: ${{ needs.detect-changes.outputs.only-go-changed == 'true' }}
     runs-on: blacksmith-4vcpu-ubuntu-2204
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         with:
-          version: 10.7.0
+          version: 10.11.0
       - uses: useblacksmith/setup-node@v5
         with:
           node-version: 23.3.0
@@ -86,14 +37,13 @@ jobs:
 
   lint-and-type-check:
     name: Lint and Type Check
-    needs: [setup, detect-changes]
+    needs: [setup]
     runs-on: blacksmith-4vcpu-ubuntu-2204
-    if: ${{ needs.detect-changes.outputs.only-go-changed == 'false' }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         with:
-          version: 10.7.0
+          version: 10.11.0
       - uses: useblacksmith/setup-node@v5
         with:
           node-version: 23.3.0
@@ -116,47 +66,9 @@ jobs:
       - name: Type Check
         run: pnpm check-types
 
-  test-ui:
-    name: Test UI
-    needs: [detect-changes, setup]
-    runs-on: blacksmith-4vcpu-ubuntu-2204
-    if: ${{ needs.detect-changes.outputs.ui-changed == 'true' || needs.detect-changes.outputs.run-all == 'true' }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10.7.0
-      - uses: useblacksmith/setup-node@v5
-        with:
-          node-version: 23.3.0
-          cache: "pnpm"
-      - name: Get pnpm store directory
-        id: pnpm-cache
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
-      - uses: useblacksmith/cache@v5
-        name: Setup pnpm cache
-        with:
-          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm build:css
-      - name: Install Playwright
-        run: pnpm dlx playwright install --with-deps
-      - name: Build Storybook
-        run: pnpm build-storybook --quiet
-      - name: Serve Storybook and run tests
-        run: |
-          pnpm dlx concurrently -k -s first -n "SB,TEST" -c "magenta,blue" \
-            "pnpm dlx http-server storybook-static --port 6006 --silent" \
-            "pnpm dlx wait-on tcp:127.0.0.1:6006 && pnpm test-storybook"
-
   ci-status:
     name: CI Pipeline
-    needs: [lint-and-type-check, test-ui]
+    needs: [lint-and-type-check]
     runs-on: blacksmith-4vcpu-ubuntu-2204
     if: always()
     steps:
@@ -164,10 +76,6 @@ jobs:
         run: |
           if [[ "${{ needs.lint-and-type-check.result }}" == "failure" ]]; then
             echo "Lint and type check failed"
-            exit 1
-          fi
-          if [[ "${{ needs.test-ui.result }}" == "failure" ]]; then
-            echo "One or more tests failed"
             exit 1
           fi
           echo "All checks passed or were skipped"

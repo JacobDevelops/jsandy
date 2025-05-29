@@ -1,0 +1,9 @@
+{
+	"extends": "@squaredmade/typescript-config/dependency.json",
+	"compilerOptions": {
+		"rootDir": ".",
+		"outDir": "./dist",
+		"types": ["@cloudflare/workers-types"]
+	},
+	"exclude": ["node_modules", "dist"]
+}
