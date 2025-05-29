@@ -13,8 +13,15 @@
 		"check-types": {
 			"dependsOn": ["^check-types"]
 		},
-		"dev": {
-			"cache": false,
+		"test": {
+			"dependsOn": ["^test"]
+		},
+		"test:coverage": {
+			"dependsOn": ["^test:coverage"],
+			"outputs": ["coverage/**"]
+		},
+		"test:watch": {
+			"dependsOn": ["^test:watch"],
 			"persistent": true
 		}
 	}

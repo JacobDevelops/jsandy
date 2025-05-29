@@ -3,10 +3,12 @@
 	"private": true,
 	"scripts": {
 		"build": "turbo run build",
-		"dev": "turbo run dev",
-		"lint": "biome lint --write .",
+		"check-types": "turbo run check-types",
 		"format": "biome format --write .",
-		"check-types": "turbo run check-types"
+		"lint": "biome lint --write .",
+		"test": "turbo run test",
+		"test:coverage": "turbo run test:coverage",
+		"test:watch": "turbo run test:watch"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "1.9.4",

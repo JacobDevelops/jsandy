@@ -65,10 +65,41 @@ jobs:
         run: pnpm lint
       - name: Type Check
         run: pnpm check-types
+  
+  test-rpc:
+    name: Test RPC
+    needs: [setup]
+    runs-on: blacksmith-4vcpu-ubuntu-2204
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.11.0
+      - uses: useblacksmith/setup-node@v5
+        with:
+          node-version: 23.3.0
+          cache: 'pnpm'
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+      - uses: useblacksmith/cache@v5
+        name: Setup pnpm cache
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+      - run: pnpm install --frozen-lockfile
+      - name: Test RPC
+        run: pnpm --filter=rpc test
+      - name: Build RPC
+        run: pnpm --filter=rpc build
 
   ci-status:
     name: CI Pipeline
-    needs: [lint-and-type-check]
+    needs: [lint-and-type-check, test-rpc]
     runs-on: blacksmith-4vcpu-ubuntu-2204
     if: always()
     steps:
