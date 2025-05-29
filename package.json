@@ -15,6 +15,7 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "1.9.4",
+		"@changesets/cli": "^2.29.4",
 		"@commitlint/cli": "^19.8.1",
 		"@commitlint/config-conventional": "^19.8.1",
 		"@commitlint/types": "^19.8.1",
@@ -29,15 +30,8 @@
 	},
 	"pnpm": {
 		"supportedArchitectures": {
-			"os": [
-				"win32",
-				"darwin",
-				"current"
-			],
-			"cpu": [
-				"x64",
-				"arm64"
-			]
+			"os": ["win32", "darwin", "current"],
+			"cpu": ["x64", "arm64"]
 		}
 	},
 	"packageManager": "pnpm@10.11.0"
