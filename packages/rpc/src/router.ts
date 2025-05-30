@@ -146,7 +146,7 @@ export class Router<
 	E extends Env = Env,
 > extends Hono<E, RouterSchema<MergeRoutes<T>>, string> {
 	_metadata: {
-		subRouters: Record<string, Router<any, E>>;
+		subRouters: Record<string, Router<Record<string, unknown>, E>>;
 		config: RouterConfig | Record<string, RouterConfig>;
 		procedures: Record<string, ProcedureMetadata>;
 		registeredPaths: string[];
