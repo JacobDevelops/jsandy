@@ -59,10 +59,8 @@ export type ClientRequest<S extends Schema> = {
 					: { param: P }
 				: R extends { query: infer Q }
 					? { query: Q }
-					: // biome-ignore lint/complexity/noBannedTypes: URL without query or params won't have arguments
-						{}
-			: // biome-ignore lint/complexity/noBannedTypes: URL without query or params won't have arguments
-				{},
+					: Record<string, never>
+			: Record<string, never>,
 	) => URL;
 } & (S["$get"] extends { outputFormat: "ws" }
 		? S["$get"] extends {
