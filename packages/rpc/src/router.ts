@@ -127,18 +127,6 @@ interface WebSocketBindings {
 	UPSTASH_REDIS_REST_TOKEN: string | undefined;
 }
 
-// Type for sub-router storage
-type SubRouterValue<
-	E extends Env = Env,
-	TRouter = Router<
-		Record<
-			string,
-			Record<string, unknown> | OperationType<ZodObject, ZodObject>
-		>,
-		E
-	>,
-> = Promise<TRouter> | TRouter;
-
 interface JSONSchema {
 	type?: string | string[];
 	properties?: Record<string, JSONSchema>;
@@ -158,7 +146,7 @@ export class Router<
 	E extends Env = Env,
 > extends Hono<E, RouterSchema<MergeRoutes<T>>, string> {
 	_metadata: {
-		subRouters: Record<string, SubRouterValue<E>>;
+		subRouters: Record<string, Router<any, E>>;
 		config: RouterConfig | Record<string, RouterConfig>;
 		procedures: Record<string, ProcedureMetadata>;
 		registeredPaths: string[];
@@ -218,7 +206,7 @@ export class Router<
 				.slice(0, 2);
 
 			const key = `/${basePath}/${routerName}`;
-			const subRouter = await this._metadata.subRouters[key];
+			const subRouter = this._metadata.subRouters[key];
 
 			if (subRouter) {
 				const rewrittenPath = `/${c.req.path.split("/").slice(3).join("/")}`;

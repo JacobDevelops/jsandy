@@ -32,39 +32,9 @@ describe("Schema", () => {
 			});
 
 			console.log(
-				"Client Metadata: ",
-				await client.rpc.admin.adminOnly.$schema(),
+				"Combined Router Metadata: ",
+				appRouter._metadata.subRouters["/api/rpc"]._metadata.procedures,
 			);
 		});
 	});
 });
-
-// export type Client<
-// 	T extends
-// 		| Router<RouterRecord, InferRouterEnv<T>>
-// 		| (() => Promise<Router<RouterRecord, InferRouterEnv<T>>>),
-// > = T extends Hono<InferRouterEnv<T>, infer S>
-// 	? S extends RouterSchema<infer B>
-// 		? B extends MergeRoutes<infer C>
-// 			? C extends InferSchemaFromRouters<infer D, InferRouterEnv<T>>
-// 				? {
-// 						[K1 in keyof D]: D[K1] extends () => Promise<
-// 							Router<infer P, InferRouterEnv<T>>
-// 						>
-// 							? {
-// 									[K2 in keyof P]: ClientRequest<
-// 										OperationSchema<P[K2], InferRouterEnv<T>>
-// 									>;
-// 								}
-// 							: D[K1] extends Router<infer P, InferRouterEnv<T>>
-// 								? {
-// 										[K2 in keyof P]: ClientRequest<
-// 											OperationSchema<P[K2], InferRouterEnv<T>>
-// 										>;
-// 									}
-// 								: never;
-// 					}
-// 				: never
-// 			: never
-// 		: never
-// 	: never;
