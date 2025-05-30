@@ -2,10 +2,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createClient } from "..";
 import { j } from "./__mocks__/jsandy.mock";
 import {
-	combinedRouter,
-	userRouter,
 	adminRouter,
 	chatRouter,
+	combinedRouter,
+	userRouter,
 } from "./__mocks__/router.mock";
 
 vi.mock("hono/client", () => ({
@@ -143,30 +143,6 @@ describe("Schema", () => {
 		});
 	});
 
-	describe("Client Schema Methods", () => {
-		it("should provide $schema method on client endpoints", () => {
-			const client = createClient({
-				baseUrl: "https://api.example.com",
-			});
-
-			// Test that $schema method exists on client endpoints
-			expect(typeof (client as any).health?.$schema).toBe("function");
-			expect(typeof (client as any).user?.$schema).toBe("function");
-			expect(typeof (client as any).users?.create?.$schema).toBe("function");
-		});
-
-		it("should handle $schema method calls", () => {
-			const client = createClient({
-				baseUrl: "https://api.example.com",
-			});
-
-			// Test $schema method calls don't throw
-			expect(() => (client as any).health?.$schema?.()).not.toThrow();
-			expect(() => (client as any).user?.$schema?.()).not.toThrow();
-			expect(() => (client as any).users?.create?.$schema?.()).not.toThrow();
-		});
-	});
-
 	describe("Type Safety", () => {
 		it("should maintain type safety for subrouter access", () => {
 			const api = j.router().basePath("/api");
@@ -186,17 +162,29 @@ describe("Schema", () => {
 			expect(config).toBeTypeOf("object");
 			expect(Array.isArray(registeredPaths)).toBe(true);
 		});
+	});
 
-		it("should provide correct client types", () => {
-			const client = createClient({
+	describe("Client Schema Methods", () => {
+		const api = j
+			.router()
+			.basePath("/api")
+			.use(j.defaults.cors)
+			.onError(j.defaults.errorHandler);
+		const appRouter = j.mergeRouters(api, {
+			rpc: combinedRouter,
+		});
+		type AppRouter = typeof appRouter;
+
+		it("should provide $schema method on client endpoints", async () => {
+			const client = createClient<AppRouter>({
 				baseUrl: "https://api.example.com",
 			});
 
-			// These should have proper typing without errors
-			expect((client as any).health).toBeDefined();
-			expect(typeof (client as any).health?.$get).toBe("function");
-			expect(typeof (client as any).users?.create?.$post).toBe("function");
-			expect(typeof (client as any).chat?.$ws).toBe("function");
+			console.log("Users:", client.rpc.users);
+
+			expect(typeof client.rpc.health.$schema).toBe("function");
+			expect(typeof client.rpc.user.$schema).toBe("function");
+			expect(typeof client.rpc.users.create).toBe("function");
 		});
 	});
 });

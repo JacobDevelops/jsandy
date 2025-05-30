@@ -21,7 +21,7 @@ import { ClientSocket, type SystemEvents } from "./sockets";
 import type { GetOperation, OperationType, PostOperation } from "./types";
 
 // Define the router constraint type
-type RouterRecord = Record<
+export type RouterRecord = Record<
 	string,
 	OperationType<ZodObject, ZodObject> | Record<string, unknown>
 >;
@@ -64,8 +64,6 @@ export type ClientRequest<S extends Schema> = {
 			: // biome-ignore lint/complexity/noBannedTypes: URL without query or params won't have arguments
 				{},
 	) => URL;
-} & {
-	$schema: () => string | null;
 } & (S["$get"] extends { outputFormat: "ws" }
 		? S["$get"] extends {
 				input: infer I;
@@ -87,6 +85,16 @@ export type InferRouter<T extends Router<RouterRecord, Env>> = T extends Router<
 	? RouterSchema<P>
 	: never;
 
+type ClientRouteMapping<P, E extends Env> = {
+	[K in keyof P]: P[K] extends OperationType<unknown, Response, E>
+		? ClientRequest<OperationSchema<P[K], E>>
+		: P[K] extends Record<string, OperationType<unknown, Response, E>>
+			? {
+					[SubK in keyof P[K]]: ClientRequest<OperationSchema<P[K][SubK], E>>;
+				}
+			: never;
+};
+
 export type Client<
 	T extends
 		| Router<RouterRecord, InferRouterEnv<T>>
@@ -99,17 +107,9 @@ export type Client<
 						[K1 in keyof D]: D[K1] extends () => Promise<
 							Router<infer P, InferRouterEnv<T>>
 						>
-							? {
-									[K2 in keyof P]: ClientRequest<
-										OperationSchema<P[K2], InferRouterEnv<T>>
-									>;
-								}
+							? ClientRouteMapping<P, InferRouterEnv<T>>
 							: D[K1] extends Router<infer P, InferRouterEnv<T>>
-								? {
-										[K2 in keyof P]: ClientRequest<
-											OperationSchema<P[K2], InferRouterEnv<T>>
-										>;
-									}
+								? ClientRouteMapping<P, InferRouterEnv<T>>
 								: never;
 					}
 				: never
@@ -287,24 +287,6 @@ function createProxy(
 				}
 
 				if (prop === "$url") {
-					return (args?: { query: Record<string, SerializableValue> }): URL => {
-						const endpointPath = `/${routePath.slice(0, -1).join("/")}`;
-						const normalizedPath = endpointPath.replace(baseUrl, "");
-						const url = new URL(baseUrl + normalizedPath);
-
-						if (args?.query) {
-							for (const [key, value] of Object.entries(args.query)) {
-								if (value !== null && value !== undefined) {
-									url.searchParams.append(key, String(value));
-								}
-							}
-						}
-
-						return url;
-					};
-				}
-
-				if (prop === "$schema") {
 					return (args?: { query: Record<string, SerializableValue> }): URL => {
 						const endpointPath = `/${routePath.slice(0, -1).join("/")}`;
 						const normalizedPath = endpointPath.replace(baseUrl, "");

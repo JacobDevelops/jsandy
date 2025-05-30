@@ -17,6 +17,7 @@ import type {
 	RouterConfig,
 	WebSocketOperation,
 } from "./types";
+import type { ClientRequest } from "./client";
 
 type FlattenRoutes<T> = {
 	[K in keyof T]: T[K] extends WebSocketOperation<ZodObject, ZodObject>
@@ -93,8 +94,7 @@ export type OperationSchema<
 				status: StatusCode;
 			};
 		}
-	: // biome-ignore lint/suspicious/noExplicitAny: Output type is not known
-		T extends GetOperation<ZodObject | void, any, E>
+	: T extends GetOperation<ZodObject | void, Response, E>
 		? {
 				$get: {
 					input: InferInput<T>;
@@ -103,8 +103,7 @@ export type OperationSchema<
 					status: StatusCode;
 				};
 			}
-		: // biome-ignore lint/suspicious/noExplicitAny: Output type is not known
-			T extends PostOperation<ZodObject | void, any, E>
+		: T extends PostOperation<ZodObject | void, Response, E>
 			? {
 					$post: {
 						input: InferInput<T>;
@@ -113,7 +112,9 @@ export type OperationSchema<
 						status: StatusCode;
 					};
 				}
-			: never;
+			: T extends ClientRequest<infer S>
+				? S
+				: never;
 
 interface InternalContext {
 	__middleware_output?: Record<string, unknown>;
