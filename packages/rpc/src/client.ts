@@ -67,14 +67,14 @@ export type ClientRequest<S extends Schema> = {
 } & (S["$get"] extends { outputFormat: "ws" }
 		? S["$get"] extends {
 				input: infer I;
-				incoming: infer Incoming extends Record<string, unknown>;
-				outgoing: infer Outgoing extends Record<string, unknown>;
+				incoming: infer Incoming;
+				outgoing: infer Outgoing;
 			}
 			? {
 					$ws: (args?: I) => ClientSocket<Outgoing & SystemEvents, Incoming>;
 				}
 			: Record<string, never>
-		: Record<string, never>);
+		: void);
 
 export type UnwrapRouterSchema<T> = T extends RouterSchema<infer R> ? R : never;
 

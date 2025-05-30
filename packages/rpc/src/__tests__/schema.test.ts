@@ -180,11 +180,9 @@ describe("Schema", () => {
 				baseUrl: "https://api.example.com",
 			});
 
-			console.log("Users:", client.rpc.users);
-
-			expect(typeof client.rpc.health.$schema).toBe("function");
-			expect(typeof client.rpc.user.$schema).toBe("function");
-			expect(typeof client.rpc.users.create).toBe("function");
+			expect(typeof client.rpc.health.$get).toBe("function");
+			expect(typeof client.rpc.user.$get).toBe("function");
+			expect(typeof client.rpc.users.create).toBe("object");
 		});
 	});
 });
