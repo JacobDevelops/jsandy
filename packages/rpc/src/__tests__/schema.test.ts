@@ -17,7 +17,7 @@ describe("Schema", () => {
 	});
 
 	describe("Schema Methods", () => {
-		it("should be able to get the schema", () => {
+		it("should be able to get the schema", async () => {
 			const api = j
 				.router()
 				.basePath("/api")
@@ -30,6 +30,11 @@ describe("Schema", () => {
 			const client = createClient<AppRouter>({
 				baseUrl: "https://api.example.com",
 			});
+
+			console.log(
+				"Client Metadata: ",
+				await client.rpc.admin.adminOnly.$schema(),
+			);
 		});
 	});
 });

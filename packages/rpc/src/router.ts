@@ -191,11 +191,14 @@ export class Router<
 		};
 
 		for (const [procName, value] of Object.entries(procedures)) {
-			const procData = value as ProcedureMetadata;
+			const procData = value as {
+				type: "get" | "post" | "ws";
+				schema?: ZodObject;
+			};
 			const { schema } = procData;
 			this._metadata.procedures[procName] = {
 				type: procData.type,
-				schema: toJSONSchema(schema as unknown as ZodObject),
+				schema: schema ? toJSONSchema(schema) : null,
 			};
 		}
 

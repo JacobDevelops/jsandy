@@ -64,6 +64,8 @@ export type ClientRequest<S extends Schema> = {
 			: // biome-ignore lint/complexity/noBannedTypes: URL without query or params won't have arguments
 				{},
 	) => URL;
+} & {
+	$schema: () => string | null;
 } & (S["$get"] extends { outputFormat: "ws" }
 		? S["$get"] extends {
 				input: infer I;
@@ -285,6 +287,24 @@ function createProxy(
 				}
 
 				if (prop === "$url") {
+					return (args?: { query: Record<string, SerializableValue> }): URL => {
+						const endpointPath = `/${routePath.slice(0, -1).join("/")}`;
+						const normalizedPath = endpointPath.replace(baseUrl, "");
+						const url = new URL(baseUrl + normalizedPath);
+
+						if (args?.query) {
+							for (const [key, value] of Object.entries(args.query)) {
+								if (value !== null && value !== undefined) {
+									url.searchParams.append(key, String(value));
+								}
+							}
+						}
+
+						return url;
+					};
+				}
+
+				if (prop === "$schema") {
 					return (args?: { query: Record<string, SerializableValue> }): URL => {
 						const endpointPath = `/${routePath.slice(0, -1).join("/")}`;
 						const normalizedPath = endpointPath.replace(baseUrl, "");
