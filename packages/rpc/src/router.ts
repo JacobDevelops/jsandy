@@ -508,20 +508,10 @@ export class Router<
 								eventData as InferSchemaType<Schema>,
 							);
 						} catch (err) {
-							const logError = (() => {
-								try {
-									return (
-										(
-											ctx as {
-												logger?: { error?: (...args: unknown[]) => void };
-											}
-										)?.logger?.error || console.error
-									);
-								} catch {
-									return console.error;
-								}
-							})();
-							logError("Failed to process message:", err);
+							const logger =
+								(ctx as { logger?: { error?: (...args: unknown[]) => void } })
+									?.logger?.error ?? console.error;
+							logger("Failed to process message:", err);
 						}
 					};
 

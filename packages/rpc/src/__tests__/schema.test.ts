@@ -144,6 +144,11 @@ describe("Schema", () => {
 					expect(createUserSchema.type).toBe("object");
 					expect(createUserSchema.properties).toBeDefined();
 					expect(createUserSchema.required).toBeDefined();
+
+					expect(createUserSchema.properties).toHaveProperty("name");
+					expect(createUserSchema.properties).toHaveProperty("email");
+					expect(createUserSchema.required).toContain("name");
+					expect(createUserSchema.required).toContain("email");
 				}
 			}
 		});
