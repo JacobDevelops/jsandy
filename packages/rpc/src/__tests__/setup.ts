@@ -1,6 +1,6 @@
-import { afterAll, beforeEach, vi } from "vitest";
+import { afterAll, beforeEach, spyOn } from "bun:test";
 
-const spyFetch = vi.spyOn(globalThis, "fetch");
+const spyFetch = spyOn(globalThis, "fetch");
 
 beforeEach(() => {
 	spyFetch.mockReset();

@@ -1,9 +1,3 @@
-import Bun from "bun";
+import { build } from "@jsandy/builder";
 
-await Bun.build({
-	entrypoints: ["src/index.ts"],
-	outdir: "dist",
-	sourcemap: "linked",
-	external: ["hono", "superjson", "zod"],
-	target: "node",
-});
+build("src/index.ts", ["hono", "superjson", "zod"]);
