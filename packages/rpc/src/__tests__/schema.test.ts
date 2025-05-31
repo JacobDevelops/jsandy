@@ -69,6 +69,12 @@ describe("Schema", () => {
 			// Test WebSocket procedure
 			expect(procedures.chat).toBeDefined();
 			expect(procedures.chat.type).toBe("ws");
+			// New: verify that both incoming & outgoing schemas are attached
+			expect(procedures.chat.schema).toBeDefined();
+			if (procedures.chat.schema) {
+				expect(procedures.chat.schema).toHaveProperty("incoming");
+				expect(procedures.chat.schema).toHaveProperty("outgoing");
+			}
 		});
 
 		it("should handle multiple subrouters", () => {
