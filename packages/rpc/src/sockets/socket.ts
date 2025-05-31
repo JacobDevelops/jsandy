@@ -354,7 +354,7 @@ Node.js servers (port 3000) do not support WebSocket connections.
 To start your Cloudflare Worker locally:
 $ wrangler dev
 
-Fix this issue: https://sqStack.app/docs/getting-started/local-development
+Fix this issue: https://jsandy.app/docs/getting-started/local-development
           `);
 				}
 			} else {

@@ -1,4 +1,3 @@
-import superjson from "superjson";
 import type { Hono } from "hono";
 import {
 	type ClientRequestOptions,
@@ -9,6 +8,7 @@ import { HTTPException } from "hono/http-exception";
 import type { Endpoint, Env, ResponseFormat, Schema } from "hono/types";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
 import type { UnionToIntersection } from "hono/utils/types";
+import superjson from "superjson";
 import type { ZodObject } from "zod/v4";
 import type { InferSchemaFromRouters } from "./merge-routers";
 import type {
@@ -18,13 +18,12 @@ import type {
 	RouterSchema,
 } from "./router";
 import { ClientSocket, type SystemEvents } from "./sockets";
-import type { GetOperation, OperationType, PostOperation } from "./types";
-
-// Define the router constraint type
-type RouterRecord = Record<
-	string,
-	OperationType<ZodObject, ZodObject> | Record<string, unknown>
->;
+import type {
+	GetOperation,
+	OperationType,
+	PostOperation,
+	RouterRecord,
+} from "./types";
 
 type ClientResponseOfEndpoint<T extends Endpoint = Endpoint> = T extends {
 	output: infer O;
@@ -59,22 +58,20 @@ export type ClientRequest<S extends Schema> = {
 					: { param: P }
 				: R extends { query: infer Q }
 					? { query: Q }
-					: // biome-ignore lint/complexity/noBannedTypes: URL without query or params won't have arguments
-						{}
-			: // biome-ignore lint/complexity/noBannedTypes: URL without query or params won't have arguments
-				{},
+					: Record<string, never>
+			: Record<string, never>,
 	) => URL;
 } & (S["$get"] extends { outputFormat: "ws" }
 		? S["$get"] extends {
 				input: infer I;
-				incoming: infer Incoming extends Record<string, unknown>;
-				outgoing: infer Outgoing extends Record<string, unknown>;
+				incoming: infer Incoming;
+				outgoing: infer Outgoing;
 			}
 			? {
-					$ws: (args?: I) => ClientSocket<Outgoing & SystemEvents, Incoming>;
+					$ws: (args?: I) => ClientSocket<Incoming & SystemEvents, Outgoing>;
 				}
 			: Record<string, never>
-		: Record<string, never>);
+		: void);
 
 export type UnwrapRouterSchema<T> = T extends RouterSchema<infer R> ? R : never;
 
@@ -84,6 +81,14 @@ export type InferRouter<T extends Router<RouterRecord, Env>> = T extends Router<
 >
 	? RouterSchema<P>
 	: never;
+
+type ClientRouteMapping<P, E extends Env> = {
+	[K in keyof P]: P[K] extends OperationType<unknown, Response, E>
+		? ClientRequest<OperationSchema<P[K], E>>
+		: P[K] extends Record<string, unknown>
+			? ClientRouteMapping<P[K], E>
+			: never;
+};
 
 export type Client<
 	T extends
@@ -97,17 +102,9 @@ export type Client<
 						[K1 in keyof D]: D[K1] extends () => Promise<
 							Router<infer P, InferRouterEnv<T>>
 						>
-							? {
-									[K2 in keyof P]: ClientRequest<
-										OperationSchema<P[K2], InferRouterEnv<T>>
-									>;
-								}
+							? ClientRouteMapping<P, InferRouterEnv<T>>
 							: D[K1] extends Router<infer P, InferRouterEnv<T>>
-								? {
-										[K2 in keyof P]: ClientRequest<
-											OperationSchema<P[K2], InferRouterEnv<T>>
-										>;
-									}
+								? ClientRouteMapping<P, InferRouterEnv<T>>
 								: never;
 					}
 				: never

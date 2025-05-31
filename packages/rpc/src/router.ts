@@ -3,8 +3,7 @@ import { env } from "hono/adapter";
 import { HTTPException } from "hono/http-exception";
 import type { Env, ErrorHandler, MiddlewareHandler, Schema } from "hono/types";
 import type { StatusCode } from "hono/utils/http-status";
-import type { ZodObject } from "zod/v4";
-import { z } from "zod/v4";
+import { z, toJSONSchema, type ZodObject } from "zod/v4";
 import { bodyParsingMiddleware, queryParsingMiddleware } from "./middleware";
 import { IO, ServerSocket, type InferSchemaType } from "./sockets";
 import type {
@@ -17,7 +16,7 @@ import type {
 	RouterConfig,
 	WebSocketOperation,
 } from "./types";
-import { logger } from "./sockets/logger";
+import type { ClientRequest } from "./client";
 
 type FlattenRoutes<T> = {
 	[K in keyof T]: T[K] extends WebSocketOperation<ZodObject, ZodObject>
@@ -94,8 +93,7 @@ export type OperationSchema<
 				status: StatusCode;
 			};
 		}
-	: // biome-ignore lint/suspicious/noExplicitAny: Output type is not known
-		T extends GetOperation<ZodObject | void, any, E>
+	: T extends GetOperation<ZodObject | void, Response, E>
 		? {
 				$get: {
 					input: InferInput<T>;
@@ -104,8 +102,7 @@ export type OperationSchema<
 					status: StatusCode;
 				};
 			}
-		: // biome-ignore lint/suspicious/noExplicitAny: Output type is not known
-			T extends PostOperation<ZodObject | void, any, E>
+		: T extends PostOperation<ZodObject | void, Response, E>
 			? {
 					$post: {
 						input: InferInput<T>;
@@ -114,7 +111,9 @@ export type OperationSchema<
 						status: StatusCode;
 					};
 				}
-			: never;
+			: T extends ClientRequest<infer S>
+				? S
+				: never;
 
 interface InternalContext {
 	__middleware_output?: Record<string, unknown>;
@@ -128,27 +127,36 @@ interface WebSocketBindings {
 	UPSTASH_REDIS_REST_TOKEN: string | undefined;
 }
 
-// Type for sub-router storage
-type SubRouterValue<
-	E extends Env = Env,
-	TRouter = Router<
-		Record<
-			string,
-			Record<string, unknown> | OperationType<ZodObject, ZodObject>
-		>,
-		E
-	>,
-> = Promise<TRouter> | TRouter;
+interface JSONSchema {
+	type?: string | string[];
+	properties?: Record<string, JSONSchema>;
+	required?: string[];
+	additionalProperties?: boolean | JSONSchema;
+	$schema?: string;
+}
 
 // Type for procedures metadata
-type ProcedureMetadata = Record<string, "get" | "post" | "ws">;
+type GetPostProcedureMetadata = {
+	type: "get" | "post";
+	schema: JSONSchema | null;
+};
+
+type WSProcedureMetadata = {
+	type: "ws";
+	schema: {
+		incoming: JSONSchema | null;
+		outgoing: JSONSchema | null;
+	} | null;
+};
+
+type ProcedureMetadata = GetPostProcedureMetadata | WSProcedureMetadata;
 
 export class Router<
 	T extends Record<string, unknown>,
 	E extends Env = Env,
 > extends Hono<E, RouterSchema<MergeRoutes<T>>, string> {
 	_metadata: {
-		subRouters: Record<string, SubRouterValue<E>>;
+		subRouters: Record<string, Router<Record<string, unknown>, E>>;
 		config: RouterConfig | Record<string, RouterConfig>;
 		procedures: Record<string, ProcedureMetadata>;
 		registeredPaths: string[];
@@ -180,6 +188,36 @@ export class Router<
 			registeredPaths: [],
 		};
 
+		for (const [procName, value] of Object.entries(procedures)) {
+			const procData = value as {
+				type: "get" | "post" | "ws";
+				schema?: ZodObject;
+				incoming?: ZodObject;
+				outgoing?: ZodObject;
+			};
+
+			if (procData.type === "ws") {
+				// Handle WebSocket operations
+				this._metadata.procedures[procName] = {
+					type: "ws",
+					schema: {
+						incoming: procData.incoming
+							? toJSONSchema(procData.incoming)
+							: null,
+						outgoing: procData.outgoing
+							? toJSONSchema(procData.outgoing)
+							: null,
+					},
+				} satisfies WSProcedureMetadata;
+			} else {
+				// Handle GET/POST operations
+				this._metadata.procedures[procName] = {
+					type: procData.type, // Now TypeScript knows this is "get" | "post"
+					schema: procData.schema ? toJSONSchema(procData.schema) : null,
+				} satisfies GetPostProcedureMetadata;
+			}
+		}
+
 		this.onError = (handler: ErrorHandler<E>) => {
 			this._errorHandler = handler;
 			return this;
@@ -196,7 +234,7 @@ export class Router<
 				.slice(0, 2);
 
 			const key = `/${basePath}/${routerName}`;
-			const subRouter = await this._metadata.subRouters[key];
+			const subRouter = this._metadata.subRouters[key];
 
 			if (subRouter) {
 				const rewrittenPath = `/${c.req.path.split("/").slice(3).join("/")}`;
@@ -248,9 +286,27 @@ export class Router<
 		const routePath = `/${path}` as const;
 
 		if (!this._metadata.procedures[path]) {
-			this._metadata.procedures[path] = {
-				type: operation.type,
-			};
+			if (operation.type === "ws") {
+				// Handle WebSocket operation with incoming/outgoing schemas
+				const wsOperation = operation;
+				this._metadata.procedures[path] = {
+					type: "ws",
+					schema: {
+						incoming: wsOperation.incoming
+							? toJSONSchema(wsOperation.incoming)
+							: null,
+						outgoing: wsOperation.outgoing
+							? toJSONSchema(wsOperation.outgoing)
+							: null,
+					},
+				} satisfies WSProcedureMetadata;
+			} else {
+				// Handle regular operations with single schema
+				this._metadata.procedures[path] = {
+					type: operation.type, // TypeScript knows this is "get" | "post"
+					schema: operation.schema ? toJSONSchema(operation.schema) : null,
+				} satisfies GetPostProcedureMetadata;
+			}
 		}
 
 		const operationMiddlewares: MiddlewareHandler<E>[] =
@@ -390,11 +446,11 @@ export class Router<
 						throw new HTTPException(503, {
 							message:
 								"Missing required environment variables for WebSockets connection.\n\n" +
-								"Real-time WebSockets depend on a persistent connection layer to maintain communication. SQStack uses Upstash Redis to achieve this." +
+								"Real-time WebSockets depend on a persistent connection layer to maintain communication. JSandy uses Upstash Redis to achieve this." +
 								"To fix this error:\n" +
 								"1. Log in to Upstash Redis at https://upstash.com\n" +
 								"2. Add UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN to your environment variables\n\n" +
-								"Complete WebSockets guide: https://sqStack.app/docs/websockets\n",
+								"Complete WebSockets guide: https://jsandy.app/docs/websockets\n",
 						});
 					}
 
@@ -435,6 +491,9 @@ export class Router<
 					};
 
 					const eventSchema = z.tuple([z.string(), z.unknown()]);
+					const logger =
+						(ctx as { logger?: { error?: (...args: unknown[]) => void } })
+							?.logger?.error ?? console.error;
 					server.onmessage = async (event) => {
 						try {
 							const rawData = z.string().parse(event.data);
@@ -452,7 +511,7 @@ export class Router<
 								eventData as InferSchemaType<Schema>,
 							);
 						} catch (err) {
-							logger.error("Failed to process message:", err);
+							logger("Failed to process message:", err);
 						}
 					};
 

@@ -164,9 +164,9 @@ export type InferInput<T> = T extends OperationType<infer I, unknown, any>
 				: void;
 
 export type OptionalPromise<T> = T | Promise<T>;
-type RouterRecord = Record<
+export type RouterRecord = Record<
 	string,
-	OperationType<ZodObject, ZodObject> | Record<string, unknown>
+	OperationType<ZodObject | void, ZodObject | void> | Record<string, unknown>
 >;
 export type InferRouterEnv<T> = T extends Router<RouterRecord, infer E>
 	? E

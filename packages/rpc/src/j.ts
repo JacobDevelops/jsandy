@@ -23,7 +23,7 @@ export function fromHono<E extends Env = Env>(
 	};
 }
 
-class SQStack {
+class JSandy {
 	init<E extends Env = Env>() {
 		return {
 			router: <T extends Record<string, unknown>>(
@@ -87,4 +87,4 @@ class SQStack {
 	}
 }
 
-export const sqStack = new SQStack();
+export const jsandy = new JSandy();
