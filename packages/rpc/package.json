@@ -20,7 +20,7 @@
 		}
 	},
 	"scripts": {
-		"build": "node build.mjs",
+		"build": "bun build.ts && tsc --emitDeclarationOnly",
 		"check-types": "tsc --noEmit",
 		"clean": "rimraf dist && rimraf node_modules",
 		"prebuild": "rimraf dist",
@@ -33,7 +33,7 @@
 		"@cloudflare/workers-types": "^4.20241218.0",
 		"@jsandy/builder": "workspace:*",
 		"@jsandy/typescript-config": "workspace:*",
-		"@types/node": "^22.0.0",
+		"@types/bun": "^1.2.15",
 		"@vitest/coverage-v8": "^3.0.7",
 		"typescript": "^5.2.2",
 		"vite-tsconfig-paths": "^5.1.4",
