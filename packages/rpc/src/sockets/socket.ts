@@ -19,13 +19,13 @@ export interface SystemEvents {
 	onError: Error;
 }
 
-export type EventKeys<T> = T extends ZodObject
+type EventKeys<T> = T extends ZodObject
 	? keyof T["shape"]
 	: T extends Record<PropertyKey, unknown>
 		? keyof T
 		: string;
 
-export type EventData<T, K extends PropertyKey> = T extends ZodObject
+type EventData<T, K extends PropertyKey> = T extends ZodObject
 	? K extends keyof T["shape"]
 		? T["shape"][K] extends ZodType
 			? z.infer<T["shape"][K]>

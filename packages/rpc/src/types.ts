@@ -3,8 +3,7 @@ import type { Context, TypedResponse } from "hono";
 import type { Env, Input } from "hono/types";
 import type { StatusCode } from "hono/utils/http-status";
 import type { ZodObject, ZodRawShape, z } from "zod/v4";
-import type { Router } from "../router";
-import type { IO, ServerSocket } from "../sockets";
+import type { IO, ServerSocket } from "./sockets";
 
 /**
  * Represents the type returned by superjson.parse for a given type T
@@ -300,11 +299,3 @@ export type RouterRecord = Record<
 	string,
 	OperationType<ZodObject | void, ZodObject | void> | Record<string, unknown>
 >;
-
-/**
- * Infers the environment type from a Router instance
- * @template T - The Router type to infer environment from
- */
-export type InferRouterEnv<T> = T extends Router<RouterRecord, infer E>
-	? E
-	: never;
