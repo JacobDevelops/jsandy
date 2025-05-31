@@ -18,7 +18,6 @@ vi.mock("hono/client", () => ({
 describe("Schema", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
-		global.fetch = vi.fn();
 	});
 
 	describe("Router Metadata Access", () => {

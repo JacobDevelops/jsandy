@@ -491,6 +491,9 @@ export class Router<
 					};
 
 					const eventSchema = z.tuple([z.string(), z.unknown()]);
+					const logger =
+						(ctx as { logger?: { error?: (...args: unknown[]) => void } })
+							?.logger?.error ?? console.error;
 					server.onmessage = async (event) => {
 						try {
 							const rawData = z.string().parse(event.data);
@@ -508,9 +511,6 @@ export class Router<
 								eventData as InferSchemaType<Schema>,
 							);
 						} catch (err) {
-							const logger =
-								(ctx as { logger?: { error?: (...args: unknown[]) => void } })
-									?.logger?.error ?? console.error;
 							logger("Failed to process message:", err);
 						}
 					};
