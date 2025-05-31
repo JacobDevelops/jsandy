@@ -30,7 +30,7 @@
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20241218.0",
-		"@jsandy/builder": "workspace:*",
+		"@jsandy/builder": "0.0.0",
 		"@jsandy/typescript-config": "workspace:*",
 		"@types/bun": "^1.2.15",
 		"@types/node": "^22.15.29",
