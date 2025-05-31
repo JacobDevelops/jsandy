@@ -3,8 +3,7 @@ import { env } from "hono/adapter";
 import { HTTPException } from "hono/http-exception";
 import type { Env, ErrorHandler, MiddlewareHandler, Schema } from "hono/types";
 import type { StatusCode } from "hono/utils/http-status";
-import type { ZodObject } from "zod/v4";
-import { toJSONSchema, z } from "zod/v4";
+import { z, toJSONSchema, type ZodObject } from "zod/v4";
 import { bodyParsingMiddleware, queryParsingMiddleware } from "./middleware";
 import { IO, ServerSocket, type InferSchemaType } from "./sockets";
 import type {
@@ -137,10 +136,20 @@ interface JSONSchema {
 }
 
 // Type for procedures metadata
-type ProcedureMetadata = {
-	type: "get" | "post" | "ws";
+type GetPostProcedureMetadata = {
+	type: "get" | "post";
 	schema: JSONSchema | null;
 };
+
+type WSProcedureMetadata = {
+	type: "ws";
+	schema: {
+		incoming: JSONSchema | null;
+		outgoing: JSONSchema | null;
+	} | null;
+};
+
+type ProcedureMetadata = GetPostProcedureMetadata | WSProcedureMetadata;
 
 export class Router<
 	T extends Record<string, unknown>,
@@ -183,12 +192,30 @@ export class Router<
 			const procData = value as {
 				type: "get" | "post" | "ws";
 				schema?: ZodObject;
+				incoming?: ZodObject;
+				outgoing?: ZodObject;
 			};
-			const { schema } = procData;
-			this._metadata.procedures[procName] = {
-				type: procData.type,
-				schema: schema ? toJSONSchema(schema) : null,
-			};
+
+			if (procData.type === "ws") {
+				// Handle WebSocket operations
+				this._metadata.procedures[procName] = {
+					type: "ws",
+					schema: {
+						incoming: procData.incoming
+							? toJSONSchema(procData.incoming)
+							: null,
+						outgoing: procData.outgoing
+							? toJSONSchema(procData.outgoing)
+							: null,
+					},
+				} satisfies WSProcedureMetadata;
+			} else {
+				// Handle GET/POST operations
+				this._metadata.procedures[procName] = {
+					type: procData.type, // Now TypeScript knows this is "get" | "post"
+					schema: procData.schema ? toJSONSchema(procData.schema) : null,
+				} satisfies GetPostProcedureMetadata;
+			}
 		}
 
 		this.onError = (handler: ErrorHandler<E>) => {
@@ -259,28 +286,27 @@ export class Router<
 		const routePath = `/${path}` as const;
 
 		if (!this._metadata.procedures[path]) {
-			let schema = null;
-
 			if (operation.type === "ws") {
 				// Handle WebSocket operation with incoming/outgoing schemas
 				const wsOperation = operation;
-				schema = {
-					incoming: wsOperation.incoming
-						? toJSONSchema(wsOperation.incoming)
-						: null,
-					outgoing: wsOperation.outgoing
-						? toJSONSchema(wsOperation.outgoing)
-						: null,
-				};
-			} else if (operation.schema) {
+				this._metadata.procedures[path] = {
+					type: "ws",
+					schema: {
+						incoming: wsOperation.incoming
+							? toJSONSchema(wsOperation.incoming)
+							: null,
+						outgoing: wsOperation.outgoing
+							? toJSONSchema(wsOperation.outgoing)
+							: null,
+					},
+				} satisfies WSProcedureMetadata;
+			} else {
 				// Handle regular operations with single schema
-				schema = toJSONSchema(operation.schema);
+				this._metadata.procedures[path] = {
+					type: operation.type, // TypeScript knows this is "get" | "post"
+					schema: operation.schema ? toJSONSchema(operation.schema) : null,
+				} satisfies GetPostProcedureMetadata;
 			}
-
-			this._metadata.procedures[path] = {
-				type: operation.type,
-				schema,
-			};
 		}
 
 		const operationMiddlewares: MiddlewareHandler<E>[] =
@@ -482,7 +508,20 @@ export class Router<
 								eventData as InferSchemaType<Schema>,
 							);
 						} catch (err) {
-							console.error("Failed to process message:", err);
+							const logError = (() => {
+								try {
+									return (
+										(
+											ctx as {
+												logger?: { error?: (...args: unknown[]) => void };
+											}
+										)?.logger?.error || console.error
+									);
+								} catch {
+									return console.error;
+								}
+							})();
+							logError("Failed to process message:", err);
 						}
 					};
 

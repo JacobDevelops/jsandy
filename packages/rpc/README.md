@@ -89,7 +89,7 @@ To create a type-safe RPC client:
 
 ```typescript
 import { createClient } from "@jsandy/rpc";
-import type { userRouter } from "./user-router";
+import { userRouter } from "./user-router";
 
 const client = createClient<typeof userRouter>(
   "http://localhost:3000/api/users"

@@ -133,12 +133,18 @@ describe("Schema", () => {
 				appRouter._metadata.subRouters["/api/rpc"]._metadata.procedures;
 
 			// Test that complex schema (like users/create) has proper structure
-			const createUserSchema = procedures["users/create"].schema;
-			expect(createUserSchema).toBeDefined();
-			if (createUserSchema) {
-				expect(createUserSchema.type).toBe("object");
-				expect(createUserSchema.properties).toBeDefined();
-				expect(createUserSchema.required).toBeDefined();
+			const createUserProcedure = procedures["users/create"];
+			expect(createUserProcedure).toBeDefined();
+
+			if (createUserProcedure.type === "post") {
+				const createUserSchema = createUserProcedure.schema;
+				expect(createUserSchema).toBeDefined();
+
+				if (createUserSchema) {
+					expect(createUserSchema.type).toBe("object");
+					expect(createUserSchema.properties).toBeDefined();
+					expect(createUserSchema.required).toBeDefined();
+				}
 			}
 		});
 	});

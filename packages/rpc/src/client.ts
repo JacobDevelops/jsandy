@@ -1,4 +1,3 @@
-import superjson from "superjson";
 import type { Hono } from "hono";
 import {
 	type ClientRequestOptions,
@@ -9,6 +8,7 @@ import { HTTPException } from "hono/http-exception";
 import type { Endpoint, Env, ResponseFormat, Schema } from "hono/types";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
 import type { UnionToIntersection } from "hono/utils/types";
+import superjson from "superjson";
 import type { ZodObject } from "zod/v4";
 import type { InferSchemaFromRouters } from "./merge-routers";
 import type {
@@ -18,13 +18,12 @@ import type {
 	RouterSchema,
 } from "./router";
 import { ClientSocket, type SystemEvents } from "./sockets";
-import type { GetOperation, OperationType, PostOperation } from "./types";
-
-// Define the router constraint type
-export type RouterRecord = Record<
-	string,
-	OperationType<ZodObject, ZodObject> | Record<string, unknown>
->;
+import type {
+	GetOperation,
+	OperationType,
+	PostOperation,
+	RouterRecord,
+} from "./types";
 
 type ClientResponseOfEndpoint<T extends Endpoint = Endpoint> = T extends {
 	output: infer O;
