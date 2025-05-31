@@ -1,12 +1,10 @@
-// types.ts - Fixed with better type inference
-
 import type superjson from "superjson";
 import type { Context, TypedResponse } from "hono";
 import type { Env, Input } from "hono/types";
 import type { StatusCode } from "hono/utils/http-status";
 import type { ZodObject, ZodRawShape, z } from "zod/v4";
-import type { Router } from "./router";
-import type { IO, ServerSocket } from "./sockets";
+import type { Router } from "../router";
+import type { IO, ServerSocket } from "../sockets";
 
 type SuperJSONParsedType<T> = ReturnType<typeof superjson.parse<T>>;
 

@@ -1,5 +1,3 @@
-// j.ts - Updated router function signature
-
 import { cors } from "hono/cors";
 import { HTTPException } from "hono/http-exception";
 import type { Env, HTTPResponseError, MiddlewareHandler } from "hono/types";
