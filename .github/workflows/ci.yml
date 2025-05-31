@@ -101,6 +101,7 @@ jobs:
     name: CI Pipeline
     needs: [lint-and-type-check, test-rpc]
     runs-on: blacksmith-4vcpu-ubuntu-2404
+    timeout-minutes: 15
     if: always()
     steps:
       - name: Check CI status
