@@ -69,7 +69,7 @@ export type ClientRequest<S extends Schema> = {
 				outgoing: infer Outgoing;
 			}
 			? {
-					$ws: (args?: I) => ClientSocket<Outgoing & SystemEvents, Incoming>;
+					$ws: (args?: I) => ClientSocket<Incoming & SystemEvents, Outgoing>;
 				}
 			: Record<string, never>
 		: void);
@@ -86,10 +86,8 @@ export type InferRouter<T extends Router<RouterRecord, Env>> = T extends Router<
 type ClientRouteMapping<P, E extends Env> = {
 	[K in keyof P]: P[K] extends OperationType<unknown, Response, E>
 		? ClientRequest<OperationSchema<P[K], E>>
-		: P[K] extends Record<string, OperationType<unknown, Response, E>>
-			? {
-					[SubK in keyof P[K]]: ClientRequest<OperationSchema<P[K][SubK], E>>;
-				}
+		: P[K] extends Record<string, unknown>
+			? ClientRouteMapping<P[K], E>
 			: never;
 };
 

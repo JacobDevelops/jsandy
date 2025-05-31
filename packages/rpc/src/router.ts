@@ -259,12 +259,27 @@ export class Router<
 		const routePath = `/${path}` as const;
 
 		if (!this._metadata.procedures[path]) {
+			let schema = null;
+
+			if (operation.type === "ws") {
+				// Handle WebSocket operation with incoming/outgoing schemas
+				const wsOperation = operation;
+				schema = {
+					incoming: wsOperation.incoming
+						? toJSONSchema(wsOperation.incoming)
+						: null,
+					outgoing: wsOperation.outgoing
+						? toJSONSchema(wsOperation.outgoing)
+						: null,
+				};
+			} else if (operation.schema) {
+				// Handle regular operations with single schema
+				schema = toJSONSchema(operation.schema);
+			}
+
 			this._metadata.procedures[path] = {
 				type: operation.type,
-				schema:
-					"schema" in operation && operation.schema
-						? toJSONSchema(operation.schema)
-						: null,
+				schema,
 			};
 		}
 
@@ -405,11 +420,11 @@ export class Router<
 						throw new HTTPException(503, {
 							message:
 								"Missing required environment variables for WebSockets connection.\n\n" +
-								"Real-time WebSockets depend on a persistent connection layer to maintain communication. SQStack uses Upstash Redis to achieve this." +
+								"Real-time WebSockets depend on a persistent connection layer to maintain communication. JSandy uses Upstash Redis to achieve this." +
 								"To fix this error:\n" +
 								"1. Log in to Upstash Redis at https://upstash.com\n" +
 								"2. Add UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN to your environment variables\n\n" +
-								"Complete WebSockets guide: https://sqStack.app/docs/websockets\n",
+								"Complete WebSockets guide: https://jsandy.app/docs/websockets\n",
 						});
 					}
 

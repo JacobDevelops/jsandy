@@ -131,7 +131,7 @@ export const getUsers = j.procedure
 	)
 	.query(({ input }) => {
 		const users = Array.from({ length: input.limit }, (_, i) => ({
-			id: `user-${input.page * input.limit + i}`,
+			id: `user-${(input.page - 1) * input.limit + i}`,
 			name: `User ${input.page * input.limit + i}`,
 			email: `user${input.page * input.limit + i}@example.com`,
 		}));
@@ -163,7 +163,16 @@ export const uploadFile = j.procedure
 		z.object({
 			filename: z.string(),
 			size: z.number(),
-			contentType: z.string(),
+			contentType: z.enum([
+				"image/jpeg",
+				"image/jpg",
+				"image/png",
+				"image/gif",
+				"image/webp",
+				"image/svg+xml",
+				"application/pdf",
+				"text/plain",
+			]),
 		}),
 	)
 	.mutation(({ input }) => {

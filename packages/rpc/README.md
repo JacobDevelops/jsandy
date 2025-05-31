@@ -22,10 +22,10 @@
 To define RPC procedures, use the procedure builder with schema validation:
 
 ```typescript
-import { sqStack } from "@jsandy/rpc";
+import { jsandy } from "@jsandy/rpc";
 import { z } from "zod";
 
-const { procedure, router } = sqStack.init();
+const { procedure, router } = jsandy.init();
 
 // Define input/output schemas
 const getUserSchema = z.object({ id: z.string() });
@@ -112,7 +112,7 @@ main().catch(console.error);
 
 ## API Reference
 
-### `sqStack.init()`
+### `jsandy.init()`
 
 Initializes the RPC stack and returns utilities for building procedures and routers.
 

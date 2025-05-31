@@ -1,9 +1,10 @@
+import { HTTPException } from "hono/http-exception";
 import { j } from "./jsandy.mock";
 
 export const authMiddleware = j.middleware(async ({ next, c }) => {
-	const token = c.req.header("authorization");
+	const token = c.req.header("authorization") ?? c.req.header("Authorization");
 	if (!token) {
-		throw new Error("Unauthorized");
+		throw new HTTPException(401, { message: "Unauthorized" });
 	}
 	const user = { id: "user-123", name: "Test User" };
 	return next({ user });
