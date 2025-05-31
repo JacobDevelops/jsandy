@@ -11,6 +11,8 @@ jobs:
   setup:
     name: Setup
     runs-on: blacksmith-4vcpu-ubuntu-2404
+    outputs:
+      cache-key: ${{ steps.cache-key.outputs.key }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -20,11 +22,19 @@ jobs:
         with:
           node-version: 23.11.1
           cache: "pnpm"
+      
+      # Generate cache key for Turbo
+      - name: Generate cache key
+        id: cache-key
+        run: |
+          echo "key=${{ runner.os }}-turbo-${{ github.sha }}-${{ hashFiles('**/pnpm-lock.yaml', '**/turbo.json', 'turbo.json') }}" >> $GITHUB_OUTPUT
+      
       - name: Get pnpm store directory
         id: pnpm-cache
         shell: bash
         run: |
           echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+      
       - uses: useblacksmith/cache@v5
         name: Setup pnpm cache
         with:
@@ -32,13 +42,27 @@ jobs:
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
+      
+      # Cache Turbo build outputs
+      - uses: useblacksmith/cache@v5
+        name: Setup Turbo cache
+        with:
+          path: .turbo
+          key: ${{ steps.cache-key.outputs.key }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
+      
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
-  lint-and-type-check:
-    name: Lint and Type Check
+  # Single job to run all tasks through Turbo
+  turbo-tasks:
+    name: Run Turbo Tasks
     needs: [setup]
     runs-on: blacksmith-4vcpu-ubuntu-2404
+    strategy:
+      matrix:
+        task: [lint, check-types, test, build]
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -48,11 +72,13 @@ jobs:
         with:
           node-version: 23.11.1
           cache: "pnpm"
+      
       - name: Get pnpm store directory
         id: pnpm-cache
         shell: bash
         run: |
           echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+      
       - uses: useblacksmith/cache@v5
         name: Setup pnpm cache
         with:
@@ -60,54 +86,35 @@ jobs:
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
-      - run: pnpm install --frozen-lockfile
-      - name: Lint
-        run: pnpm lint
-      - name: Type Check
-        run: pnpm check-types
-  
-  test-rpc:
-    name: Test RPC
-    needs: [setup]
-    runs-on: blacksmith-4vcpu-ubuntu-2404
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10.11.0
-      - uses: useblacksmith/setup-node@v5
-        with:
-          node-version: 23.11.1
-          cache: 'pnpm'
-      - name: Get pnpm store directory
-        id: pnpm-cache
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+      
       - uses: useblacksmith/cache@v5
-        name: Setup pnpm cache
+        name: Setup Turbo cache
         with:
-          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          path: .turbo
+          key: ${{ needs.setup.outputs.cache-key }}
           restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+            ${{ runner.os }}-turbo-
+      
       - run: pnpm install --frozen-lockfile
-      - name: Test RPC
-        run: pnpm --filter=rpc test
-      - name: Build RPC
-        run: pnpm --filter=rpc build
+      
+      # Run tasks through Turbo
+      - name: Run ${{ matrix.task }}
+        run: pnpm turbo ${{ matrix.task }}
+        env:
+          TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+          TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 
   ci-status:
-    name: CI Pipeline
-    needs: [lint-and-type-check, test-rpc]
+    name: CI Pipeline Status
+    needs: [turbo-tasks]
     runs-on: blacksmith-4vcpu-ubuntu-2404
-    timeout-minutes: 15
+    timeout-minutes: 5
     if: always()
     steps:
       - name: Check CI status
         run: |
-          if [[ "${{ needs.lint-and-type-check.result }}" == "failure" ]]; then
-            echo "Lint and type check failed"
+          if [[ "${{ needs.turbo-tasks.result }}" == "failure" ]]; then
+            echo "Turbo tasks failed"
             exit 1
           fi
           echo "All checks passed or were skipped"
