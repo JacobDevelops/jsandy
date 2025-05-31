@@ -24,7 +24,6 @@
 		"check-types": "tsc --noEmit",
 		"clean": "rimraf dist && rimraf node_modules",
 		"prebuild": "rimraf dist",
-		"prepublishOnly": "pnpm run build",
 		"test": "bun test",
 		"test:watch": "bun test --watch",
 		"test:coverage": "bun test --coverage"
