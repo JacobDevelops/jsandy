@@ -22,7 +22,7 @@ const filesToIgnore = [
 
 async function main() {
 	const sourceDir = path.join(process.cwd(), "..", "app");
-	const targetDir = path.join(process.cwd(), "template", "base");
+	const targetDir = path.join(process.cwd(), "src", "template", "base");
 
 	try {
 		// Ensure source directory exists
@@ -52,7 +52,7 @@ async function main() {
 		// Replace package.json with base template version
 		const basePackageJson = path.join(
 			process.cwd(),
-			"template/base-assets/base-package.json",
+			"src/template/base-assets/base-package.json",
 		);
 		const targetPackageJson = path.join(targetDir, "package.json");
 		await fs.copy(basePackageJson, targetPackageJson);

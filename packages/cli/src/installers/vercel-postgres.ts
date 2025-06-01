@@ -6,7 +6,7 @@ import { addPackageDependency } from "@/utils/add-package-dep";
 import type { Installer } from "./index";
 
 export const vercelPostgresInstaller: Installer = ({ projectDir }) => {
-	const extrasDir = path.join(PKG_ROOT, "template/extras");
+	const extrasDir = path.join(PKG_ROOT, "src/template/extras");
 
 	addPackageDependency({
 		projectDir,

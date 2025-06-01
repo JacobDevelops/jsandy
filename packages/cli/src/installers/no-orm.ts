@@ -5,7 +5,7 @@ import type { Installer } from "./index";
 import { PKG_ROOT } from "@/constants";
 
 export const noOrmInstaller: Installer = ({ projectDir }) => {
-	const extrasDir = path.join(PKG_ROOT, "template/extras");
+	const extrasDir = path.join(PKG_ROOT, "src/template/extras");
 
 	const routerSrc = path.join(extrasDir, "src/server/routers/post/base.ts");
 	const routerDest = path.join(projectDir, "src/server/routers/post-router.ts");

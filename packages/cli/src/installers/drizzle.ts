@@ -21,7 +21,7 @@ export const drizzleInstaller: Installer = ({
 		devDependencies: false,
 	});
 
-	const extrasDir = path.join(PKG_ROOT, "template/extras");
+	const extrasDir = path.join(PKG_ROOT, "src/template/extras");
 
 	const routerSrc = path.join(
 		extrasDir,

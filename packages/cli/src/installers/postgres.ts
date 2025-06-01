@@ -7,7 +7,7 @@ import { logger } from "@/utils/logger";
 import type { Installer } from "./index";
 
 export const postgresInstaller: Installer = ({ projectDir }) => {
-	const extrasDir = path.join(PKG_ROOT, "template/extras");
+	const extrasDir = path.join(PKG_ROOT, "src/template/extras");
 	logger.info("Installing Postgres...");
 
 	addPackageDependency({

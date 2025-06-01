@@ -14,8 +14,8 @@ export const installBaseTemplate = async ({
 	pkgManager,
 	noInstall,
 }: InstallerOptions) => {
-	const srcDir = path.join(PKG_ROOT, "template/base");
-	const baseAssetsDir = path.join(PKG_ROOT, "template/base-assets");
+	const srcDir = path.join(PKG_ROOT, "src/template/base");
+	const baseAssetsDir = path.join(PKG_ROOT, "src/template/base-assets");
 
 	if (!noInstall) {
 		logger.info(`\nUsing: ${chalk.cyan.bold(pkgManager)}\n`);
