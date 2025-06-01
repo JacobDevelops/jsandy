@@ -2,6 +2,7 @@ import { fetchStargazers } from "@/actions/stargazers";
 import { j, publicProcedure } from "@/server/jsandy";
 import { Receiver } from "@upstash/qstash";
 import { env } from "hono/adapter";
+import { HTTPException } from "hono/http-exception";
 
 type StargazerInfo = Awaited<ReturnType<typeof fetchStargazers>>;
 
@@ -24,7 +25,7 @@ export const stargazersRouter = j.router({
 			GITHUB_TOKEN,
 		} = env(c);
 
-		const ROUTER_URL = AMPLIFY_URL + "/api/stargazers/prefetch";
+		const ROUTER_URL = `${AMPLIFY_URL}/api/stargazers/prefetch`;
 
 		const receiver = new Receiver({
 			currentSigningKey: QSTASH_CURRENT_SIGNING_KEY,
@@ -43,11 +44,10 @@ export const stargazersRouter = j.router({
 				signature,
 				url: ROUTER_URL,
 			});
-		} catch (err) {
-			return c.json(
-				{ success: false, message: "Invalid request signature" },
-				401,
-			);
+		} catch {
+			throw new HTTPException(401, {
+				message: "Invalid request signature",
+			});
 		}
 
 		const { stargazers, stargazerCount } = await fetchStargazers({
