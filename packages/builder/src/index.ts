@@ -27,7 +27,7 @@ export async function build(path: string, external?: string[]) {
 	await esbuild.build({
 		...esbuildConfig,
 		format: "esm",
-		outExtension: { ".js": ".mjs" },
+		outExtension: { "": ".mjs" },
 	});
 	console.info(`Built ${path}/dist/index.mjs`);
 

@@ -1,0 +1,12 @@
+{
+	"extends": "@jsandy/typescript-config/base.json",
+	"compilerOptions": {
+		"rootDir": ".",
+		"outDir": "./dist",
+		"declaration": true,
+		"paths": {
+			"@/*": ["./src/*"]
+		}
+	},
+	"exclude": ["node_modules", "dist"]
+}
