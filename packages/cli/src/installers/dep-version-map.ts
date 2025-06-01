@@ -4,22 +4,22 @@
  */
 export const dependencyVersionMap = {
 	// neon
-	"@neondatabase/serverless": "^0.10.4",
+	"@neondatabase/serverless": "^1.0.0",
 
 	// vercel postgres
 	"@vercel/postgres": "^0.10.0",
 
 	// Drizzle
-	"drizzle-kit": "^0.30.1",
-	"drizzle-orm": "^0.39.0",
+	"drizzle-kit": "^0.31.1",
+	"drizzle-orm": "^0.44.1",
 	"eslint-plugin-drizzle": "^0.2.3",
 	"@planetscale/database": "^1.19.0",
-	postgres: "^3.4.5",
+	postgres: "^3.4.7",
 
 	// TailwindCSS
-	tailwindcss: "^4.0.0",
-	postcss: "^8.5.1",
-	prettier: "^3.3.2",
-	"prettier-plugin-tailwindcss": "^0.6.11",
+	tailwindcss: "^4.1.8",
+	postcss: "^8.5.4",
+	prettier: "^3.5.3",
+	"prettier-plugin-tailwindcss": "^0.6.12",
 } as const;
 export type AvailableDependencies = keyof typeof dependencyVersionMap;

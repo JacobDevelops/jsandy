@@ -1,3 +1,3 @@
-## JSandy
+# JSandy
 
-Ship high-performance Next.js apps for extremely cheap
+Ship high-performance Next.js apps at an extremely low cost

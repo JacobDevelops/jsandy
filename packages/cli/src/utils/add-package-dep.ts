@@ -20,11 +20,14 @@ export const addPackageDependency = (opts: {
 
 	for (const pkgName of dependencies) {
 		const version = dependencyVersionMap[pkgName];
-
 		if (devDependencies && pkgJson.devDependencies) {
 			pkgJson.devDependencies[pkgName] = version;
+		} else if (devDependencies) {
+			pkgJson.devDependencies = { [pkgName]: version };
 		} else if (pkgJson.dependencies) {
 			pkgJson.dependencies[pkgName] = version;
+		} else {
+			pkgJson.dependencies = { [pkgName]: version };
 		}
 	}
 	const sortedPkgJson = sortPackageJson(pkgJson);

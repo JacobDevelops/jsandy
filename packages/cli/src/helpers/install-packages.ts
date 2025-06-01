@@ -15,12 +15,16 @@ export const installPackages = (options: InstallPackagesOptions) => {
 	for (const [name, pkgOpts] of Object.entries(installers.orm)) {
 		if (pkgOpts.inUse) {
 			const spinner = ora(`Boilerplating ORM: ${name}...`).start();
-			pkgOpts.installer(options);
-			spinner.succeed(
-				chalk.green(
+			try {
+				pkgOpts.installer(options);
+				spinner.succeed(
 					`Successfully setup boilerplate for ORM: ${chalk.green.bold(name)}`,
-				),
-			);
+				);
+			} catch (error) {
+				spinner.fail(`Failed to setup ORM: ${name}`);
+				logger.error(`Error installing ${name}:`, error);
+				throw error; // Re-throw to halt the process
+			}
 		}
 	}
 
@@ -28,12 +32,16 @@ export const installPackages = (options: InstallPackagesOptions) => {
 	for (const [name, pkgOpts] of Object.entries(installers.provider)) {
 		if (pkgOpts.inUse) {
 			const spinner = ora(`Boilerplating provider: ${name}...`).start();
-			pkgOpts.installer(options);
-			spinner.succeed(
-				chalk.green(
+			try {
+				pkgOpts.installer(options);
+				spinner.succeed(
 					`Successfully setup boilerplate for provider: ${chalk.green.bold(name)}`,
-				),
-			);
+				);
+			} catch (error) {
+				spinner.fail(`Failed to setup provider: ${name}`);
+				logger.error(`Error installing ${name}:`, error);
+				throw error; // Re-throw to halt the process
+			}
 		}
 	}
 

@@ -22,7 +22,7 @@ export const postRouter = j.router({
 			const { name } = input;
 			const { db } = ctx;
 
-			const post = await db.insert(posts).values({ name });
+			const [post] = await db.insert(posts).values({ name }).returning();
 
 			return c.superjson(post);
 		}),

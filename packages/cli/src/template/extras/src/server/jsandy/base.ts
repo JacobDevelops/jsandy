@@ -1,8 +1,8 @@
 import { jsandy } from "jsandy";
 
 interface Env {
-	// biome-ignore lint/complexity/noBannedTypes: Fill these with your own types
-	Bindings: {};
+	// Replace with your own binding types
+	Bindings: Record<string, unknown>;
 }
 
 export const j = jsandy.init<Env>();
