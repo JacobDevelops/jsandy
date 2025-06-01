@@ -22,8 +22,7 @@
 	"scripts": {
 		"build": "bun build.ts && tsc --emitDeclarationOnly",
 		"check-types": "tsc --noEmit",
-		"clean": "rimraf dist && rimraf node_modules",
-		"prebuild": "rimraf dist",
+		"prebuild": "rm -rf dist",
 		"test": "bun test",
 		"test:watch": "bun test --watch",
 		"test:coverage": "bun test --coverage"
