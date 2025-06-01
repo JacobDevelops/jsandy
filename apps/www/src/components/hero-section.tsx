@@ -75,44 +75,23 @@ export function HeroSection() {
 
 				{/* Feature cards */}
 				<div className="mt-24 grid grid-cols-1 gap-8 sm:grid-cols-3">
-					<div
-						className="glass rounded-2xl p-6 text-center animate-slide-up"
-						style={{ animationDelay: "0.3s" }}
-					>
-						<div className="mx-auto flex h-12 w-12 items-center justify-center rounded-lg bg-sand-500/10">
-							<Zap className="h-6 w-6 text-sand-600 dark:text-sand-400" />
-						</div>
-						<h3 className="mt-4 text-lg font-semibold">Lightning Fast</h3>
-						<p className="mt-2 text-sm text-muted-foreground">
-							Built on Hono's blazing-fast runtime for optimal performance
-						</p>
-					</div>
-
-					<div
-						className="glass rounded-2xl p-6 text-center animate-slide-up"
-						style={{ animationDelay: "0.4s" }}
-					>
-						<div className="mx-auto flex h-12 w-12 items-center justify-center rounded-lg bg-sand-500/10">
-							<Code className="h-6 w-6 text-sand-600 dark:text-sand-400" />
-						</div>
-						<h3 className="mt-4 text-lg font-semibold">Type Safe</h3>
-						<p className="mt-2 text-sm text-muted-foreground">
-							Full TypeScript support with end-to-end type safety
-						</p>
-					</div>
-
-					<div
-						className="glass rounded-2xl p-6 text-center animate-slide-up"
-						style={{ animationDelay: "0.5s" }}
-					>
-						<div className="mx-auto flex h-12 w-12 items-center justify-center rounded-lg bg-sand-500/10">
+					<FeatureCard
+						title="Lightning Fast"
+						description="Built on Hono's blazing-fast runtime for optimal performance"
+						icon={<Zap className="h-6 w-6 text-sand-600 dark:text-sand-400" />}
+					/>
+					<FeatureCard
+						title="Type Safe"
+						description="Full TypeScript support with end-to-end type safety"
+						icon={<Code className="h-6 w-6 text-sand-600 dark:text-sand-400" />}
+					/>
+					<FeatureCard
+						title="WebSocket Ready"
+						description="Integrated WebSocket support through Cloudflare"
+						icon={
 							<Globe className="h-6 w-6 text-sand-600 dark:text-sand-400" />
-						</div>
-						<h3 className="mt-4 text-lg font-semibold">WebSocket Ready</h3>
-						<p className="mt-2 text-sm text-muted-foreground">
-							Integrated WebSocket support through Cloudflare
-						</p>
-					</div>
+						}
+					/>
 				</div>
 			</div>
 
@@ -129,6 +108,25 @@ export function HeroSection() {
 					}}
 				/>
 			</div>
+		</div>
+	);
+}
+
+function FeatureCard({
+	title,
+	description,
+	icon,
+}: { title: string; description: string; icon: React.ReactNode }) {
+	return (
+		<div
+			className="glass rounded-2xl p-6 text-center animate-slide-up"
+			style={{ animationDelay: "0.5s" }}
+		>
+			<div className="mx-auto flex h-12 w-12 items-center justify-center rounded-lg bg-sand-500/10">
+				{icon}
+			</div>
+			<h3 className="mt-4 text-lg font-semibold">{title}</h3>
+			<p className="mt-2 text-sm text-muted-foreground">{description}</p>
 		</div>
 	);
 }

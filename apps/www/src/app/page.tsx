@@ -1,59 +1,21 @@
 import { HeroSection } from "@/components/hero-section";
-import { CodeExample } from "@/components/code-example";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Github, BookOpen } from "lucide-react";
 import Link from "next/link";
 
-const quickStartCode = `import { JSandy } from 'jsandy'
-import { Hono } from 'hono'
-
-const app = new Hono()
-
-// Define your RPC routes
-const rpc = new JSandy(app)
-  .route('/api/users', {
-    get: async () => {
-      return { users: await getUsers() }
-    },
-    post: async ({ body }) => {
-      return await createUser(body)
-    }
-  })
-
-// WebSocket support
-rpc.ws('/chat', {
-  onMessage: (ws, message) => {
-    ws.send(\`Echo: \${message}\`)
-  }
-})
-
-export default app`;
-
-const clientCode = `import { createClient } from 'jsandy/client'
-
-// Type-safe client
-const client = createClient<typeof rpc>({
-  baseUrl: 'https://api.example.com'
-})
-
-// Fully typed API calls
-const users = await client.api.users.get()
-const newUser = await client.api.users.post({
-  name: 'John Doe',
-  email: 'john@example.com'
-})
-
-// WebSocket connection
-const ws = client.ws('/chat')
-ws.onMessage((data) => console.log(data))`;
-
 export default function Home() {
 	return (
-		<div className="min-h-screen bg-gradient-to-br from-background via-background to-sand-50 dark:to-sand-950">
-			<HeroSection />
+		<div className="min-h-screen">
+			{/* Hero Section with gradient background */}
+			<div className="relative bg-gradient-to-br from-background via-sand-50/30 to-sand-100/50 dark:from-background dark:via-sand-950/30 dark:to-sand-900/50">
+				<HeroSection />
+			</div>
+
+			{/* Smooth transition gradient */}
+			<div className="h-32 bg-gradient-to-b from-sand-100/50 via-sand-50/20 to-background dark:from-sand-900/50 dark:via-sand-950/20 dark:to-background" />
 
 			{/* Quick Start Section */}
-			<section className="py-24 px-6 lg:px-8">
+			<section className="py-24 px-6 lg:px-8 bg-background">
 				<div className="mx-auto max-w-7xl">
 					<div className="text-center mb-16">
 						<h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
@@ -63,11 +25,6 @@ export default function Home() {
 							JSandy makes it incredibly easy to build type-safe RPC services
 							with minimal setup.
 						</p>
-					</div>
-
-					<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-						<CodeExample title="Server Setup" code={quickStartCode} />
-						<CodeExample title="Client Usage" code={clientCode} />
 					</div>
 
 					<div className="text-center mt-12">
@@ -84,6 +41,9 @@ export default function Home() {
 					</div>
 				</div>
 			</section>
+
+			{/* Smooth transition to features section */}
+			<div className="h-24 bg-gradient-to-b from-background to-muted/30" />
 
 			{/* Features Section */}
 			<section className="py-24 px-6 lg:px-8 bg-muted/30">
@@ -151,8 +111,11 @@ export default function Home() {
 				</div>
 			</section>
 
-			{/* CTA Section */}
-			<section className="py-24 px-6 lg:px-8">
+			{/* Smooth transition to CTA section */}
+			<div className="h-24 bg-gradient-to-b from-muted/30 via-sand-50/20 to-sand-100/30 dark:from-muted/30 dark:via-sand-950/20 dark:to-sand-900/30" />
+
+			{/* CTA Section with gradient background */}
+			<section className="py-24 px-6 lg:px-8 bg-gradient-to-br from-sand-100/30 via-sand-50/20 to-background dark:from-sand-900/30 dark:via-sand-950/20 dark:to-background">
 				<div className="mx-auto max-w-4xl text-center">
 					<h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
 						Ready to Build Amazing RPC Services?
@@ -181,6 +144,9 @@ export default function Home() {
 					</div>
 				</div>
 			</section>
+
+			{/* Final smooth transition to footer */}
+			<div className="h-16 bg-gradient-to-b from-sand-100/30 to-background dark:from-sand-900/30 dark:to-background" />
 		</div>
 	);
 }

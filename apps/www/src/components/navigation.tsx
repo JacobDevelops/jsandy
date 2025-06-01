@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "./theme-toggle";
@@ -27,10 +28,15 @@ export function Navigation() {
 				aria-label="Global"
 			>
 				<div className="flex lg:flex-1">
-					<Link href="/" className="-m-1.5 p-1.5">
-						<span className="text-2xl font-bold bg-gradient-to-r from-sand-600 to-sand-800 dark:from-sand-400 dark:to-sand-200 bg-clip-text text-transparent">
-							JSandy
-						</span>
+					<Link href="/" className="-m-1.5 p-1.5 flex items-center gap-3">
+						<Image
+							src="/logo.png"
+							alt="JSandy Logo"
+							width={32}
+							height={32}
+							className="h-8 w-8"
+						/>
+						<span className="text-2xl font-bold text-foreground">JSandy</span>
 					</Link>
 				</div>
 				<div className="flex lg:hidden">
@@ -77,8 +83,15 @@ export function Navigation() {
 					<div className="fixed inset-0 z-50" />
 					<div className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-background px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-border/10">
 						<div className="flex items-center justify-between">
-							<Link href="/" className="-m-1.5 p-1.5">
-								<span className="text-xl font-bold bg-gradient-to-r from-sand-600 to-sand-800 dark:from-sand-400 dark:to-sand-200 bg-clip-text text-transparent">
+							<Link href="/" className="-m-1.5 p-1.5 flex items-center gap-3">
+								<Image
+									src="/logo.png"
+									alt="JSandy Logo"
+									width={24}
+									height={24}
+									className="h-6 w-6"
+								/>
+								<span className="text-xl font-bold text-foreground">
 									JSandy
 								</span>
 							</Link>
