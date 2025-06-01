@@ -33,3 +33,8 @@ dist
 # Misc
 .DS_Store
 *.pem
+
+# Next
+next-env.d.ts
+.content-collections
+*.tsbuildinfo
