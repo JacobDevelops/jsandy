@@ -11,26 +11,32 @@ const main = async () => {
 	const results = await runCli();
 
 	if (!results) {
+		logger.info("Operation cancelled by user.");
 		return;
 	}
 
-	const { projectName, orm, dialect, provider } = results;
+	const { projectName, orm, provider } = results;
 
 	const installers = buildInstallerMap(orm, provider);
 
 	const projectDir = await scaffoldProject({
-		dialect,
 		databaseProvider: provider ?? "neon",
 		installers,
 		projectName,
 	});
 
-	const pkgJson = fs.readJSONSync(path.join(projectDir, "package.json"));
-	pkgJson.name = projectName;
+	try {
+		const pkgJsonPath = path.join(projectDir, "package.json");
+		const pkgJson = fs.readJSONSync(pkgJsonPath);
+		pkgJson.name = projectName;
 
-	fs.writeJSONSync(path.join(projectDir, "package.json"), pkgJson, {
-		spaces: 2,
-	});
+		fs.writeJSONSync(pkgJsonPath, pkgJson, {
+			spaces: 2,
+		});
+	} catch (error) {
+		logger.error("Failed to update package.json:");
+		throw error;
+	}
 
 	if (!results.noInstall) {
 		await installDependencies({ projectDir });
@@ -47,7 +53,7 @@ main().catch((err) => {
 		logger.error(
 			"An unknown error has occurred. Please open an issue on github with the below:",
 		);
-		console.log(err);
+		logger.error(err);
 	}
 	process.exit(1);
 });

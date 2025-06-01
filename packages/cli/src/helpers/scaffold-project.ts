@@ -1,4 +1,3 @@
-import type { Dialect } from "@/cli/index";
 import type { InstallerMap, Provider } from "@/installers/index";
 import { getUserPkgManager } from "@/utils/get-user-pkg-manager";
 import path from "node:path";
@@ -7,7 +6,6 @@ import { installPackages } from "./install-packages";
 
 interface ScaffoldProjectOptions {
 	projectName: string;
-	dialect: Dialect;
 	installers: InstallerMap;
 	databaseProvider: Provider;
 }

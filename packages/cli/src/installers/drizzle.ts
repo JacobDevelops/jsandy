@@ -22,24 +22,19 @@ export const drizzleInstaller: Installer = ({
 	});
 
 	const extrasDir = path.join(PKG_ROOT, "src/template/extras");
-
 	const routerSrc = path.join(
 		extrasDir,
 		"src/server/routers/post/with-drizzle.ts",
 	);
 	const routerDest = path.join(projectDir, "src/server/routers/post-router.ts");
-
 	const envSrc = path.join(extrasDir, "config/_env-drizzle");
 	const vercelPostgresEnvSrc = path.join(
 		extrasDir,
 		"config/_env-drizzle-vercel-postgres",
 	);
-
 	const envDest = path.join(projectDir, ".env");
-
 	// add db:* scripts to package.json
 	const packageJsonPath = path.join(projectDir, "package.json");
-
 	const packageJsonContent = fs.readJSONSync(packageJsonPath) as PackageJson;
 	packageJsonContent.scripts = {
 		...packageJsonContent.scripts,
@@ -48,12 +43,26 @@ export const drizzleInstaller: Installer = ({
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "drizzle-kit migrate",
 	};
-
-	fs.copySync(routerSrc, routerDest);
-	fs.copySync(
-		databaseProvider === "vercel-postgres" ? vercelPostgresEnvSrc : envSrc,
-		envDest,
-	);
+	if (!fs.existsSync(routerSrc)) {
+		// Verify source files exist
+		throw new Error(`Router template not found: ${routerSrc}`);
+	}
+	const selectedEnvSrc =
+		databaseProvider === "vercel-postgres" ? vercelPostgresEnvSrc : envSrc;
+	if (!fs.existsSync(selectedEnvSrc)) {
+		throw new Error(`Environment template not found: ${selectedEnvSrc}`);
+	}
+	try {
+		fs.copySync(routerSrc, routerDest);
+		fs.copySync(
+			databaseProvider === "vercel-postgres" ? vercelPostgresEnvSrc : envSrc,
+			envDest,
+		);
+	} catch (error) {
+		throw new Error(
+			`Failed to copy Drizzle template files: ${(error as Error).message}`,
+		);
+	}
 
 	fs.writeJSONSync(packageJsonPath, packageJsonContent, {
 		spaces: 2,

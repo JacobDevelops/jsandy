@@ -37,14 +37,15 @@ async function main() {
 		await fs.copy(sourceDir, targetDir, {
 			filter: (src) => {
 				const relativePath = path.relative(sourceDir, src);
+				const normalizedPath = relativePath.replace(/\\/g, "/");
 				return !filesToIgnore.some(
-					(path) =>
+					(ignoredPattern) =>
 						// Check if the path contains the ignored file/folder
-						relativePath.includes(path) ||
+						normalizedPath.includes(ignoredPattern) ||
 						// Check if any parent directory matches exactly
-						relativePath
+						normalizedPath
 							.split("/")
-							.some((part) => path === part),
+							.some((part) => ignoredPattern === part),
 				);
 			},
 		});

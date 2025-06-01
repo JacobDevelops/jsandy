@@ -38,6 +38,16 @@ export const planetscaleInstaller: Installer = ({ projectDir }) => {
 	fs.ensureDirSync(path.dirname(schemaDest));
 	fs.ensureDirSync(path.dirname(jsandyDest));
 
+	if (!fs.existsSync(configFile)) {
+		throw new Error(`Template file not found: ${configFile}`);
+	}
+	if (!fs.existsSync(schemaSrc)) {
+		throw new Error(`Template file not found: ${schemaSrc}`);
+	}
+	if (!fs.existsSync(jsandySrc)) {
+		throw new Error(`Template file not found: ${jsandySrc}`);
+	}
+
 	fs.copySync(configFile, configDest);
 	fs.copySync(schemaSrc, schemaDest);
 	fs.copySync(jsandySrc, jsandyDest);

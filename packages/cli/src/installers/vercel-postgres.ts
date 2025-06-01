@@ -38,7 +38,13 @@ export const vercelPostgresInstaller: Installer = ({ projectDir }) => {
 	fs.ensureDirSync(path.dirname(schemaDest));
 	fs.ensureDirSync(path.dirname(jsandyDest));
 
-	fs.copySync(configFile, configDest);
-	fs.copySync(schemaSrc, schemaDest);
-	fs.copySync(jsandySrc, jsandyDest);
+	try {
+		fs.copySync(configFile, configDest);
+		fs.copySync(schemaSrc, schemaDest);
+		fs.copySync(jsandySrc, jsandyDest);
+	} catch (error) {
+		throw new Error(
+			`Failed to copy Vercel Postgres template files: ${(error as Error).message}`,
+		);
+	}
 };
