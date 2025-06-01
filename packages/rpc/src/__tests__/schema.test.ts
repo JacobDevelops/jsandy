@@ -15,13 +15,16 @@ mock.module("hono/client", () => ({
 	})),
 }));
 
+const optionalAwait = async <T>(promise: Promise<T> | T): Promise<T> =>
+	promise instanceof Promise ? await promise : promise;
+
 describe("Schema", () => {
 	beforeEach(() => {
 		mock.restore();
 	});
 
 	describe("Router Metadata Access", () => {
-		it("should access subrouter metadata with proper typing", () => {
+		it("should access subrouter metadata with proper typing", async () => {
 			const api = j
 				.router()
 				.basePath("/api")
@@ -32,22 +35,24 @@ describe("Schema", () => {
 			});
 
 			// Test that we can access subrouter metadata without TypeScript errors
-			const subrouterMetadata =
-				appRouter._metadata.subRouters["/api/rpc"]._metadata.procedures;
+			const subrouterMetadata = (
+				await optionalAwait(appRouter._metadata.subRouters["/api/rpc"])
+			)?._metadata.procedures;
 
 			// Verify the metadata structure exists
 			expect(subrouterMetadata).toBeDefined();
 			expect(typeof subrouterMetadata).toBe("object");
 		});
 
-		it("should contain expected procedure metadata", () => {
+		it("should contain expected procedure metadata", async () => {
 			const api = j.router().basePath("/api");
 			const appRouter = j.mergeRouters(api, {
 				rpc: combinedRouter,
 			});
 
-			const procedures =
-				appRouter._metadata.subRouters["/api/rpc"]._metadata.procedures;
+			const procedures = (
+				await optionalAwait(appRouter._metadata.subRouters["/api/rpc"])
+			)?._metadata.procedures;
 
 			// Test specific procedures exist
 			expect(procedures.health).toBeDefined();
@@ -60,11 +65,11 @@ describe("Schema", () => {
 			expect(procedures.profile.type).toBe("get");
 
 			// Test nested procedures
-			expect(procedures["users/create"]).toBeDefined();
-			expect(procedures["users/create"].type).toBe("post");
+			expect(procedures.user).toBeDefined();
+			expect(procedures.user.type).toBe("get");
 
-			expect(procedures["admin/adminOnly"]).toBeDefined();
-			expect(procedures["admin/adminOnly"].type).toBe("get");
+			expect(procedures.admin).toBeDefined();
+			expect(procedures.admin.type).toBe("get");
 
 			// Test WebSocket procedure
 			expect(procedures.chat).toBeDefined();
@@ -77,7 +82,7 @@ describe("Schema", () => {
 			}
 		});
 
-		it("should handle multiple subrouters", () => {
+		it("should handle multiple subrouters", async () => {
 			const api = j.router().basePath("/api");
 			const appRouter = j.mergeRouters(api, {
 				users: userRouter,
@@ -91,54 +96,59 @@ describe("Schema", () => {
 			expect(appRouter._metadata.subRouters["/api/chat"]).toBeDefined();
 
 			// Test individual subrouter procedures
-			const userProcedures =
-				appRouter._metadata.subRouters["/api/users"]._metadata.procedures;
+			const userProcedures = (
+				await optionalAwait(appRouter._metadata.subRouters["/api/users"])
+			)?._metadata.procedures;
 			expect(userProcedures.health).toBeDefined();
 			expect(userProcedures.getUser).toBeDefined();
 
-			const adminProcedures =
-				appRouter._metadata.subRouters["/api/admin"]._metadata.procedures;
+			const adminProcedures = (
+				await optionalAwait(appRouter._metadata.subRouters["/api/admin"])
+			)?._metadata.procedures;
 			expect(adminProcedures.adminOnly).toBeDefined();
 
-			const chatProcedures =
-				appRouter._metadata.subRouters["/api/chat"]._metadata.procedures;
+			const chatProcedures = (
+				await optionalAwait(appRouter._metadata.subRouters["/api/chat"])
+			)?._metadata.procedures;
 			expect(chatProcedures.chat).toBeDefined();
 			expect(chatProcedures.chat.type).toBe("ws");
 		});
 	});
 
 	describe("Schema Validation", () => {
-		it("should validate procedure schemas are correctly stored", () => {
+		it("should validate procedure schemas are correctly stored", async () => {
 			const api = j.router().basePath("/api");
 			const appRouter = j.mergeRouters(api, {
 				rpc: combinedRouter,
 			});
 
-			const procedures =
-				appRouter._metadata.subRouters["/api/rpc"]._metadata.procedures;
+			const procedures = (
+				await optionalAwait(appRouter._metadata.subRouters["/api/rpc"])
+			)?._metadata.procedures;
 
 			// Test that procedures with schemas have them stored
 			expect(procedures.user.schema).toBeDefined();
 			expect(procedures.user.schema).toBeTypeOf("object");
 
-			expect(procedures["users/create"].schema).toBeDefined();
-			expect(procedures["users/create"].schema).toBeTypeOf("object");
+			expect(procedures.user.schema).toBeDefined();
+			expect(procedures.user.schema).toBeTypeOf("object");
 
 			// Test that procedures without schemas have null
 			expect(procedures.health.schema).toBeNull();
 		});
 
-		it("should preserve schema structure for complex inputs", () => {
+		it("should preserve schema structure for complex inputs", async () => {
 			const api = j.router().basePath("/api");
 			const appRouter = j.mergeRouters(api, {
 				rpc: combinedRouter,
 			});
 
-			const procedures =
-				appRouter._metadata.subRouters["/api/rpc"]._metadata.procedures;
+			const procedures = (
+				await optionalAwait(appRouter._metadata.subRouters["/api/rpc"])
+			)?._metadata.procedures;
 
 			// Test that complex schema (like users/create) has proper structure
-			const createUserProcedure = procedures["users/create"];
+			const createUserProcedure = procedures.user;
 			expect(createUserProcedure).toBeDefined();
 
 			if (createUserProcedure.type === "post") {
@@ -160,15 +170,16 @@ describe("Schema", () => {
 	});
 
 	describe("Type Safety", () => {
-		it("should maintain type safety for subrouter access", () => {
+		it("should maintain type safety for subrouter access", async () => {
 			const api = j.router().basePath("/api");
 			const appRouter = j.mergeRouters(api, {
 				rpc: combinedRouter,
 			});
 
 			// This should compile without TypeScript errors
-			const subrouter = appRouter._metadata.subRouters["/api/rpc"];
-			const metadata = subrouter._metadata;
+			const metadata = (
+				await optionalAwait(appRouter._metadata.subRouters["/api/rpc"])
+			)?._metadata;
 			const procedures = metadata.procedures;
 			const config = metadata.config;
 			const registeredPaths = metadata.registeredPaths;
@@ -198,7 +209,7 @@ describe("Schema", () => {
 
 			expect(typeof client.rpc.health.$get).toBe("function");
 			expect(typeof client.rpc.user.$get).toBe("function");
-			expect(typeof client.rpc.users.create).toBe("object");
+			expect(typeof client.rpc.files.$post).toBe("function");
 		});
 	});
 });

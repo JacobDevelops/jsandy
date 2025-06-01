@@ -30,7 +30,7 @@ import { logger } from "./logger";
  * await io.to('room-123').emit('scoreUpdate', { playerId: 'Alice', score: 100 });
  * ```
  */
-export class IO<OutgoingEvents> {
+export class IO<_IncomingEvents, OutgoingEvents> {
 	/** Current target room for the next emission, null for broadcast to all */
 	private targetRoom: string | null = null;
 

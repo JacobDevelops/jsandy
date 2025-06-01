@@ -5,11 +5,10 @@ import {
 	hc,
 } from "hono/client";
 import { HTTPException } from "hono/http-exception";
-import type { Endpoint, Env, ResponseFormat, Schema } from "hono/types";
+import type { Endpoint, ResponseFormat, Schema } from "hono/types";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
 import type { UnionToIntersection } from "hono/utils/types";
 import superjson from "superjson";
-import type { ZodObject } from "zod/v4";
 import type { InferSchemaFromRouters } from "./merge-routers";
 import type {
 	MergeRoutes,
@@ -18,12 +17,7 @@ import type {
 	RouterSchema,
 } from "./router";
 import { ClientSocket, type SystemEvents } from "./sockets";
-import type {
-	GetOperation,
-	OperationType,
-	PostOperation,
-	RouterRecord,
-} from "./types";
+import type { GetOperation, PostOperation } from "./types";
 
 /**
  * Extracts the response type from an endpoint definition
@@ -73,25 +67,20 @@ export type ClientRequest<S extends Schema> = {
 					: { param: P }
 				: R extends { query: infer Q }
 					? { query: Q }
-					: Record<string, never>
-			: Record<string, never>,
+					: {}
+			: {},
 	) => URL;
 } & (S["$get"] extends { outputFormat: "ws" }
 		? S["$get"] extends {
 				input: infer I;
-				incoming: infer Incoming;
-				outgoing: infer Outgoing;
+				incoming: infer Incoming extends Record<string, any>;
+				outgoing: infer Outgoing extends Record<string, any>;
 			}
 			? {
-					/**
-					 * Creates a WebSocket connection to the endpoint
-					 * @param args - Optional connection arguments
-					 * @returns ClientSocket for real-time communication
-					 */
-					$ws: (args?: I) => ClientSocket<Incoming & SystemEvents, Outgoing>;
+					$ws: (args?: I) => ClientSocket<Outgoing & SystemEvents, Incoming>;
 				}
-			: Record<string, never>
-		: void);
+			: {}
+		: {});
 
 /**
  * Unwraps a RouterSchema to extract the underlying route structure
@@ -103,53 +92,34 @@ export type UnwrapRouterSchema<T> = T extends RouterSchema<infer R> ? R : never;
  * Infers the schema type from a Router instance
  * @template T - Router type to infer schema from
  */
-export type InferRouter<T extends Router<RouterRecord, Env>> = T extends Router<
+export type InferRouter<T extends Router<any, any>> = T extends Router<
 	infer P,
-	Env
+	any
 >
 	? RouterSchema<P>
 	: never;
-
-/**
- * Maps route procedures to their corresponding client request interfaces
- * Handles both individual operations and nested route structures
- * @template P - Procedure/route structure to map
- * @template E - Environment type
- */
-type ClientRouteMapping<P, E extends Env> = {
-	[K in keyof P]: P[K] extends OperationType<unknown, Response, E>
-		? ClientRequest<OperationSchema<P[K], E>>
-		: P[K] extends Record<string, unknown>
-			? ClientRouteMapping<P[K], E>
-			: never;
-};
 
 /**
  * Generates a complete client interface for a Router or Router factory function
  * Provides type-safe access to all routes with proper method signatures
  * @template T - Router instance or Router factory function type
  */
-export type Client<
-	T extends
-		| Router<RouterRecord, InferRouterEnv<T>>
-		| (() => Promise<Router<RouterRecord, InferRouterEnv<T>>>),
-> = T extends Hono<InferRouterEnv<T>, infer S>
-	? S extends RouterSchema<infer B>
-		? B extends MergeRoutes<infer C>
-			? C extends InferSchemaFromRouters<infer D, InferRouterEnv<T>>
-				? {
-						[K1 in keyof D]: D[K1] extends () => Promise<
-							Router<infer P, InferRouterEnv<T>>
-						>
-							? ClientRouteMapping<P, InferRouterEnv<T>>
-							: D[K1] extends Router<infer P, InferRouterEnv<T>>
-								? ClientRouteMapping<P, InferRouterEnv<T>>
-								: never;
-					}
+export type Client<T extends Router<any, any> | (() => Promise<Router<any>>)> =
+	T extends Hono<any, infer S>
+		? S extends RouterSchema<infer B>
+			? B extends MergeRoutes<infer C>
+				? C extends InferSchemaFromRouters<infer D>
+					? {
+							[K1 in keyof D]: D[K1] extends () => Promise<Router<infer P, any>>
+								? { [K2 in keyof P]: ClientRequest<OperationSchema<P[K2]>> }
+								: D[K1] extends Router<infer P, any>
+									? { [K2 in keyof P]: ClientRequest<OperationSchema<P[K2]>> }
+									: never;
+						}
+					: never
 				: never
 			: never
-		: never
-	: never;
+		: never;
 
 /**
  * Extracts input or output types from router operations
@@ -158,30 +128,28 @@ export type Client<
  * @template IOType - Whether to extract "input" or "output" types
  */
 type OperationIO<
-	T extends
-		| Router<RouterRecord, Env>
-		| (() => Promise<Router<RouterRecord, Env>>),
+	T extends Router<any, any> | (() => Promise<Router<any, any>>),
 	IOType extends "input" | "output",
-> = T extends Hono<Env, infer S>
+> = T extends Hono<any, infer S>
 	? S extends RouterSchema<infer B>
 		? B extends MergeRoutes<infer C>
 			? C extends InferSchemaFromRouters<infer D>
 				? {
 						[K1 in keyof D]: D[K1] extends
-							| Router<infer P, Env>
-							// biome-ignore lint/suspicious/noRedeclare: This isn't a redeclaration, it's a type
-							| (() => Promise<Router<infer P, Env>>)
+							| Router<infer P, any>
+							// biome-ignore lint/suspicious/noRedeclare: P is only declared once
+							| (() => Promise<Router<infer P, any>>)
 							? {
 									[K2 in keyof P]: P[K2] extends infer Operation
-										? Operation extends PostOperation<ZodObject | void>
+										? Operation extends PostOperation<any>
 											? OperationSchema<Operation> extends {
-													$post: { [key in IOType]: unknown };
+													$post: { [key in IOType]: any };
 												}
 												? OperationSchema<Operation>["$post"][IOType]
 												: never
-											: Operation extends GetOperation<ZodObject | void>
+											: Operation extends GetOperation<any>
 												? OperationSchema<Operation> extends {
-														$get: { [key in IOType]: unknown };
+														$get: { [key in IOType]: any };
 													}
 													? OperationSchema<Operation>["$get"][IOType]
 													: never
@@ -200,16 +168,17 @@ type OperationIO<
  * Useful for understanding what data types the router returns
  * @template T - Router type to extract outputs from
  */
-export type InferRouterOutputs<T extends Router<RouterRecord, Env>> =
-	OperationIO<T, "output">;
+export type InferRouterOutputs<T extends Router<any>> = OperationIO<
+	T,
+	"output"
+>;
 
 /**
  * Infers all input types from router operations
  * Useful for understanding what data types the router accepts
  * @template T - Router type to extract inputs from
  */
-export type InferRouterInputs<T extends Router<RouterRecord, Env>> =
-	OperationIO<T, "input">;
+export type InferRouterInputs<T extends Router<any>> = OperationIO<T, "input">;
 
 /**
  * Configuration options for the API client
@@ -221,46 +190,6 @@ export interface ClientConfig extends ClientRequestOptions {
 	/** Credential policy for requests, defaults to "include" */
 	credentials?: RequestCredentials;
 }
-
-/**
- * Type definition for serializable values that can be sent over the network
- * Includes primitives, arrays, and objects with serializable properties
- */
-type SerializableValue =
-	| string
-	| number
-	| boolean
-	| null
-	| undefined
-	| SerializableValue[]
-	| { [key: string]: SerializableValue };
-
-/**
- * Arguments structure for HTTP method calls
- * @template T - Type of data being sent, defaults to unknown
- */
-type HttpMethodArgs<T = unknown> = [data?: T, options?: ClientRequestOptions];
-
-/**
- * Interface for proxy target objects used in client method delegation
- * Defines the structure for HTTP methods and WebSocket connections
- */
-interface ProxyTarget {
-	/** GET request method */
-	$get?: (...args: HttpMethodArgs) => Promise<Response>;
-	/** POST request method */
-	$post?: (...args: HttpMethodArgs) => Promise<Response>;
-	/** WebSocket connection method */
-	$ws?: () => ClientSocket<SystemEvents, Record<string, unknown>>;
-	/** Additional dynamic properties */
-	[key: string]: unknown;
-}
-
-/**
- * Infers the environment type from a Router instance
- * @template T - Router type to extract environment from
- */
-type InferRouterEnv<T> = T extends Router<RouterRecord, infer E> ? E : never;
 
 /**
  * Creates a type-safe HTTP client for communicating with JSandy routers
@@ -294,7 +223,7 @@ type InferRouterEnv<T> = T extends Router<RouterRecord, infer E> ? E : never;
  * - **Credential Management**: Configurable authentication handling
  * - **URL Generation**: Helper methods for constructing endpoint URLs
  */
-export const createClient = <T extends Router<RouterRecord, InferRouterEnv<T>>>(
+export const createClient = <T extends Router<any>>(
 	options?: ClientConfig,
 ): UnionToIntersection<Client<T>> => {
 	const {
@@ -314,10 +243,7 @@ export const createClient = <T extends Router<RouterRecord, InferRouterEnv<T>>>(
 	 * @param init - Request initialization options
 	 * @returns Promise resolving to enhanced Response object
 	 */
-	const jfetch = async (
-		input: RequestInfo | URL,
-		init?: RequestInit,
-	): Promise<Response> => {
+	const jfetch = async (input: RequestInfo | URL, init?: RequestInit) => {
 		// Remove baseUrl from input if already included (useful during SSR)
 		const inputPath = input.toString().replace(baseUrl, "");
 		const targetUrl = baseUrl + inputPath;
@@ -345,9 +271,9 @@ export const createClient = <T extends Router<RouterRecord, InferRouterEnv<T>>>(
 	const baseClient = hc(baseUrl, {
 		...opts,
 		fetch: opts.fetch || jfetch,
-	});
+	}) as unknown as UnionToIntersection<Client<T>>;
 
-	return createProxy(baseClient, baseUrl) as UnionToIntersection<Client<T>>;
+	return createProxy(baseClient, baseUrl) as typeof baseClient;
 };
 
 /**
@@ -356,7 +282,7 @@ export const createClient = <T extends Router<RouterRecord, InferRouterEnv<T>>>(
  * @param response - HTTP response to parse
  * @returns Parsed response data with complex objects restored
  */
-const parseJsonResponse = async (response: Response): Promise<unknown> => {
+const parseJsonResponse = async (response: Response): Promise<any> => {
 	const text = await response.text();
 	const isSuperjson = response.headers.get("x-is-superjson") === "true";
 
@@ -374,14 +300,12 @@ const parseJsonResponse = async (response: Response): Promise<unknown> => {
  * @param data - Data object to serialize
  * @returns Record with SuperJSON-serialized string values
  */
-function serializeWithSuperJSON(data: unknown): Record<string, string> {
+function serializeWithSuperJSON(data: any): any {
 	if (typeof data !== "object" || data === null) {
-		return {};
+		return data;
 	}
-
-	const record = data as Record<string, unknown>;
 	return Object.fromEntries(
-		Object.entries(record).map(([key, value]) => [
+		Object.entries(data).map(([key, value]) => [
 			key,
 			superjson.stringify(value),
 		]),
@@ -405,41 +329,40 @@ function serializeWithSuperJSON(data: unknown): Record<string, string> {
  * - **Dynamic nesting**: Automatic proxy chaining for nested routes
  */
 function createProxy(
-	baseClient: ProxyTarget,
+	baseClient: any,
 	baseUrl: string,
 	path: string[] = [],
-): ProxyTarget {
+): any {
 	return new Proxy(baseClient, {
-		get(target: ProxyTarget, prop: string | symbol, receiver): unknown {
+		get(target, prop, receiver) {
 			if (typeof prop === "string") {
 				const routePath = [...path, prop];
 
 				// Handle GET requests with query parameter serialization
 				if (prop === "$get") {
-					return async (...args: HttpMethodArgs) => {
+					return async (...args: any[]) => {
 						const [data, options] = args;
 						const serializedQuery = serializeWithSuperJSON(data);
-						return target.$get?.({ query: serializedQuery }, options);
+						return target.$get({ query: serializedQuery }, options);
 					};
 				}
 
 				// Handle POST requests with body serialization
 				if (prop === "$post") {
-					return async (...args: HttpMethodArgs) => {
+					return async (...args: any[]) => {
 						const [data, options] = args;
 						const serializedJson = serializeWithSuperJSON(data);
-						return target.$post?.({ json: serializedJson }, options);
+						return target.$post({ json: serializedJson }, options);
 					};
 				}
 
 				// Handle URL generation for endpoints
 				if (prop === "$url") {
-					return (args?: { query: Record<string, SerializableValue> }): URL => {
+					return (args?: any) => {
 						const endpointPath = `/${routePath.slice(0, -1).join("/")}`;
 						const normalizedPath = endpointPath.replace(baseUrl, "");
 						const url = new URL(baseUrl + normalizedPath);
 
-						// Add query parameters if provided
 						if (args?.query) {
 							for (const [key, value] of Object.entries(args.query)) {
 								if (value !== null && value !== undefined) {
@@ -454,22 +377,16 @@ function createProxy(
 
 				// Handle WebSocket connection creation
 				if (prop === "$ws") {
-					return (): ClientSocket<SystemEvents, Record<string, unknown>> => {
+					return () => {
 						const endpointPath = `/${routePath.slice(0, -1).join("/")}`;
 						const normalizedPath = endpointPath.replace(baseUrl, "");
 						const url = new URL(baseUrl + normalizedPath);
 
-						// Convert HTTP protocol to WebSocket protocol
+						// Change protocol to ws:// or wss:// depending on if https or http
 						url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
 
 						return new ClientSocket(url);
 					};
-				}
-
-				// Handle nested route access
-				const nestedTarget = target[prop] as ProxyTarget | undefined;
-				if (nestedTarget) {
-					return createProxy(nestedTarget, baseUrl, routePath);
 				}
 
 				// Return empty proxy for unknown properties to maintain proxy chain

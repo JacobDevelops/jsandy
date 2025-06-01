@@ -13,7 +13,7 @@ import { Router } from "./router";
  *   router: dynamic(() => import("./routers/my-router")),
  * })
  */
-export const dynamic = <T = unknown>(
+export const dynamic = <T extends Router>(
 	importFn: () => Promise<{ [key: string]: T }>,
 ) => {
 	return async () => {

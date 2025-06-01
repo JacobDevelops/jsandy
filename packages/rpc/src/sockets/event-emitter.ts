@@ -1,29 +1,11 @@
-import { ZodError, type ZodObject, treeifyError, type z } from "zod/v4";
-import type { OptionalPromise } from "../types";
+import { ZodError as ZodV3Error, type ZodTypeAny } from "zod";
+import { ZodError as ZodV4Error, type ZodType } from "zod/v4";
 import { logger } from "./logger";
 
 /**
  * Schema type that can be either a ZodObject for validation or void for no validation
  */
-type Schema = ZodObject | void;
-
-/**
- * Infers the TypeScript type from a schema definition
- * @template T - The schema type to infer from
- * @returns The inferred TypeScript type, undefined for void schemas, never for invalid schemas
- */
-export type InferSchemaType<T> = T extends ZodObject
-	? z.infer<T>
-	: T extends void
-		? undefined
-		: never;
-
-/**
- * Event handler function type that processes validated event data
- * @param data - Validated event data matching the schema type
- * @returns Any value (return value is ignored)
- */
-export type EventHandler = (data: InferSchemaType<Schema>) => unknown;
+type Schema = ZodTypeAny | ZodType | undefined;
 
 /**
  * Configuration interface for WebSocket message schemas
@@ -49,7 +31,7 @@ interface SchemaConfig {
  */
 export class EventEmitter {
 	/** Map storing event handlers organized by event name */
-	eventHandlers = new Map<string, EventHandler[]>();
+	eventHandlers = new Map<string, ((data: any) => any)[]>();
 
 	/** WebSocket connection instance */
 	ws: WebSocket;
@@ -121,7 +103,7 @@ export class EventEmitter {
 	 * - **Error Handling**: Logs validation errors and returns false on failure
 	 * - **Message Format**: Sends data as JSON array: [eventName, data]
 	 */
-	emit(event: string, data: unknown): OptionalPromise<boolean> {
+	emit(event: string, data: any): boolean {
 		// Check WebSocket connection state
 		if (this.ws.readyState !== WebSocket.OPEN) {
 			logger.warn("WebSocket is not in OPEN state. Message not sent.");
@@ -153,10 +135,12 @@ export class EventEmitter {
 	 *
 	 * @private
 	 */
-	handleSchemaMismatch(event: string, data: unknown, err: unknown) {
-		if (err instanceof ZodError) {
+	handleSchemaMismatch(event: string, data: any, err: any) {
+		if (err instanceof ZodV3Error || err instanceof ZodV4Error) {
 			logger.error(`Invalid outgoing event data for "${event}":`, {
-				errors: treeifyError(err),
+				errors: err.issues
+					.map((e) => `${e.path.join(".")}: ${e.message}`)
+					.join(", "),
 				data: JSON.stringify(data, null, 2),
 			});
 		} else {
@@ -185,10 +169,9 @@ export class EventEmitter {
 	 * 3. **Handler Execution**: Calls all registered handlers with validated data
 	 * 4. **Error Collection**: Logs individual handler errors and throws if any fail
 	 */
-	handleEvent(eventName: string, data: InferSchemaType<Schema>) {
+	handleEvent(eventName: string, data: any) {
 		const handlers = this.eventHandlers.get(eventName);
 
-		// Check if handlers are registered
 		if (!handlers?.length) {
 			logger.warn(
 				`No handlers registered for event "${eventName}". Did you forget to call .on("${eventName}", handler)?`,
@@ -196,15 +179,16 @@ export class EventEmitter {
 			return;
 		}
 
-		// Validate incoming data
 		let validatedData = data;
 		if (this.incomingSchema) {
 			try {
 				validatedData = this.incomingSchema.parse(data);
 			} catch (err) {
-				if (err instanceof ZodError) {
+				if (err instanceof ZodV3Error || err instanceof ZodV4Error) {
 					logger.error(`Invalid incoming event data for "${eventName}":`, {
-						errors: treeifyError(err),
+						errors: err.issues
+							.map((e) => `${e.path.join(".")}: ${e.message}`)
+							.join(", "),
 						data: JSON.stringify(data, null, 2),
 					});
 				} else {
@@ -214,7 +198,6 @@ export class EventEmitter {
 			}
 		}
 
-		// Execute all handlers and collect errors
 		let hasErrors = false;
 		handlers.forEach((handler, index) => {
 			try {
@@ -233,7 +216,6 @@ export class EventEmitter {
 			}
 		});
 
-		// Throw if any handlers failed
 		if (hasErrors) {
 			throw new Error(
 				`One or more handlers failed for event "${eventName}". Check logs for details.`,
@@ -257,7 +239,7 @@ export class EventEmitter {
 	 * emitter.off('message');
 	 * ```
 	 */
-	off(event: string, callback?: EventHandler) {
+	off(event: string, callback?: (data: any) => any) {
 		if (!callback) {
 			// Remove all handlers for the event
 			this.eventHandlers.delete(event as string);
@@ -265,7 +247,7 @@ export class EventEmitter {
 			// Remove specific handler
 			const handlers = this.eventHandlers.get(event as string);
 			if (handlers) {
-				const index = handlers.indexOf(callback as EventHandler);
+				const index = handlers.indexOf(callback);
 				if (index !== -1) {
 					handlers.splice(index, 1);
 					// Clean up empty handler arrays
@@ -298,15 +280,14 @@ export class EventEmitter {
 	 *
 	 * Note: If no callback is provided, an error is logged and the handler is not registered
 	 */
-	on(event: string, callback?: EventHandler): void {
+	on(event: string, callback?: (data: any) => any): void {
 		if (!callback) {
 			logger.error(
-				`No callback provided for event handler "${event.toString()}". Pass a callback to handle this event.`,
+				`No callback provided for event handler "${event.toString()}". Ppass a callback to handle this event.`,
 			);
 			return;
 		}
 
-		// Get existing handlers or create new array
 		const handlers = this.eventHandlers.get(event as string) || [];
 		handlers.push(callback);
 		this.eventHandlers.set(event as string, handlers);

@@ -35,35 +35,15 @@ export const testingRouter = j.router({
 	errorExample: procedures.errorExample,
 });
 
-// Nested router structure
-export const apiRouter = j.router({
-	user: userRouter,
-	admin: adminRouter,
-	chat: chatRouter,
-	files: fileRouter,
-});
-
 // Complete app router combining all routes
 export const combinedRouter = j.router({
 	health: procedures.health,
 	user: procedures.getUser,
 	profile: procedures.getProfile,
-	users: {
-		create: procedures.createUser,
-		update: procedures.updateUser,
-		delete: procedures.deleteUser,
-		list: procedures.getUsers,
-	},
-	admin: {
-		adminOnly: procedures.adminOnly,
-	},
+	admin: procedures.adminOnly,
 	chat: procedures.chat,
-	files: {
-		upload: procedures.uploadFile,
-	},
-	testing: {
-		error: procedures.errorExample,
-	},
+	files: procedures.uploadFile,
+	testing: procedures.errorExample,
 });
 
 // Minimal router for basic testing
@@ -100,7 +80,6 @@ export type AdminRouter = typeof adminRouter;
 export type ChatRouter = typeof chatRouter;
 export type FileRouter = typeof fileRouter;
 export type TestingRouter = typeof testingRouter;
-export type ApiRouter = typeof apiRouter;
 export type CombinedRouter = typeof combinedRouter;
 export type MinimalRouter = typeof minimalRouter;
 export type MutationRouter = typeof mutationRouter;

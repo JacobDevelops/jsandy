@@ -1,8 +1,9 @@
-import type superjson from "superjson";
 import type { Context, TypedResponse } from "hono";
 import type { Env, Input } from "hono/types";
 import type { StatusCode } from "hono/utils/http-status";
-import type { ZodObject, ZodRawShape, z } from "zod/v4";
+import type superjson from "superjson";
+import type { z as zV3 } from "zod";
+import type { z as zV4 } from "zod/v4";
 import type { IO, ServerSocket } from "./sockets";
 
 /**
@@ -50,9 +51,9 @@ export type SuperJSONHandler = {
  * @template I - Input type, defaults to Input
  */
 export type ContextWithSuperJSON<
-	E extends Env = Env,
-	P extends string = string,
-	I extends Input = Input,
+	E extends Env = any,
+	P extends string = any,
+	I extends Input = {},
 > = Context<E, P, I> & SuperJSONHandler;
 
 /**
@@ -60,9 +61,9 @@ export type ContextWithSuperJSON<
  * @template T - The middleware function type to infer from
  */
 export type InferMiddlewareOutput<T> = T extends MiddlewareFunction<
-	unknown,
+	any,
 	infer R,
-	Env
+	any
 >
 	? R
 	: unknown;
@@ -74,14 +75,14 @@ export type InferMiddlewareOutput<T> = T extends MiddlewareFunction<
  * @template E - Environment type, defaults to Env
  */
 export type MiddlewareFunction<
-	T = Record<string, unknown>,
+	T = {},
 	R = void,
-	E extends Env = Env,
+	E extends Env = any,
 > = (params: {
 	/** Current context object */
 	ctx: T;
 	/** Function to call next middleware with optional context extension */
-	next: <B extends Record<string, unknown>>(args?: B) => Promise<B & T>;
+	next: <B>(args?: B) => Promise<B & T>;
 	/** Hono context with SuperJSON capabilities */
 	c: ContextWithSuperJSON<E>;
 }) => Promise<R>;
@@ -92,7 +93,7 @@ export type MiddlewareFunction<
  * @param data - Optional data to send with the event
  * @returns Promise that resolves when event is emitted
  */
-export type EmitFunction = (event: string, data?: unknown) => Promise<void>;
+export type EmitFunction = (event: string, data?: any) => Promise<void>;
 
 /**
  * Function type for emitting events to a specific room
@@ -100,13 +101,7 @@ export type EmitFunction = (event: string, data?: unknown) => Promise<void>;
  * @param data - Optional data to send with the event
  * @returns Promise that resolves when event is emitted
  */
-export type RoomEmitFunction = (room: string, data?: unknown) => Promise<void>;
-
-/**
- * Infers the data type from a WebSocket schema, returning void if not a ZodObject
- * @template T - The schema type to infer from
- */
-export type InferWebSocketData<T> = T extends ZodObject ? z.infer<T> : void;
+export type RoomEmitFunction = (room: string, data?: any) => Promise<void>;
 
 /**
  * Handler object for WebSocket lifecycle events
@@ -119,13 +114,13 @@ export type WebSocketHandler<IncomingSchema, OutgoingSchema> = {
 		socket,
 	}: {
 		socket: ServerSocket<IncomingSchema, OutgoingSchema>;
-	}) => unknown;
+	}) => any;
 	/** Optional handler called when a client disconnects */
 	onDisconnect?: ({
 		socket,
 	}: {
 		socket: ServerSocket<IncomingSchema, OutgoingSchema>;
-	}) => unknown;
+	}) => any;
 	/** Optional handler called when an error occurs */
 	onError?: ({
 		socket,
@@ -133,7 +128,7 @@ export type WebSocketHandler<IncomingSchema, OutgoingSchema> = {
 	}: {
 		socket: ServerSocket<IncomingSchema, OutgoingSchema>;
 		error: Event;
-	}) => unknown;
+	}) => any;
 };
 
 /**
@@ -143,9 +138,10 @@ export type WebSocketHandler<IncomingSchema, OutgoingSchema> = {
  * @template E - Environment type, defaults to Env
  */
 export type WebSocketOperation<
-	IncomingSchema,
-	OutgoingSchema,
-	E extends Env = Env,
+	// FIXME: Record<string,unknown> type error
+	IncomingSchema extends Record<string, any>,
+	OutgoingSchema extends Record<string, any>,
+	E extends Env = any,
 > = {
 	/** Operation type identifier */
 	type: "ws";
@@ -156,16 +152,16 @@ export type WebSocketOperation<
 	/** Output format specification */
 	outputFormat: "ws";
 	/** Handler function that returns WebSocket event handlers */
-	handler: (params: {
+	handler: <Input>(params: {
 		/** IO interface for WebSocket communication */
-		io: IO<OutgoingSchema>;
+		io: IO<IncomingSchema, OutgoingSchema>;
 		/** Hono context with SuperJSON capabilities */
 		c: ContextWithSuperJSON<E>;
 		/** Current context object */
-		ctx: Record<string, unknown>;
+		ctx: Input;
 	}) => OptionalPromise<WebSocketHandler<IncomingSchema, OutgoingSchema>>;
 	/** Array of middleware functions to apply */
-	middlewares: MiddlewareFunction<Record<string, unknown>, unknown, E>[];
+	middlewares: MiddlewareFunction<any, any, E>[];
 };
 
 /**
@@ -187,7 +183,7 @@ type UnwrapResponse<T> = Awaited<T> extends TypedResponse<infer U>
 	: Awaited<T> extends SuperJSONTypedResponse<infer U>
 		? U
 		: Awaited<T> extends Response
-			? unknown
+			? any
 			: Awaited<T> extends void
 				? void
 				: T;
@@ -199,25 +195,29 @@ type UnwrapResponse<T> = Awaited<T> extends TypedResponse<infer U>
  * @template E - Environment type, defaults to Env
  */
 export type GetOperation<
-	Schema,
-	Return = OptionalPromise<ResponseType<unknown>>,
-	E extends Env = Env,
+	Schema extends Record<string, any> | void,
+	Return = OptionalPromise<ResponseType<any>>,
+	E extends Env = any,
 > = {
 	/** Operation type identifier */
 	type: "get";
 	/** Optional input validation schema */
-	schema?: Schema;
+	schema?: zV3.ZodType<Schema> | zV4.ZodType<Schema> | void;
 	/** Handler function for the GET operation */
-	handler: (params: {
+	handler: <Input>({
+		c,
+		ctx,
+		input,
+	}: {
 		/** Hono context with SuperJSON capabilities */
 		c: ContextWithSuperJSON<E>;
 		/** Current context object */
-		ctx: Record<string, unknown>;
+		ctx: Input;
 		/** Validated input data based on schema */
-		input: InferSchema<Schema>;
+		input: Schema extends Record<string, any> ? Schema : void;
 	}) => UnwrapResponse<OptionalPromise<Return>>;
 	/** Array of middleware functions to apply */
-	middlewares: MiddlewareFunction<Record<string, unknown>, unknown, E>[];
+	middlewares: MiddlewareFunction<any, any, E>[];
 };
 
 /**
@@ -227,25 +227,29 @@ export type GetOperation<
  * @template E - Environment type, defaults to Env
  */
 export type PostOperation<
-	Schema,
-	Return = OptionalPromise<ResponseType<unknown>>,
-	E extends Env = Env,
+	Schema extends Record<string, any> | void,
+	Return = OptionalPromise<ResponseType<any>>,
+	E extends Env = any,
 > = {
 	/** Operation type identifier */
 	type: "post";
 	/** Optional input validation schema */
-	schema?: Schema;
+	schema?: zV3.ZodType<Schema> | zV4.ZodType<Schema> | void;
 	/** Handler function for the POST operation */
-	handler: (params: {
+	handler: <Input, _Output>({
+		ctx,
+		c,
+		input,
+	}: {
 		/** Current context object */
-		ctx: Record<string, unknown>;
+		ctx: Input;
 		/** Hono context with SuperJSON capabilities */
 		c: ContextWithSuperJSON<E>;
 		/** Validated input data based on schema */
-		input: InferSchema<Schema>;
+		input: Schema extends Record<string, any> ? Schema : void;
 	}) => UnwrapResponse<OptionalPromise<Return>>;
 	/** Array of middleware functions to apply */
-	middlewares: MiddlewareFunction<Record<string, unknown>, unknown, E>[];
+	middlewares: MiddlewareFunction<any, any, E>[];
 };
 
 /**
@@ -254,37 +258,22 @@ export type PostOperation<
  * @template O - Output schema type
  * @template E - Environment type, defaults to Env
  */
-export type OperationType<I, O, E extends Env = Env> =
+export type OperationType<
+	I extends Record<string, any>,
+	O extends Record<string, unknown>,
+	E extends Env = any,
+> =
 	| GetOperation<I, O, E>
 	| PostOperation<I, O, E>
 	| WebSocketOperation<I, O, E>;
 
 /**
- * Infers TypeScript types from Zod schemas, returning void for non-ZodObject types
- * @template T - The schema type to infer from
- */
-export type InferSchema<T> = T extends ZodObject<
-	infer Shape extends ZodRawShape
->
-	? {
-			[K in keyof Shape]: Shape[K] extends z.ZodType<infer U> ? U : void;
-		}
-	: void;
-
-/**
  * Infers the input type from various operation types
  * @template T - The operation type to infer input from
  */
-// biome-ignore lint/suspicious/noExplicitAny: We don't know what type the Env is
-export type InferInput<T> = T extends OperationType<infer I, unknown, any>
-	? InferSchema<I>
-	: T extends GetOperation<infer I, unknown, Env>
-		? InferSchema<I>
-		: T extends PostOperation<infer I, unknown, Env>
-			? InferSchema<I>
-			: T extends WebSocketOperation<infer I, unknown, Env>
-				? InferSchema<I>
-				: void;
+export type InferInput<T> = T extends OperationType<infer I, any>
+	? InferZodType<I, I>
+	: void;
 
 /**
  * Utility type that allows a value to be either synchronous or wrapped in a Promise
@@ -297,5 +286,16 @@ export type OptionalPromise<T> = T | Promise<T>;
  */
 export type RouterRecord = Record<
 	string,
-	OperationType<ZodObject | void, ZodObject | void> | Record<string, unknown>
+	| OperationType<Record<string, any>, Record<string, any>>
+	| Record<string, unknown>
 >;
+
+export type InferZodType<S, T = void> = S extends void
+	? T
+	: S extends zV3.ZodTypeAny
+		? zV3.infer<S>
+		: S extends zV4.ZodType
+			? zV4.infer<S>
+			: T;
+
+export type ZodAny = zV3.ZodTypeAny | zV4.ZodType;

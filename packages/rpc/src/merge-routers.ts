@@ -1,20 +1,5 @@
-import type { Env, Hono, Schema } from "hono";
+import type { Hono } from "hono";
 import { Router } from "./router";
-
-/**
- * Generic Router type constraint that preserves the environment type
- * Used for type-safe router composition while maintaining environment compatibility
- * @template E - Environment type extending Hono's Env, defaults to Env
- */
-type AnyRouter<E extends Env = Env> = Router<Record<string, unknown>, E>;
-
-/**
- * Generic Hono type constraint that preserves the environment type
- * Used for type-safe Hono instance composition with schema and environment preservation
- * @template S - Schema type for the Hono instance
- * @template E - Environment type extending Hono's Env, defaults to Env
- */
-type AnyHono<S extends Schema, E extends Env = Env> = Hono<E, S, string>;
 
 /**
  * Infers and merges schemas from a collection of routers or lazy-loaded router functions
@@ -30,26 +15,17 @@ type AnyHono<S extends Schema, E extends Env = Env> = Hono<E, S, string>;
  * - Preserve environment type consistency across all routers
  */
 export type InferSchemaFromRouters<
-	R extends Record<string, AnyRouter<E> | (() => Promise<AnyRouter<E>>)>,
-	E extends Env = Env,
+	R extends Record<string, Router<any> | (() => Promise<Router<any>>)>,
 > = {
-	[P in keyof R]: R[P] extends () => Promise<AnyRouter<E>>
+	[P in keyof R]: R[P] extends () => Promise<Router<any>>
 		? R[P] extends () => Promise<infer T>
-			? T extends Router<infer S, E>
-				? S
-				: T extends AnyHono<infer S, E>
-					? {
-							[Q in keyof S]: S[Q];
-						}
-					: never
+			? T extends Hono<any, infer S>
+				? { [Q in keyof S]: S[Q] }
+				: never
 			: never
-		: R[P] extends Router<infer S, E>
-			? S
-			: R[P] extends AnyHono<infer S, E>
-				? {
-						[Q in keyof S]: S[Q];
-					}
-				: never;
+		: R[P] extends Hono<any, infer S>
+			? { [Q in keyof S]: S[Q] }
+			: never;
 };
 
 /**
@@ -89,12 +65,10 @@ export type InferSchemaFromRouters<
  * - **Environment preservation**: Maintains consistent environment types across all routers
  */
 export function mergeRouters<
-	E extends Env,
-	S extends Schema,
-	R extends Record<string, AnyRouter<E> | (() => Promise<AnyRouter<E>>)>,
->(api: AnyHono<S, E>, routers: R): Router<InferSchemaFromRouters<R, E>, E> {
+	R extends Record<string, Router<any> | (() => Promise<Router<any>>)>,
+>(api: Hono<any, any, any>, routers: R): Router<InferSchemaFromRouters<R>> {
 	// Create a new router with inferred merged schema
-	const mergedRouter = new Router<InferSchemaFromRouters<R, E>, E>();
+	const mergedRouter = new Router();
 
 	// Copy properties from the base API instance
 	Object.assign(mergedRouter, api);
@@ -112,7 +86,7 @@ export function mergeRouters<
 		if (typeof router === "function") {
 			// Handle lazy-loaded routers using dynamic imports
 			// Create a proxy router to defer loading until first request
-			const proxyRouter = new Router<Record<string, unknown>, E>();
+			const proxyRouter = new Router();
 
 			/**
 			 * Proxy handler that loads the actual router on first request
@@ -142,5 +116,5 @@ export function mergeRouters<
 	mergedRouter.registerSubrouterMiddleware();
 
 	// Return the merged router with proper typing
-	return mergedRouter as Router<InferSchemaFromRouters<R, E>, E>;
+	return mergedRouter as Router<InferSchemaFromRouters<R>>;
 }
