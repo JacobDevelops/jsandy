@@ -30,5 +30,8 @@
 	},
 	"[dotenv]": {
 		"editor.defaultFormatter": "foxundermoon.shell-format"
+	},
+	"[github-actions-workflow]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
 	}
 }

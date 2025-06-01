@@ -18,14 +18,12 @@
 	},
 	"files": ["dist", "README.md", "CHANGELOG.md"],
 	"scripts": {
-		"build": "ts-node ./build.ts",
-		"clean": "rimraf dist && rimraf node_modules",
-		"prebuild": "rimraf ./dist"
+		"build": "bun build.ts",
+		"prebuild": "rm -rf ./dist"
 	},
 	"devDependencies": {
 		"@jsandy/typescript-config": "workspace:*",
 		"@types/node": "^22.10.10",
-		"ts-node": "^10.9.2",
 		"typescript": "^5.8.2"
 	},
 	"dependencies": {
