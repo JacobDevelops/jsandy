@@ -30,6 +30,9 @@ dist
 # Debug
 *.log*
 
+## Docs
+.content-collections
+
 # Misc
 .DS_Store
 *.pem
