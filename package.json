@@ -20,8 +20,8 @@
 		"@commitlint/config-conventional": "^19.8.1",
 		"@commitlint/types": "^19.8.1",
 		"husky": "^9.1.7",
-		"knip": "^5.46.3",
-		"turbo": "^2.4.4"
+		"knip": "^5.59.1",
+		"turbo": "^2.5.4"
 	},
 	"workspaces": ["apps/*", "packages/*"],
 	"packageManager": "bun@1.2.14"

@@ -6,11 +6,7 @@
 	},
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
-	"files": [
-		"dist",
-		"README.md",
-		"CHANGELOG.md"
-	],
+	"files": ["dist", "README.md", "CHANGELOG.md"],
 	"exports": {
 		".": {
 			"import": {
@@ -32,16 +28,16 @@
 		"test:coverage": "bun test --coverage"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20241218.0",
+		"@cloudflare/workers-types": "^4.20250601.0",
 		"@jsandy/builder": "1.0.0",
 		"@jsandy/typescript-config": "workspace:*",
 		"@types/bun": "^1.2.15",
 		"@types/node": "^22.15.29",
-		"typescript": "^5.2.2"
+		"typescript": "^5.8.3"
 	},
 	"peerDependencies": {
-		"hono": "^4",
-		"zod": "^3.25 || ^4"
+		"hono": "^4.7.11",
+		"zod": "^3.25.42"
 	},
 	"dependencies": {
 		"superjson": "^2.2.2"
