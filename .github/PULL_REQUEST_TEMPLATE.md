@@ -20,7 +20,7 @@ Please include a summary of the changes and relevant motivation/context. If this
 - [ ] `@jsandy/rpc`
 - [ ] `@jsandy/builder`
 - [ ] `@jsandy/typescript-config`
-- [ ] `@jsandy/biome-config`
+- [ ] `create-jsandy-app`
 - [ ] Root workspace/tooling
 
 ## Testing
