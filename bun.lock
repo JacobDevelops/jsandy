@@ -10,22 +10,22 @@
         "@commitlint/config-conventional": "^19.8.1",
         "@commitlint/types": "^19.8.1",
         "husky": "^9.1.7",
-        "knip": "^5.46.3",
-        "turbo": "^2.4.4",
+        "knip": "^5.59.1",
+        "turbo": "^2.5.4",
       },
     },
     "packages/builder": {
       "name": "@jsandy/builder",
-      "version": "0.0.0",
+      "version": "1.0.0",
       "dependencies": {
-        "esbuild": "^0.25.0",
-        "tslib": "^2.7.0",
-        "tsup": "^8.0.2",
+        "esbuild": "^0.25.5",
+        "tslib": "^2.8.1",
+        "tsup": "^8.5.0",
       },
       "devDependencies": {
         "@jsandy/typescript-config": "workspace:*",
-        "@types/node": "^22.10.10",
-        "typescript": "^5.8.2",
+        "@types/node": "^22.15.29",
+        "typescript": "^5.8.3",
       },
     },
     "packages/cli": {
@@ -35,47 +35,47 @@
         "create-jsandy-app": "./dist/index.js",
       },
       "dependencies": {
-        "@clack/prompts": "^0.8.1",
+        "@clack/prompts": "^0.8.2",
         "@jsandy/rpc": "workspace:*",
-        "chalk": "^5.3.0",
-        "execa": "^9.5.2",
-        "fs-extra": "^11.2.0",
-        "hono": "^4.7.0",
-        "ora": "^8.1.1",
-        "sort-package-json": "^2.11.0",
+        "chalk": "^5.4.1",
+        "execa": "^9.6.0",
+        "fs-extra": "^11.3.0",
+        "hono": "^4.7.11",
+        "ora": "^8.2.0",
+        "sort-package-json": "^2.15.1",
       },
       "devDependencies": {
         "@types/fs-extra": "^11.0.4",
-        "@types/node": "^22.9.1",
-        "drizzle-kit": "^0.30.1",
-        "type-fest": "^4.27.0",
+        "@types/node": "^22.15.29",
+        "drizzle-kit": "^0.30.6",
+        "type-fest": "^4.41.0",
       },
       "peerDependencies": {
-        "typescript": "^5",
+        "typescript": "^5.8.3",
       },
     },
     "packages/rpc": {
       "name": "@jsandy/rpc",
-      "version": "0.0.0",
+      "version": "1.0.0",
       "dependencies": {
         "superjson": "^2.2.2",
       },
       "devDependencies": {
-        "@cloudflare/workers-types": "^4.20241218.0",
-        "@jsandy/builder": "0.0.0",
+        "@cloudflare/workers-types": "^4.20250601.0",
+        "@jsandy/builder": "1.0.0",
         "@jsandy/typescript-config": "workspace:*",
         "@types/bun": "^1.2.15",
         "@types/node": "^22.15.29",
-        "typescript": "^5.2.2",
+        "typescript": "^5.8.3",
       },
       "peerDependencies": {
-        "hono": "^4",
-        "zod": "^3.25 || ^4",
+        "hono": "^4.7.11",
+        "zod": "^3.25.42",
       },
     },
     "packages/typescript-config": {
       "name": "@jsandy/typescript-config",
-      "version": "0.0.0",
+      "version": "1.0.0",
       "peerDependencies": {
         "typescript": "*",
       },
@@ -144,7 +144,7 @@
 
     "@clack/prompts": ["@clack/prompts@0.8.2", "", { "dependencies": { "@clack/core": "0.3.5", "picocolors": "^1.0.0", "sisteransi": "^1.0.5" } }, "sha512-6b9Ab2UiZwJYA9iMyboYyW9yJvAO9V753ZhS+DHKEjZRKAxPPOb7MXXu84lsPFG+vZt6FRFniZ8rXi+zCIw4yQ=="],
 
-    "@cloudflare/workers-types": ["@cloudflare/workers-types@4.20250531.0", "", {}, "sha512-iVcWk78z1qNnEWMOUkXvfURz407m/l/xjRKyFW3XM39t7xGgF8GjARMJs/pT93tLPGvrZ7qlj9j92eIhdsexfg=="],
+    "@cloudflare/workers-types": ["@cloudflare/workers-types@4.20250601.0", "", {}, "sha512-foAgsuo+u+swy5I+xzPwo4MquPhLZW0fuLLsl4uZlZv2k10WziSvZ4wTIkK/AADFtCVRjLNduTT8E/b7DDoInA=="],
 
     "@commitlint/cli": ["@commitlint/cli@19.8.1", "", { "dependencies": { "@commitlint/format": "^19.8.1", "@commitlint/lint": "^19.8.1", "@commitlint/load": "^19.8.1", "@commitlint/read": "^19.8.1", "@commitlint/types": "^19.8.1", "tinyexec": "^1.0.0", "yargs": "^17.0.0" }, "bin": { "commitlint": "./cli.js" } }, "sha512-LXUdNIkspyxrlV6VDHWBmCZRtkEVRpBKxi2Gtw3J54cGWhLCTouVD/Q6ZSaSvd2YaDObWK8mDjrz3TIKtaQMAA=="],
 
@@ -532,7 +532,7 @@
 
     "graceful-fs": ["graceful-fs@4.2.11", "", {}, "sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ=="],
 
-    "hono": ["hono@4.7.10", "", {}, "sha512-QkACju9MiN59CKSY5JsGZCYmPZkA6sIW6OFCUp7qDjZu6S6KHtJHhAc9Uy9mV9F8PJ1/HQ3ybZF2yjCa/73fvQ=="],
+    "hono": ["hono@4.7.11", "", {}, "sha512-rv0JMwC0KALbbmwJDEnxvQCeJh+xbS3KEWW5PC9cMJ08Ur9xgatI0HmtgYZfOdOSOeYsp5LO2cOhdI8cLEbDEQ=="],
 
     "human-id": ["human-id@4.1.1", "", { "bin": { "human-id": "dist/cli.js" } }, "sha512-3gKm/gCSUipeLsRYZbbdA1BD83lBoWUkZ7G9VFrhWPAU76KwYo5KR8V28bpoPm/ygy0x5/GCbpRQdY7VLYCoIg=="],
 
@@ -844,7 +844,7 @@
 
     "type-fest": ["type-fest@4.41.0", "", {}, "sha512-TeTSQ6H5YHvpqVwBRcnLDCBnDOHWYu7IvGbHT6N8AOymcr9PJGjc1GTtiWZTYg0NCgYwvnYWEkVChQAr9bjfwA=="],
 
-    "typescript": ["typescript@5.8.2", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-aJn6wq13/afZp/jT9QZmwEjDqqvSGp1VT5GVg+f/t6/oVyrgXM6BY1h9BRh/O5p3PlUPAe+WuiEZOmb/49RqoQ=="],
+    "typescript": ["typescript@5.8.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-p1diW6TqL9L07nNxvRMM7hMMw4c5XOo/1ibL4aAIGmSAt9slTE1Xgw5KWuof2uTOvCg9BY7ZRi+GaF+7sfgPeQ=="],
 
     "ufo": ["ufo@1.6.1", "", {}, "sha512-9a4/uxlTWJ4+a5i0ooc1rU7C7YOw3wT+UGqdeNNHWnOF9qcMBgLRS+4IYUqbczewFx4mLEig6gawh7X6mFlEkA=="],
 

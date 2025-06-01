@@ -16,23 +16,19 @@
 			"default": "./dist/index.js"
 		}
 	},
-	"files": [
-		"dist",
-		"README.md",
-		"CHANGELOG.md"
-	],
+	"files": ["dist", "README.md", "CHANGELOG.md"],
 	"scripts": {
 		"build": "bun build.ts",
 		"prebuild": "rm -rf ./dist"
 	},
 	"devDependencies": {
 		"@jsandy/typescript-config": "workspace:*",
-		"@types/node": "^22.10.10",
-		"typescript": "^5.8.2"
+		"@types/node": "^22.15.29",
+		"typescript": "^5.8.3"
 	},
 	"dependencies": {
-		"esbuild": "^0.25.0",
-		"tslib": "^2.7.0",
-		"tsup": "^8.0.2"
+		"esbuild": "^0.25.5",
+		"tslib": "^2.8.1",
+		"tsup": "^8.5.0"
 	}
 }
