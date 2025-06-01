@@ -23,7 +23,7 @@ jobs:
       - name: Generate cache key
         id: cache-key
         run: |
-          echo "key=${{ runner.os }}-turbo-${{ github.sha }}-${{ hashFiles('**/bun.lock', '**/turbo.json', 'turbo.json') }}" >> $GITHUB_OUTPUT
+          echo "key=${{ runner.os }}-turbo-${{ github.sha }}-${{ hashFiles('**/bun.lock', '**/turbo.json') }}" >> $GITHUB_OUTPUT
 
       # Cache Bun dependencies
       - uses: useblacksmith/cache@v5
