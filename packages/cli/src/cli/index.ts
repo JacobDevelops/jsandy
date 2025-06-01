@@ -70,6 +70,7 @@ export async function runCli(): Promise<CliResults | undefined> {
 				{ value: "postgres", label: "PostgreSQL" },
 				{ value: "neon", label: "Neon" },
 				{ value: "vercel-postgres", label: "Vercel Postgres" },
+				{ value: "planetscale", label: "PlanetScale" },
 			],
 		});
 
@@ -85,17 +86,15 @@ export async function runCli(): Promise<CliResults | undefined> {
 		const shouldInstall = await select({
 			message: `Should we run '${pkgManager}${pkgManager === "yarn" ? "" : " install"}' for you?`,
 			options: [
-				{ value: false, label: "Yes" },
-				{ value: true, label: "No" },
+				{ value: true, label: "Yes" },
+				{ value: false, label: "No" },
 			],
 		});
-
 		if (isCancel(shouldInstall)) {
 			outro("Setup cancelled.");
 			return undefined;
 		}
-
-		noInstall = shouldInstall;
+		noInstall = !shouldInstall;
 	}
 
 	return {

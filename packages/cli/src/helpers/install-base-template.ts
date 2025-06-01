@@ -2,7 +2,7 @@ import path from "node:path";
 import * as p from "@clack/prompts";
 import chalk from "chalk";
 import fs from "fs-extra";
-import ora from "ora";
+import ora, { type Ora } from "ora";
 import { PKG_ROOT } from "@/constants";
 import type { InstallerOptions } from "@/installers/index";
 import { logger } from "@/utils/logger";
@@ -25,6 +25,40 @@ export const installBaseTemplate = async ({
 
 	const spinner = ora(`Scaffolding in: ${projectDir}...\n`).start();
 
+	const result = await handleDirectoryConflict(
+		projectDir,
+		projectName,
+		spinner,
+	);
+	if (!result.shouldContinue) return;
+
+	spinner.start();
+
+	await fs.copy(srcDir, projectDir);
+
+	// use package.json from base-assets instead of template/base
+	await fs.remove(path.join(projectDir, "package.json"));
+	const packageJsonPath = path.join(baseAssetsDir, "base-package.json");
+	await fs.copy(packageJsonPath, path.join(projectDir, "package.json"));
+
+	await fs.rename(
+		path.join(projectDir, "_gitignore"),
+		path.join(projectDir, ".gitignore"),
+	);
+
+	const scaffoldedName =
+		projectName === "." ? "App" : chalk.cyan.bold(projectName);
+
+	spinner.succeed(
+		`${scaffoldedName} ${chalk.green("scaffolded successfully!")}\n`,
+	);
+};
+
+const handleDirectoryConflict = async (
+	projectDir: string,
+	projectName: string,
+	spinner: Ora,
+) => {
 	if (fs.existsSync(projectDir)) {
 		if (fs.readdirSync(projectDir).length === 0) {
 			if (projectName !== ".")
@@ -77,29 +111,9 @@ export const installBaseTemplate = async ({
 				spinner.info(
 					`Emptying ${chalk.cyan.bold(projectName)} and creating JSandy app..\n`,
 				);
-				fs.emptyDirSync(projectDir);
+				await fs.emptyDir(projectDir);
 			}
 		}
 	}
-
-	spinner.start();
-
-	fs.copySync(srcDir, projectDir);
-
-	// use package.json from base-assets instead of template/base
-	fs.removeSync(path.join(projectDir, "package.json"));
-	const packageJsonPath = path.join(baseAssetsDir, "base-package.json");
-	fs.copySync(packageJsonPath, path.join(projectDir, "package.json"));
-
-	fs.renameSync(
-		path.join(projectDir, "_gitignore"),
-		path.join(projectDir, ".gitignore"),
-	);
-
-	const scaffoldedName =
-		projectName === "." ? "App" : chalk.cyan.bold(projectName);
-
-	spinner.succeed(
-		`${scaffoldedName} ${chalk.green("scaffolded successfully!")}\n`,
-	);
+	return { shouldContinue: true, directoryCleared: false };
 };

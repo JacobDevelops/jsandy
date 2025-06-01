@@ -26,8 +26,8 @@ const execWithSpinner = async (
 			subprocess.stdout?.on("data", onDataHandle(spinner));
 		}
 
-		void subprocess.on("error", (e) => rej(e));
-		void subprocess.on("close", () => res());
+		subprocess.on("error", (e) => rej(e));
+		subprocess.on("close", () => res());
 	});
 
 	return spinner;
@@ -82,9 +82,13 @@ export const installDependencies = async ({
 
 	const installSpinner = await runInstallCommand(pkgManager, projectDir);
 
-	// If the spinner was used to show the progress, use succeed method on it
-	// If not, use the succeed on a new spinner
-	(installSpinner ?? ora()).succeed(
-		chalk.green("Successfully installed dependencies!\n"),
-	);
+	if (installSpinner) {
+		// If the spinner was used to show the progress, use succeed method on it
+		// If not, use the succeed on a new spinner
+		installSpinner.succeed(
+			chalk.green("Successfully installed dependencies!\n"),
+		);
+	} else {
+		logger.success("Successfully installed dependencies!\n");
+	}
 };
