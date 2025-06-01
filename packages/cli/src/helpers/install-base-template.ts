@@ -17,6 +17,13 @@ export const installBaseTemplate = async ({
 	const srcDir = path.join(PKG_ROOT, "src/template/base");
 	const baseAssetsDir = path.join(PKG_ROOT, "src/template/base-assets");
 
+	// Validate source directories exist
+	if (!fs.existsSync(srcDir) || !fs.existsSync(baseAssetsDir)) {
+		throw new Error(
+			"Template source directories not found. Please ensure the CLI package is properly installed."
+		);
+	}
+
 	if (!noInstall) {
 		logger.info(`\nUsing: ${chalk.cyan.bold(pkgManager)}\n`);
 	} else {
