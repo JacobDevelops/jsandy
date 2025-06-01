@@ -1,6 +1,6 @@
 {
 	"name": "create-jsandy-app",
-	"version": "0.0.0",
+	"version": "1.0.0",
 	"description": "A CLI tool for scaffolding new jSandy applications with interactive prompts",
 	"license": "MIT",
 	"repository": {
