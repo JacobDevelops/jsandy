@@ -41,8 +41,6 @@ const main = async () => {
 	if (!results.noInstall) {
 		await installDependencies({ projectDir });
 	}
-
-	process.exit(0);
 };
 
 main().catch((err) => {

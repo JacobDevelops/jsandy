@@ -21,17 +21,8 @@ export const RecentPost = () => {
 			if (!name.trim()) {
 				throw new Error("Post name cannot be empty");
 			}
-			try {
-				const res = await client.post.create.$post({ name: name.trim() });
-				if (!res.ok) {
-					throw new Error(`HTTP error! status: ${res.status}`);
-				}
-				return await res.json();
-			} catch (error) {
-				throw new Error(
-					`Failed to create post: ${error instanceof Error ? error.message : "Unknown error"}`,
-				);
-			}
+			const res = await client.post.create.$post({ name: name.trim() });
+			return await res.json();
 		},
 		onSuccess: async () => {
 			await queryClient.invalidateQueries({ queryKey: ["get-recent-post"] });

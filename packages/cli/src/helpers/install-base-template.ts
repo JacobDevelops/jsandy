@@ -25,12 +25,19 @@ export const installBaseTemplate = async ({
 
 	const spinner = ora(`Scaffolding in: ${projectDir}...\n`).start();
 
-	const result = await handleDirectoryConflict(
-		projectDir,
-		projectName,
-		spinner,
-	);
-	if (!result.shouldContinue) return;
+	try {
+		const result = await handleDirectoryConflict(
+			projectDir,
+			projectName,
+			spinner,
+		);
+		if (!result.shouldContinue) return;
+	} catch (error) {
+		spinner.fail(
+			`Failed to handle directory conflict: ${(error as Error).message}`,
+		);
+		throw error;
+	}
 
 	spinner.start();
 
