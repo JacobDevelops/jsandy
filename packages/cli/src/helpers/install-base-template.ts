@@ -119,6 +119,7 @@ const handleDirectoryConflict = async (
 					`Emptying ${chalk.cyan.bold(projectName)} and creating JSandy app..\n`,
 				);
 				await fs.emptyDir(projectDir);
+				return { shouldContinue: true, directoryCleared: true };
 			}
 		}
 	}
