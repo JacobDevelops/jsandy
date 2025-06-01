@@ -17,14 +17,14 @@ jobs:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
-      
+          bun-version: 1.2.14
+
       # Generate cache key for Turbo
       - name: Generate cache key
         id: cache-key
         run: |
           echo "key=${{ runner.os }}-turbo-${{ github.sha }}-${{ hashFiles('**/bun.lock', '**/turbo.json', 'turbo.json') }}" >> $GITHUB_OUTPUT
-      
+
       # Cache Bun dependencies
       - uses: useblacksmith/cache@v5
         name: Setup Bun cache
@@ -33,7 +33,7 @@ jobs:
           key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
           restore-keys: |
             ${{ runner.os }}-bun-
-      
+
       # Cache Turbo build outputs
       - uses: useblacksmith/cache@v5
         name: Setup Turbo cache
@@ -42,7 +42,7 @@ jobs:
           key: ${{ steps.cache-key.outputs.key }}
           restore-keys: |
             ${{ runner.os }}-turbo-
-      
+
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
@@ -58,8 +58,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
-      
+          bun-version: 1.2.14
+
       # Cache Bun dependencies
       - uses: useblacksmith/cache@v5
         name: Setup Bun cache
@@ -68,7 +68,7 @@ jobs:
           key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
           restore-keys: |
             ${{ runner.os }}-bun-
-      
+
       - uses: useblacksmith/cache@v5
         name: Setup Turbo cache
         with:
@@ -76,9 +76,9 @@ jobs:
           key: ${{ needs.setup.outputs.cache-key }}
           restore-keys: |
             ${{ runner.os }}-turbo-
-      
+
       - run: bun install --frozen-lockfile
-      
+
       # Run tasks through Turbo
       - name: Run ${{ matrix.task }}
         run: bun turbo ${{ matrix.task }}
