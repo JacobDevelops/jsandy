@@ -7,7 +7,14 @@
 	},
 	"files": {
 		"ignoreUnknown": false,
-		"ignore": ["coverage", "dist", "node_modules", "bun.lock"]
+		"ignore": [
+			"coverage",
+			"dist",
+			"node_modules",
+			"bun.lock",
+			".next",
+			".content-collections"
+		]
 	},
 	"formatter": {
 		"enabled": true,

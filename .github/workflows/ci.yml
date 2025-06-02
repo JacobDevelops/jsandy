@@ -46,14 +46,14 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-  # Single job to run all tasks through Turbo
-  turbo-tasks:
-    name: Run Turbo Tasks
+  # First phase: lint and build (including workspace packages)
+  build-and-lint:
+    name: Build and Lint
     needs: [setup]
     runs-on: blacksmith-4vcpu-ubuntu-2404
     strategy:
       matrix:
-        task: [lint, check-types, test, build]
+        task: [lint, build, test]
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
@@ -79,24 +79,59 @@ jobs:
 
       - run: bun install --frozen-lockfile
 
-      # Run tasks through Turbo
       - name: Run ${{ matrix.task }}
         run: bun turbo ${{ matrix.task }}
         env:
           TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
           TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 
+  # Second phase: type-check and test (after workspace packages are built)
+  check-and-test:
+    name: Type Check and Test
+    needs: [setup, build-and-lint]
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.14
+
+      # Cache Bun dependencies
+      - uses: useblacksmith/cache@v5
+        name: Setup Bun cache
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
+      - uses: useblacksmith/cache@v5
+        name: Setup Turbo cache
+        with:
+          path: .turbo
+          key: ${{ needs.setup.outputs.cache-key }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
+
+      - run: bun install --frozen-lockfile
+
+      - name: Run check-types
+        run: bun turbo check-types
+        env:
+          TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+          TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+
   ci-status:
     name: CI Pipeline Status
-    needs: [turbo-tasks]
+    needs: [build-and-lint, check-and-test]
     runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: 5
     if: always()
     steps:
       - name: Check CI status
         run: |
-          if [[ "${{ needs.turbo-tasks.result }}" == "failure" ]]; then
-            echo "Turbo tasks failed"
+          if [[ "${{ needs.build-and-lint.result }}" == "failure" || "${{ needs.check-and-test.result }}" == "failure" ]]; then
+            echo "CI tasks failed"
             exit 1
           fi
           echo "All checks passed or were skipped"

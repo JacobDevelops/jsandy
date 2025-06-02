@@ -5,7 +5,7 @@ import { postRouter } from "./routers/post-router";
  * This is your base API.
  * Here, you can handle errors, not-found responses, cors and more.
  *
- * @see https://jsandy.app/docs/backend/app-router
+ * @see https://jsandy.com/docs/backend/app-router
  */
 const api = j
 	.router()

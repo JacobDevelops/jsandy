@@ -1,0 +1,51 @@
+{
+	"name": "www",
+	"version": "0.1.0",
+	"private": true,
+	"scripts": {
+		"build": "next build",
+		"build:docs": "content-collections build",
+		"check-types": "tsc --noEmit",
+		"dev": "next dev --turbopack",
+		"precheck-types": "bun run build:docs",
+		"start": "next start"
+	},
+	"dependencies": {
+		"@jsandy/rpc": "1.1.0",
+		"@radix-ui/react-dialog": "^1.1.14",
+		"@radix-ui/react-popover": "^1.1.14",
+		"@radix-ui/react-scroll-area": "^1.2.9",
+		"@radix-ui/react-slot": "^1.2.3",
+		"@tanstack/react-query": "^5.79.0",
+		"@upstash/qstash": "^2.8.1",
+		"@upstash/redis": "^1.34.9",
+		"@upstash/vector": "^1.2.1",
+		"class-variance-authority": "^0.7.1",
+		"clsx": "^2.1.1",
+		"hono": "^4.7.11",
+		"lucide-react": "^0.511.0",
+		"next": "15.3.3",
+		"next-themes": "^0.4.6",
+		"react": "^19.1.0",
+		"react-dom": "^19.1.0",
+		"rehype-autolink-headings": "^7.1.0",
+		"rehype-pretty-code": "^0.14.1",
+		"rehype-stringify": "^10.0.1",
+		"tailwind-merge": "^3.3.0",
+		"zustand": "^5.0.5"
+	},
+	"devDependencies": {
+		"@content-collections/cli": "^0.1.6",
+		"@content-collections/core": "^0.9.0",
+		"@content-collections/mdx": "^0.2.2",
+		"@content-collections/next": "^0.2.6",
+		"@tailwindcss/postcss": "^4.1.8",
+		"@types/node": "^20.17.57",
+		"@types/react": "^19.1.6",
+		"@types/react-dom": "^19.1.5",
+		"tailwindcss": "^4.1.8",
+		"tw-animate-css": "^1.3.3",
+		"typescript": "^5.8.3",
+		"zod": "^3.25.48"
+	}
+}

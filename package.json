@@ -5,6 +5,7 @@
 		"build": "turbo run build",
 		"build:packages": "turbo run build --filter='./packages/*'",
 		"check-types": "turbo run check-types",
+		"dev": "turbo run dev",
 		"format": "biome format --write .",
 		"lint": "biome lint --write .",
 		"prepare": "husky",

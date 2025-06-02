@@ -12,7 +12,7 @@ export const j = jsandy.init<Env>();
 /**
  * Type-safely injects database into all procedures
  *
- * @see https://jsandy.app/docs/backend/middleware
+ * @see https://jsandy.com/docs/backend/middleware
  */
 const databaseMiddleware = j.middleware(async ({ c, next }) => {
 	const { DATABASE_URL } = env(c);

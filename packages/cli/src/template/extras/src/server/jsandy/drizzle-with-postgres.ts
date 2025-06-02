@@ -10,7 +10,7 @@ export const j = jsandy.init<Env>();
 
 /**
  * Type-safely injects database into all procedures
- * @see https://jsandy.app/docs/backend/middleware
+ * @see https://jsandy.com/docs/backend/middleware
  *
  * For deployment to Cloudflare Workers
  * @see https://developers.cloudflare.com/workers/tutorials/postgres/

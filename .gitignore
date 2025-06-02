@@ -30,11 +30,13 @@ dist
 # Debug
 *.log*
 
+## Docs
+.content-collections
+
 # Misc
 .DS_Store
 *.pem
 
 # Next
 next-env.d.ts
-.content-collections
 *.tsbuildinfo
