@@ -276,6 +276,7 @@ const SearchBar = () => {
 		for (const { regex, render } of patterns) {
 			elements = elements.flatMap((element) => {
 				if (typeof element !== "string") return element;
+				regex.lastIndex = 0; // reset search position
 
 				const parts: (string | JSX.Element)[] = [];
 				let lastIndex = 0;
@@ -451,11 +452,12 @@ const SearchBar = () => {
 													result.metadata.content,
 													searchTerm,
 												),
-											).map((element) =>
+											).map((element, index) =>
 												typeof element === "string" ? (
 													highlightMatches(element, searchTerm)
 												) : (
-													<span key={element.toString()}>{element}</span>
+													// biome-ignore lint/suspicious/noArrayIndexKey: This is a valid key
+													<span key={`excerpt-${index}`}>{element}</span>
 												),
 											)}
 									</p>

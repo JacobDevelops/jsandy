@@ -1,7 +1,7 @@
 import type { PropsWithChildren } from "react";
 import Link from "next/link";
 import { unstable_cache } from "next/cache";
-import { AlignLeft, ChevronDown, Star } from "lucide-react";
+import { Star } from "lucide-react";
 import { Suspense } from "react";
 
 import { ShinyButton } from "@/components/shiny-button";
@@ -13,6 +13,7 @@ import { MobileNavigation } from "./mobile-nav";
 import { DocNavigation } from "./doc-navigation";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
+import { MobileTableOfContents } from "@/components/mobile-table-of-contents";
 
 export const revalidate = 3600;
 
@@ -132,17 +133,9 @@ const DocsLayout = async ({ children }: PropsWithChildren) => {
 						</div>
 
 						{/* Mobile Header Actions */}
-						<div className="flex lg:hidden h-full w-full items-center justify-between">
+						<div className="flex lg:hidden h-full w-full pr-10 items-center justify-between">
 							<MobileNavigation />
-							<button
-								className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
-								type="button"
-								// onClick would toggle a mobile ToC dropdown/modal
-							>
-								<AlignLeft className="size-4" />
-								<span>On this page</span>
-								<ChevronDown className="size-4" />
-							</button>
+							<MobileTableOfContents />
 						</div>
 					</div>
 					{/* Right Header Section (Placeholder) */}
