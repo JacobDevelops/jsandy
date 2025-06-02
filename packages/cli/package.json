@@ -17,7 +17,7 @@
 	"type": "module",
 	"scripts": {
 		"build": "bun build.ts",
-		"prebuild": "bun run build.ts",
+		"prebuild": "rm -rf dist",
 		"start": "node dist/index.js"
 	},
 	"bin": {
