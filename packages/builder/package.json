@@ -19,7 +19,8 @@
 	"files": ["dist", "README.md", "CHANGELOG.md"],
 	"scripts": {
 		"build": "bun build.ts",
-		"prebuild": "rm -rf ./dist"
+		"clean": "rm -rf dist",
+		"prebuild": "bun run clean"
 	},
 	"devDependencies": {
 		"@jsandy/typescript-config": "workspace:*",

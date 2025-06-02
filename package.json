@@ -4,7 +4,9 @@
 	"scripts": {
 		"build": "turbo run build",
 		"build:packages": "turbo run build --filter='./packages/*'",
+		"build:www": "turbo run build --filter=www",
 		"check-types": "turbo run check-types",
+		"clean": "turbo run clean",
 		"dev": "turbo run dev",
 		"format": "biome format --write .",
 		"lint": "biome lint --write .",
