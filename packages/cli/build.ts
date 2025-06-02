@@ -14,5 +14,6 @@ Bun.build({
 		"jsandy",
 		"ora",
 		"sort-package-json",
+		"@jsandy/rpc",
 	],
 });
