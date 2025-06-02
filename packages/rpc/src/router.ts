@@ -1,22 +1,21 @@
 import { type Context, Hono, type Next } from "hono";
 import { env } from "hono/adapter";
 import { HTTPException } from "hono/http-exception";
-import type { Env, ErrorHandler, MiddlewareHandler, Schema } from "hono/types";
+import type { Env, ErrorHandler, MiddlewareHandler } from "hono/types";
 import type { StatusCode } from "hono/utils/http-status";
-import { z, toJSONSchema, type ZodObject } from "zod/v4";
+import { z, toJSONSchema, ZodObject } from "zod/v4";
 import { bodyParsingMiddleware, queryParsingMiddleware } from "./middleware";
-import { IO, ServerSocket, type InferSchemaType } from "./sockets";
+import { IO, ServerSocket } from "./sockets";
 import type {
 	ContextWithSuperJSON,
 	GetOperation,
 	InferInput,
-	InferSchema,
 	OperationType,
 	PostOperation,
 	RouterConfig,
 	WebSocketOperation,
 } from "./types";
-import type { ClientRequest } from "./client";
+import { logger } from "./sockets/logger";
 
 /**
  * Utility type that flattens nested route structures into a flat key-value mapping
@@ -24,19 +23,18 @@ import type { ClientRequest } from "./client";
  * @template T - The route structure to flatten
  */
 type FlattenRoutes<T> = {
-	[K in keyof T]: T[K] extends WebSocketOperation<ZodObject, ZodObject>
+	[K in keyof T]: T[K] extends WebSocketOperation<any, any>
 		? { [P in `${string & K}`]: T[K] }
-		: T[K] extends GetOperation<ZodObject | void>
+		: T[K] extends GetOperation<any, any>
 			? { [P in `${string & K}`]: T[K] }
-			: T[K] extends PostOperation<ZodObject | void>
+			: T[K] extends PostOperation<any, any>
 				? { [P in `${string & K}`]: T[K] }
-				: T[K] extends Record<string, unknown>
+				: T[K] extends Record<string, any>
 					? {
-							[SubKey in keyof T[K] as `${string & K}/${string &
-								SubKey}`]: T[K][SubKey] extends
-								| WebSocketOperation<ZodObject, ZodObject>
-								| GetOperation<ZodObject | void>
-								| PostOperation<ZodObject | void>
+							[SubKey in keyof T[K] as `${string & K}/${string & SubKey}`]: T[K][SubKey] extends
+								| WebSocketOperation<any, any>
+								| GetOperation<any, any>
+								| PostOperation<any, any>
 								? T[K][SubKey]
 								: never;
 						}
@@ -56,12 +54,11 @@ export type MergeRoutes<T> = {
  * Maps each operation to its corresponding HTTP method and data structure
  * @template T - The record of router operations
  */
-export type RouterSchema<T extends Record<string, unknown>> = {
-	[K in keyof T]: T[K] extends WebSocketOperation<ZodObject, ZodObject>
+export type RouterSchema<T extends Record<string, any>> = {
+	[K in keyof T]: T[K] extends WebSocketOperation<any, any>
 		? {
 				$get: {
 					input: InferInput<T[K]>;
-					// biome-ignore lint/complexity/noBannedTypes: Empty object for output since WebSocket connections don't have an initial response payload
 					output: {};
 					incoming: NonNullable<T[K]["incoming"]>;
 					outgoing: NonNullable<T[K]["outgoing"]>;
@@ -69,7 +66,7 @@ export type RouterSchema<T extends Record<string, unknown>> = {
 					status: StatusCode;
 				};
 			}
-		: T[K] extends GetOperation<ZodObject | void>
+		: T[K] extends GetOperation<any, any>
 			? {
 					$get: {
 						input: InferInput<T[K]>;
@@ -78,7 +75,7 @@ export type RouterSchema<T extends Record<string, unknown>> = {
 						status: StatusCode;
 					};
 				}
-			: T[K] extends PostOperation<ZodObject | void>
+			: T[K] extends PostOperation<any, any>
 				? {
 						$post: {
 							input: InferInput<T[K]>;
@@ -96,24 +93,18 @@ export type RouterSchema<T extends Record<string, unknown>> = {
  * @template T - The operation type to generate schema for
  * @template E - Environment type, defaults to Env
  */
-export type OperationSchema<
-	T,
-	E extends Env = Env,
-> = T extends WebSocketOperation<
-	infer I extends ZodObject,
-	infer O extends ZodObject
->
+export type OperationSchema<T> = T extends WebSocketOperation<any, any>
 	? {
 			$get: {
-				input: z.infer<I>;
-				output: z.infer<O>;
-				incoming: z.infer<NonNullable<T["incoming"]>>;
-				outgoing: z.infer<NonNullable<T["outgoing"]>>;
+				input: InferInput<T>;
+				output: {};
+				incoming: NonNullable<T["incoming"]>;
+				outgoing: NonNullable<T["outgoing"]>;
 				outputFormat: "ws";
 				status: StatusCode;
 			};
 		}
-	: T extends GetOperation<ZodObject | void, Response, E>
+	: T extends GetOperation<any, any>
 		? {
 				$get: {
 					input: InferInput<T>;
@@ -122,7 +113,7 @@ export type OperationSchema<
 					status: StatusCode;
 				};
 			}
-		: T extends PostOperation<ZodObject | void, Response, E>
+		: T extends PostOperation<any, any>
 			? {
 					$post: {
 						input: InferInput<T>;
@@ -131,9 +122,7 @@ export type OperationSchema<
 						status: StatusCode;
 					};
 				}
-			: T extends ClientRequest<infer S>
-				? S
-				: never;
+			: never;
 
 /**
  * Internal context interface for storing middleware outputs and parsed data
@@ -145,16 +134,6 @@ interface InternalContext {
 	__parsed_query?: Record<string, unknown>;
 	/** Storage for parsed request body data */
 	__parsed_body?: Record<string, unknown>;
-}
-
-/**
- * WebSocket bindings interface for Upstash Redis configuration
- */
-interface WebSocketBindings {
-	/** Upstash Redis REST API URL */
-	UPSTASH_REDIS_REST_URL: string | undefined;
-	/** Upstash Redis REST API authentication token */
-	UPSTASH_REDIS_REST_TOKEN: string | undefined;
 }
 
 /**
@@ -210,15 +189,15 @@ type ProcedureMetadata = GetPostProcedureMetadata | WSProcedureMetadata;
  * @template E - Environment type extending Hono's Env, defaults to Env
  */
 export class Router<
-	T extends Record<string, unknown>,
-	E extends Env = Env,
-> extends Hono<E, RouterSchema<MergeRoutes<T>>, string> {
+	T extends Record<string, OperationType<any, any> | Record<string, any>> = {},
+	E extends Env = any,
+> extends Hono<E, RouterSchema<MergeRoutes<T>>, any> {
 	/**
 	 * Internal metadata storage for router configuration and introspection
 	 */
 	_metadata: {
 		/** Nested sub-routers mapped by path */
-		subRouters: Record<string, Router<Record<string, unknown>, E>>;
+		subRouters: Record<string, Promise<Router<any>> | Router<any>>;
 		/** Router configuration settings */
 		config: RouterConfig | Record<string, RouterConfig>;
 		/** Procedure metadata for schema introspection */
@@ -228,7 +207,7 @@ export class Router<
 	};
 
 	/** Global error handler for the router */
-	_errorHandler: ErrorHandler<E> | undefined = undefined;
+	_errorHandler: undefined | ErrorHandler<any> = undefined;
 
 	/**
 	 * Configures the router with optional settings
@@ -247,8 +226,8 @@ export class Router<
 	 * Returns the underlying Hono handler, stripping types to prevent version mismatch issues
 	 * Used internally by Hono adapters
 	 */
-	get handler(): Hono<E> {
-		return this as unknown as Hono<E>;
+	get handler() {
+		return this as any;
 	}
 
 	/**
@@ -316,7 +295,7 @@ export class Router<
 				.slice(0, 2);
 
 			const key = `/${basePath}/${routerName}`;
-			const subRouter = this._metadata.subRouters[key];
+			const subRouter = await this._metadata.subRouters[key];
 
 			if (subRouter) {
 				const rewrittenPath = `/${c.req.path.split("/").slice(3).join("/")}`;
@@ -338,14 +317,12 @@ export class Router<
 	 * Handles both flat and nested route structures
 	 * @param procedures - The procedures to register as routes
 	 */
-	private setupRoutes(procedures: T) {
+	private setupRoutes(procedures: Record<string, any>) {
 		for (const [key, value] of Object.entries(procedures)) {
 			if (this.isOperationType(value)) {
 				this.registerOperation(key, value);
 			} else if (typeof value === "object" && value !== null) {
-				// Handle nested procedures
-				const nestedProcedures = value as Record<string, unknown>;
-				for (const [subKey, subValue] of Object.entries(nestedProcedures)) {
+				for (const [subKey, subValue] of Object.entries(value)) {
 					if (this.isOperationType(subValue)) {
 						this.registerOperation(`${key}/${subKey}`, subValue);
 					}
@@ -359,15 +336,12 @@ export class Router<
 	 * @param value - The value to check
 	 * @returns True if the value is an operation type
 	 */
-	private isOperationType(
-		value: unknown,
-	): value is OperationType<ZodObject | void, ZodObject | void, E> {
+	private isOperationType(value: any): value is OperationType<any, any, any> {
 		return (
-			value !== null &&
+			value &&
 			typeof value === "object" &&
 			"type" in value &&
-			typeof (value as { type: unknown }).type === "string" &&
-			["get", "post", "ws"].includes((value as { type: string }).type)
+			(value.type === "get" || value.type === "post" || value.type === "ws")
 		);
 	}
 
@@ -378,8 +352,7 @@ export class Router<
 	 */
 	private registerOperation(
 		path: string,
-		// biome-ignore lint/suspicious/noExplicitAny: Output type is not known
-		operation: OperationType<ZodObject | void, any, E>,
+		operation: OperationType<any, any, E>,
 	) {
 		const routePath = `/${path}` as const;
 
@@ -403,7 +376,10 @@ export class Router<
 				// Handle regular operations with single schema
 				this._metadata.procedures[path] = {
 					type: operation.type, // TypeScript knows this is "get" | "post"
-					schema: operation.schema ? toJSONSchema(operation.schema) : null,
+					schema:
+						operation.schema instanceof ZodObject
+							? toJSONSchema(operation.schema)
+							: null,
 				} satisfies GetPostProcedureMetadata;
 			}
 		}
@@ -417,13 +393,9 @@ export class Router<
 					>;
 					const middlewareOutput = typedC.get("__middleware_output") ?? {};
 
-					const nextWrapper = async <B extends Record<string, unknown>>(
-						args?: B,
-					): Promise<B> => {
-						if (args) {
-							Object.assign(middlewareOutput, args);
-						}
-						return args ?? ({} as B);
+					const nextWrapper = async <B>(args: B) => {
+						Object.assign(middlewareOutput, args);
+						return middlewareOutput;
 					};
 
 					const res = await middleware({
@@ -432,7 +404,7 @@ export class Router<
 						c: c as ContextWithSuperJSON<E>,
 					});
 
-					if (res && typeof res === "object") {
+					if (res) {
 						Object.assign(middlewareOutput, res);
 					}
 
@@ -457,16 +429,16 @@ export class Router<
 						const parsedQuery = typedC.get("__parsed_query");
 
 						const queryInput =
-							parsedQuery && Object.keys(parsedQuery).length > 0
-								? parsedQuery
-								: undefined;
+							Object.keys(parsedQuery || {}).length === 0
+								? undefined
+								: parsedQuery;
 
 						// Parse and validate input (errors caught at app-level with .onError)
 						const input = operation.schema?.parse(queryInput);
 						const result = await operation.handler({
 							c: c as ContextWithSuperJSON<E>,
 							ctx,
-							input: input as InferSchema<typeof operation.schema>,
+							input,
 						});
 
 						return result === undefined ? c.json(undefined) : result;
@@ -481,7 +453,7 @@ export class Router<
 					const result = await operation.handler({
 						c: c as ContextWithSuperJSON<E>,
 						ctx,
-						input: undefined as void,
+						input: undefined,
 					});
 					return result === undefined ? c.json(undefined) : result;
 				});
@@ -499,17 +471,17 @@ export class Router<
 						const parsedBody = typedC.get("__parsed_body");
 
 						const bodyInput =
-							parsedBody && Object.keys(parsedBody).length > 0
-								? parsedBody
-								: undefined;
+							Object.keys(parsedBody || {}).length === 0
+								? undefined
+								: parsedBody;
 
-						// Parse and validate input (errors caught at app-level with .onError)
+						// caught at app-level with .onError
 						const input = operation.schema?.parse(bodyInput);
 
 						const result = await operation.handler({
 							c: c as ContextWithSuperJSON<E>,
 							ctx,
-							input: input as InferSchema<typeof operation.schema>,
+							input,
 						});
 
 						return result === undefined ? c.json(undefined) : result;
@@ -524,15 +496,12 @@ export class Router<
 					const result = await operation.handler({
 						c: c as ContextWithSuperJSON<E>,
 						ctx,
-						input: undefined as void,
+						input: undefined,
 					});
 					return result === undefined ? c.json(undefined) : result;
 				});
 			}
 		} else if (operation.type === "ws") {
-			// WebSocket operation
-			const wsOp = operation;
-
 			this.get(
 				routePath,
 				queryParsingMiddleware,
@@ -541,11 +510,13 @@ export class Router<
 					const typedC = c as Context<
 						E & {
 							Variables: InternalContext;
-							Bindings: WebSocketBindings;
+							Bindings: {
+								UPSTASH_REDIS_REST_URL: string | undefined;
+								UPSTASH_REDIS_REST_TOKEN: string | undefined;
+							};
 						}
 					>;
 
-					// Get Redis configuration from environment
 					const { UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN } =
 						env(typedC);
 
@@ -563,30 +534,25 @@ export class Router<
 
 					const ctx = typedC.get("__middleware_output") || {};
 
-					// Create WebSocket pair
 					const { 0: client, 1: server } = new WebSocketPair();
+
 					server.accept();
 
-					// Initialize IO and handler
 					const io = new IO(UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN);
-					const handler = await wsOp.handler({
+
+					const handler = await operation.handler({
 						io,
 						c: c as ContextWithSuperJSON<E>,
 						ctx,
 					});
 
-					// Create typed server socket
-					const socket = new ServerSocket<
-						typeof wsOp.incoming,
-						typeof wsOp.outgoing
-					>(server, {
+					const socket = new ServerSocket(server, {
 						redisUrl: UPSTASH_REDIS_REST_URL,
 						redisToken: UPSTASH_REDIS_REST_TOKEN,
-						incomingSchema: wsOp.incoming,
-						outgoingSchema: wsOp.outgoing,
+						incomingSchema: operation.incoming,
+						outgoingSchema: operation.outgoing,
 					});
 
-					// Set up WebSocket event handlers
 					handler.onConnect?.({ socket });
 
 					server.onclose = async () => {
@@ -599,34 +565,25 @@ export class Router<
 						await handler.onError?.({ socket, error });
 					};
 
-					// Handle incoming messages with validation
 					const eventSchema = z.tuple([z.string(), z.unknown()]);
-					const logger =
-						(ctx as { logger?: { error?: (...args: unknown[]) => void } })
-							?.logger?.error ?? console.error;
-
 					server.onmessage = async (event) => {
 						try {
 							const rawData = z.string().parse(event.data);
-							const parsedData = JSON.parse(rawData) as unknown;
+							const parsedData = JSON.parse(rawData);
+
 							const [eventName, eventData] = eventSchema.parse(parsedData);
 
-							// Handle ping/pong for connection health
 							if (eventName === "ping") {
 								server.send(JSON.stringify(["pong", null]));
 								return;
 							}
 
-							socket.handleEvent(
-								eventName,
-								eventData as InferSchemaType<Schema>,
-							);
+							socket.handleEvent(eventName, eventData);
 						} catch (err) {
-							logger("Failed to process message:", err);
+							logger.error("Failed to process message:", err);
 						}
 					};
 
-					// Return WebSocket upgrade response
 					return new Response(null, {
 						status: 101,
 						webSocket: client,

@@ -1,20 +1,21 @@
 import superjson from "superjson";
 import type { Env } from "hono/types";
 import type { StatusCode } from "hono/utils/http-status";
-import type { ZodObject } from "zod/v4";
 import type { IO } from "./sockets";
 import type {
 	ContextWithSuperJSON,
 	GetOperation,
-	InferSchema,
-	InferWebSocketData,
+	InferZodType,
 	MiddlewareFunction,
 	OptionalPromise,
 	PostOperation,
 	ResponseType,
 	WebSocketHandler,
 	WebSocketOperation,
+	ZodAny,
 } from "./types";
+import type { ZodType as ZodV3Type } from "zod";
+import type { ZodType as ZodV4Type } from "zod/v4";
 
 /**
  * Procedure class for building type-safe API endpoints with middleware chaining
@@ -27,11 +28,11 @@ import type {
  * @template Outgoing - Zod schema type for outgoing WebSocket messages, defaults to void
  */
 export class Procedure<
-	E extends Env = Env,
-	Ctx = Record<string, unknown>,
-	InputSchema extends ZodObject | void = void,
-	Incoming extends ZodObject | void = void,
-	Outgoing extends ZodObject | void = void,
+	E extends Env = any,
+	Ctx = {},
+	InputSchema extends ZodAny | void = void,
+	Incoming extends ZodAny | void = void,
+	Outgoing extends ZodAny | void = void,
 > {
 	/** Array of middleware functions to execute in sequence */
 	private readonly middlewares: MiddlewareFunction<Ctx, void, E>[] = [];
@@ -105,7 +106,7 @@ export class Procedure<
 	 * @param schema - Zod schema to validate incoming WebSocket messages
 	 * @returns New Procedure instance with incoming schema configured
 	 */
-	incoming<Schema extends ZodObject>(schema: Schema) {
+	incoming<Schema extends ZodAny>(schema: Schema) {
 		return new Procedure<E, Ctx, InputSchema, Schema, Outgoing>(
 			this.middlewares,
 			this.inputSchema,
@@ -122,7 +123,7 @@ export class Procedure<
 	 * @param schema - Zod schema to validate outgoing WebSocket messages
 	 * @returns New Procedure instance with outgoing schema configured
 	 */
-	outgoing<Schema extends ZodObject>(schema: Schema) {
+	outgoing<Schema extends ZodAny>(schema: Schema) {
 		return new Procedure<E, Ctx, InputSchema, Incoming, Schema>(
 			this.middlewares,
 			this.inputSchema,
@@ -139,7 +140,7 @@ export class Procedure<
 	 * @param schema - Zod schema to validate input parameters
 	 * @returns New Procedure instance with input schema configured
 	 */
-	input<Schema extends ZodObject>(schema: Schema) {
+	input<Schema extends ZodAny>(schema: Schema) {
 		return new Procedure<E, Ctx, Schema, Incoming, Outgoing>(
 			this.middlewares,
 			schema,
@@ -157,12 +158,11 @@ export class Procedure<
 	 * @param handler - Middleware function to add to the chain
 	 * @returns New Procedure instance with the middleware added and updated context type
 	 */
-	use<T extends Record<string, unknown>, Return = void>(
+	use<T, Return = void>(
 		handler: MiddlewareFunction<Ctx, Return, E>,
 	): Procedure<E, Ctx & T & Return, InputSchema, Incoming, Outgoing> {
-		const typedHandler = handler as MiddlewareFunction<Ctx, void, E>;
 		return new Procedure<E, Ctx & T & Return, InputSchema, Incoming, Outgoing>(
-			[...this.middlewares, typedHandler],
+			[...this.middlewares, handler as any],
 			this.inputSchema,
 			this.incomingSchema,
 			this.outgoingSchema,
@@ -179,34 +179,26 @@ export class Procedure<
 	 * @param handler.input - Validated input data based on input schema
 	 * @returns GetOperation configuration object
 	 */
-	get<Return extends OptionalPromise<ResponseType<unknown>>>(
-		handler: (params: {
+	get<Return extends OptionalPromise<ResponseType<any>>>(
+		handler: ({
+			ctx,
+			c,
+			input,
+		}: {
 			ctx: Ctx;
 			c: ContextWithSuperJSON<E>;
-			input: InferSchema<InputSchema>;
+			input: InferZodType<InputSchema>;
 		}) => Return,
 	): GetOperation<InputSchema, ReturnType<typeof handler>, E> {
-		const operation: GetOperation<InputSchema, Return, E> = {
+		return {
 			type: "get",
-			schema: this.inputSchema,
-			handler: (params) => {
-				const result = handler({
-					ctx: params.ctx as Ctx,
-					c: params.c,
-					input: params.input,
-				});
-				// Handle void return by converting to Response
-				return (result === undefined ? new Response() : result) as ReturnType<
-					GetOperation<InputSchema, Return, E>["handler"]
-				>;
-			},
-			middlewares: this.middlewares as MiddlewareFunction<
-				Record<string, unknown>,
-				unknown,
-				E
-			>[],
+			schema: this.inputSchema as
+				| ZodV3Type<InputSchema>
+				| ZodV4Type<InputSchema>
+				| void,
+			handler: handler as any,
+			middlewares: this.middlewares,
 		};
-		return operation;
 	}
 
 	/**
@@ -217,11 +209,15 @@ export class Procedure<
 	 * @param handler - Function to handle query requests
 	 * @returns GetOperation configuration object
 	 */
-	query<Return extends OptionalPromise<ResponseType<unknown>>>(
-		handler: (params: {
+	query<Return extends OptionalPromise<ResponseType<any>>>(
+		handler: ({
+			ctx,
+			c,
+			input,
+		}: {
 			ctx: Ctx;
 			c: ContextWithSuperJSON<E>;
-			input: InferSchema<InputSchema>;
+			input: InferZodType<InputSchema>;
 		}) => Return,
 	): GetOperation<InputSchema, Return, E> {
 		return this.get(handler);
@@ -237,34 +233,26 @@ export class Procedure<
 	 * @param handler.input - Validated input data based on input schema
 	 * @returns PostOperation configuration object
 	 */
-	post<Return extends OptionalPromise<ResponseType<unknown>>>(
-		handler: (params: {
+	post<Return extends OptionalPromise<ResponseType<any>>>(
+		handler: ({
+			ctx,
+			c,
+			input,
+		}: {
 			ctx: Ctx;
 			c: ContextWithSuperJSON<E>;
-			input: InferSchema<InputSchema>;
+			input: InferZodType<InputSchema>;
 		}) => Return,
 	): PostOperation<InputSchema, ReturnType<typeof handler>, E> {
-		const operation: PostOperation<InputSchema, Return, E> = {
+		return {
 			type: "post",
-			schema: this.inputSchema,
-			handler: (params) => {
-				const result = handler({
-					ctx: params.ctx as Ctx,
-					c: params.c,
-					input: params.input,
-				});
-				// Handle void return by converting to Response
-				return (result === undefined ? new Response() : result) as ReturnType<
-					PostOperation<InputSchema, Return, E>["handler"]
-				>;
-			},
-			middlewares: this.middlewares as MiddlewareFunction<
-				Record<string, unknown>,
-				unknown,
-				E
-			>[],
+			schema: this.inputSchema as
+				| ZodV3Type<InputSchema>
+				| ZodV4Type<InputSchema>
+				| void,
+			handler: handler as any,
+			middlewares: this.middlewares,
 		};
-		return operation;
 	}
 
 	/**
@@ -275,11 +263,15 @@ export class Procedure<
 	 * @param handler - Function to handle mutation requests
 	 * @returns PostOperation configuration object
 	 */
-	mutation<Return extends OptionalPromise<ResponseType<unknown>>>(
-		handler: (params: {
+	mutation<Return extends OptionalPromise<ResponseType<any>>>(
+		handler: ({
+			ctx,
+			c,
+			input,
+		}: {
 			ctx: Ctx;
 			c: ContextWithSuperJSON<E>;
-			input: InferSchema<InputSchema>;
+			input: InferZodType<InputSchema>;
 		}) => Return,
 	): PostOperation<InputSchema, Return, E> {
 		return this.post(handler);
@@ -296,28 +288,23 @@ export class Procedure<
 	 * @returns WebSocketOperation configuration object with incoming/outgoing schemas
 	 */
 	ws(
-		handler: (params: {
-			io: IO<InferWebSocketData<Outgoing>>;
+		handler: ({
+			io,
+			c,
+			ctx,
+		}: {
+			io: IO<InferZodType<Incoming>, InferZodType<Outgoing>>;
 			c: ContextWithSuperJSON<E>;
 			ctx: Ctx;
-		}) => OptionalPromise<WebSocketHandler<Incoming, Outgoing>>,
-	): WebSocketOperation<Incoming, Outgoing, E> {
-		const operation: WebSocketOperation<Incoming, Outgoing, E> = {
+		}) => OptionalPromise<
+			WebSocketHandler<InferZodType<Incoming>, InferZodType<Outgoing>>
+		>,
+	): WebSocketOperation<InferZodType<Incoming>, InferZodType<Outgoing>, E> {
+		return {
 			type: "ws",
 			outputFormat: "ws",
-			handler: (params) => {
-				return handler({
-					io: params.io as IO<InferWebSocketData<Outgoing>>,
-					c: params.c,
-					ctx: params.ctx as Ctx,
-				});
-			},
-			middlewares: this.middlewares as MiddlewareFunction<
-				Record<string, unknown>,
-				unknown,
-				E
-			>[],
+			handler: handler as any,
+			middlewares: this.middlewares,
 		};
-		return operation;
 	}
 }
