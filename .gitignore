@@ -31,7 +31,7 @@ dist
 *.log*
 
 ## Docs
-.content-collections/cache
+.content-collections
 
 # Misc
 .DS_Store
