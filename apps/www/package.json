@@ -5,12 +5,13 @@
 	"scripts": {
 		"build": "next build",
 		"cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
-		"check-types": "tsc --noEmit",
-		"deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+		"check-types": "bun run build && tsc --noEmit",
+		"cf:build": "opennextjs-cloudflare build",
+		"deploy": "bun run cf:build && opennextjs-cloudflare deploy",
 		"dev": "next dev --turbopack",
-		"preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+		"preview": "bun run cf:build && opennextjs-cloudflare preview",
 		"start": "next start",
-		"upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload"
+		"upload": "bun run cf:build && opennextjs-cloudflare upload"
 	},
 	"dependencies": {
 		"@jsandy/rpc": "1.1.0",
@@ -34,7 +35,6 @@
 		"rehype-autolink-headings": "^7.1.0",
 		"rehype-pretty-code": "^0.14.1",
 		"rehype-stringify": "^10.0.1",
-		"tailwind-merge": "^3.3.0",
 		"zustand": "^5.0.5"
 	},
 	"devDependencies": {
