@@ -99,7 +99,7 @@ const Page = async ({ params }: PageProps) => {
 						),
 						code: (props) => {
 							return (
-								<code className="font-mono px-1.5 py-0.5 text-brand-400 rounded bg-[#2e2e32]">
+								<code className="font-mono px-1.5 py-0.5 text-sand-400 dark:text-sand-600 rounded bg-sand-800 dark:bg-sand-200">
 									{props.children}
 								</code>
 							);

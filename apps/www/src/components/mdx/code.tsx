@@ -44,7 +44,7 @@ export async function Code({
 			<ScrollArea className="">
 				<div
 					className={cn(
-						"relative py-[14px] w-full bg-[#22272e] px-4 rounded-md antialiased",
+						"relative py-3 w-full bg-[#22272e] px-4 rounded-md antialiased",
 						{
 							"rounded-t-none": Boolean(title),
 						},

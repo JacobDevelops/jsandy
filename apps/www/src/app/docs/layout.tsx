@@ -109,7 +109,7 @@ const DocsLayout = async ({ children }: PropsWithChildren) => {
 							</div>
 						</Link>
 						<div className="lg:hidden">
-							{/* Mobile Search Trigger can be part of MobileNavigation or a separate SearchBar instance if needed here */}
+							<SearchBar />
 						</div>
 					</div>
 					{/* Middle Header Section (Search & Actions) */}
@@ -134,9 +134,7 @@ const DocsLayout = async ({ children }: PropsWithChildren) => {
 
 						{/* Mobile Header Actions */}
 						<div className="flex lg:hidden h-full w-full items-center justify-between">
-							<MobileNavigation />{" "}
-							{/* Contains mobile nav trigger & search trigger */}
-							{/* "On this page" button for mobile, triggers mobile ToC */}
+							<MobileNavigation />
 							<button
 								className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
 								type="button"
@@ -164,8 +162,7 @@ const DocsLayout = async ({ children }: PropsWithChildren) => {
 							"scrollbar-thin scrollbar-thumb-sand-300 dark:scrollbar-thumb-sand-600 scrollbar-track-transparent hover:scrollbar-thumb-sand-400 dark:hover:scrollbar-thumb-sand-500",
 						)}
 					>
-						<DocNavigation className="py-4 pl-2" />{" "}
-						{/* Added pl-2 for slight indent */}
+						<DocNavigation className="py-4 pl-2" />
 					</div>
 				</nav>
 
