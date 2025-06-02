@@ -21,7 +21,7 @@ export async function Code({
 	language: string;
 	code: string;
 }) {
-	const highlightedCode = await highlightCode(code);
+	const { light, dark } = await highlightCode(code);
 
 	const Icon =
 		language === "bash"
@@ -33,7 +33,7 @@ export async function Code({
 	return (
 		<div className="border border-dark-gray rounded-md">
 			{title ? (
-				<div className="rounded-t-md flex items-center justify-between py-3 px-4 bg-sand-900 dark:bg-sand-100 border-b border-dark-gray">
+				<div className="rounded-t-md flex items-center justify-between py-3 px-4 bg-muted border-b border-dark-gray">
 					<div className="flex items-center gap-2.5">
 						{Icon && <Icon className="grayscale size-4" />}
 						<p className="text-sm font-medium text-muted-foreground">{title}</p>
@@ -44,7 +44,7 @@ export async function Code({
 			<ScrollArea className="">
 				<div
 					className={cn(
-						"relative py-3 w-full bg-[#22272e] px-4 rounded-md antialiased",
+						"relative py-3 w-full bg-[#ffffff] dark:bg-[#22272e] px-4 rounded-md antialiased",
 						{
 							"rounded-t-none": Boolean(title),
 						},
@@ -55,11 +55,18 @@ export async function Code({
 							<CopyButton code={code} />
 						</div>
 					)}
+					{/* Light theme version */}
 					<section
-						// biome-ignore lint/security/noDangerouslySetInnerHtml: We need to set the inner HTML here
-						dangerouslySetInnerHTML={{
-							__html: highlightedCode,
-						}}
+						className="block dark:hidden"
+						// biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+						dangerouslySetInnerHTML={{ __html: light }}
+					/>
+
+					{/* Dark theme version */}
+					<section
+						className="hidden dark:block"
+						// biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+						dangerouslySetInnerHTML={{ __html: dark }}
 					/>
 				</div>
 				<ScrollBar orientation="horizontal" />
@@ -69,12 +76,22 @@ export async function Code({
 }
 
 async function highlightCode(code: string) {
-	const file = await unified()
+	const lightFile = await unified()
 		.use(remarkParse)
 		.use(remarkRehype)
-		.use(rehypePrettyCode)
+		.use(() => rehypePrettyCode({ theme: "github-light" }))
 		.use(rehypeStringify)
 		.process(code);
 
-	return String(file);
+	const darkFile = await unified()
+		.use(remarkParse)
+		.use(remarkRehype)
+		.use(() => rehypePrettyCode({ theme: "github-dark" }))
+		.use(rehypeStringify)
+		.process(code);
+
+	return {
+		light: String(lightFile),
+		dark: String(darkFile),
+	};
 }

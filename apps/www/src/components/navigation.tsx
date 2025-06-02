@@ -12,9 +12,9 @@ import { useState } from "react";
 const navigation = [
 	{ name: "Home", href: "/" },
 	{ name: "Docs", href: "/docs" },
-	{ name: "API", href: "/docs/api" },
-	{ name: "Examples", href: "/examples" },
-	{ name: "Blog", href: "/blog" },
+	// { name: "API", href: "/docs/api" },
+	// { name: "Examples", href: "/examples" },
+	// { name: "Blog", href: "/blog" },
 ];
 
 export function Navigation() {

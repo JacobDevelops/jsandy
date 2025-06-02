@@ -5,20 +5,17 @@ import Link from "next/link";
 
 export default function Home() {
 	return (
-		<div className="min-h-screen">
-			{/* Hero Section with gradient background */}
-			<div className="relative bg-gradient-to-br from-background via-sand-50/30 to-sand-100/50 dark:from-background dark:via-sand-950/30 dark:to-sand-900/50">
+		<div className="min-h-screen bg-gradient-to-br from-sand-50/10 via-background to-sand-100/10 dark:from-sand-950/10 dark:via-background dark:to-sand-900/10">
+			{/* Hero Section - now inherits the page background */}
+			<div className="relative">
 				<HeroSection />
 			</div>
 
-			{/* Smooth transition gradient */}
-			<div className="h-32 bg-gradient-to-b from-sand-100/50 via-sand-50/20 to-background dark:from-sand-900/50 dark:via-sand-950/20 dark:to-background" />
-
-			{/* Quick Start Section */}
-			<section className="py-24 px-6 lg:px-8 bg-background">
+			{/* Quick Start Section - now inherits the page background */}
+			<section className="py-24 px-6 lg:px-8">
 				<div className="mx-auto max-w-7xl">
 					<div className="text-center mb-16">
-						<h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
+						<h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl mb-4">
 							Get Started in Minutes
 						</h2>
 						<p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -42,14 +39,11 @@ export default function Home() {
 				</div>
 			</section>
 
-			{/* Smooth transition to features section */}
-			<div className="h-24 bg-gradient-to-b from-background to-muted/30" />
-
-			{/* Features Section */}
-			<section className="py-24 px-6 lg:px-8 bg-muted/30">
+			{/* Features Section - now inherits the page background */}
+			<section className="py-24 px-6 lg:px-8">
 				<div className="mx-auto max-w-7xl">
 					<div className="text-center mb-16">
-						<h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
+						<h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl mb-4">
 							Why Choose JSandy?
 						</h2>
 						<p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -99,11 +93,13 @@ export default function Home() {
 						].map((feature, index) => (
 							<div
 								key={feature.icon}
-								className="glass rounded-2xl p-6 animate-slide-up"
+								className="glass rounded-2xl p-6 animate-slide-up border! border-sand-200! dark:border-sand-800/10!" // Glass effect should still work well
 								style={{ animationDelay: `${index * 0.1}s` }}
 							>
 								<div className="text-3xl mb-4">{feature.icon}</div>
-								<h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
+								<h3 className="text-xl font-semibold text-foreground mb-2">
+									{feature.title}
+								</h3>
 								<p className="text-muted-foreground">{feature.description}</p>
 							</div>
 						))}
@@ -111,13 +107,10 @@ export default function Home() {
 				</div>
 			</section>
 
-			{/* Smooth transition to CTA section */}
-			<div className="h-24 bg-gradient-to-b from-muted/30 via-sand-50/20 to-sand-100/30 dark:from-muted/30 dark:via-sand-950/20 dark:to-sand-900/30" />
-
-			{/* CTA Section with gradient background */}
-			<section className="py-24 px-6 lg:px-8 bg-gradient-to-br from-sand-100/30 via-sand-50/20 to-background dark:from-sand-900/30 dark:via-sand-950/20 dark:to-background">
+			{/* CTA Section - now inherits the page background */}
+			<section className="py-24 px-6 lg:px-8">
 				<div className="mx-auto max-w-4xl text-center">
-					<h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
+					<h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl mb-4">
 						Ready to Build Amazing RPC Services?
 					</h2>
 					<p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
@@ -136,7 +129,7 @@ export default function Home() {
 							</Link>
 						</Button>
 						<Button variant="outline" size="lg" asChild>
-							<Link href="https://github.com/yourusername/jsandy">
+							<Link href="https://github.com/JacobDevelops/jsandy">
 								<Github className="mr-2 h-4 w-4" />
 								View on GitHub
 							</Link>
@@ -144,9 +137,6 @@ export default function Home() {
 					</div>
 				</div>
 			</section>
-
-			{/* Final smooth transition to footer */}
-			<div className="h-16 bg-gradient-to-b from-sand-100/30 to-background dark:from-sand-900/30 dark:to-background" />
 		</div>
 	);
 }
