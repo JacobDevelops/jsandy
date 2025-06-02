@@ -12,15 +12,23 @@
 			"inputs": ["$TURBO_DEFAULT$", ".env*"],
 			"outputs": ["dist/**"]
 		},
+		"cf:build": {
+			"dependsOn": ["^cf:build"],
+			"inputs": ["$TURBO_DEFAULT$", ".env*"],
+			"outputs": [".next/**", "!.next/cache/**", "dist/**"]
+		},
+		"check-types": {
+			"dependsOn": ["^build"]
+		},
+		"clean": {
+			"dependsOn": ["^clean"]
+		},
 		"dev": {
 			"dependsOn": ["^dev"],
 			"persistent": true
 		},
 		"lint": {
 			"dependsOn": ["^lint"]
-		},
-		"check-types": {
-			"dependsOn": ["^build"]
 		},
 		"test": {
 			"dependsOn": ["^test"]

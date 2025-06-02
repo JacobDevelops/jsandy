@@ -4,14 +4,18 @@
 	"private": true,
 	"scripts": {
 		"build": "next build",
-		"build:docs": "content-collections build",
-		"check-types": "tsc --noEmit",
+		"cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
+		"check-types": "bun run build && tsc --noEmit",
+		"cf:build": "opennextjs-cloudflare build",
+		"deploy": "bun run cf:build && opennextjs-cloudflare deploy",
 		"dev": "next dev --turbopack",
-		"precheck-types": "bun run build:docs",
-		"start": "next start"
+		"preview": "bun run cf:build && opennextjs-cloudflare preview",
+		"start": "next start",
+		"upload": "bun run cf:build && opennextjs-cloudflare upload"
 	},
 	"dependencies": {
 		"@jsandy/rpc": "1.1.0",
+		"@opennextjs/cloudflare": "^1.1.0",
 		"@radix-ui/react-dialog": "^1.1.14",
 		"@radix-ui/react-popover": "^1.1.14",
 		"@radix-ui/react-scroll-area": "^1.2.9",
@@ -35,7 +39,6 @@
 		"zustand": "^5.0.5"
 	},
 	"devDependencies": {
-		"@content-collections/cli": "^0.1.6",
 		"@content-collections/core": "^0.9.0",
 		"@content-collections/mdx": "^0.2.2",
 		"@content-collections/next": "^0.2.6",
@@ -46,6 +49,7 @@
 		"tailwindcss": "^4.1.8",
 		"tw-animate-css": "^1.3.3",
 		"typescript": "^5.8.3",
+		"wrangler": "^4.18.0",
 		"zod": "^3.25.48"
 	}
 }

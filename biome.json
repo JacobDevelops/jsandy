@@ -13,7 +13,9 @@
 			"node_modules",
 			"bun.lock",
 			".next",
-			".content-collections"
+			".content-collections",
+			"*env*",
+			".open-next"
 		]
 	},
 	"formatter": {

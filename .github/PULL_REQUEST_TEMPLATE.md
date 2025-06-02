@@ -21,6 +21,7 @@ Please include a summary of the changes and relevant motivation/context. If this
 - [ ] `@jsandy/builder`
 - [ ] `@jsandy/typescript-config`
 - [ ] `create-jsandy-app`
+- [ ] `www`
 - [ ] Root workspace/tooling
 
 ## Testing
