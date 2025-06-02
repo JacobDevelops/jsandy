@@ -4,7 +4,6 @@
 	"private": true,
 	"scripts": {
 		"build": "next build",
-		"build:docs": "content-collections build",
 		"check-types": "tsc --noEmit",
 		"dev": "next dev --turbopack",
 		"start": "next start"
@@ -32,7 +31,6 @@
 		"zustand": "^5.0.5"
 	},
 	"devDependencies": {
-		"@content-collections/cli": "^0.1.6",
 		"@content-collections/core": "^0.9.0",
 		"@content-collections/mdx": "^0.2.2",
 		"@content-collections/next": "^0.2.6",
