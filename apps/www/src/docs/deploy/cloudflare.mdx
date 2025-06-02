@@ -1,11 +1,11 @@
 ---
 title: Cloudflare Workers
-summary: Deploy JStack to Cloudflare Workers
+summary: Deploy JSandy to Cloudflare Workers
 ---
 
 # Deploy to Cloudflare Workers
 
-JStack can be deployed to Cloudflare Workers, providing a globally distributed, serverless runtime for your API. This guide will walk you through the deployment process.
+JSandy can be deployed to Cloudflare Workers, providing a globally distributed, serverless runtime for your API. This guide will walk you through the deployment process.
 
 ---
 
@@ -32,14 +32,14 @@ JStack can be deployed to Cloudflare Workers, providing a globally distributed, 
    The console output will look like this:
 
    <Frame>
-     <Image src="/cf-deployment-url.png" alt="Deploy JStack to Cloudflare Workers" />
+     <Image src="/cf-deployment-url.png" alt="Deploy JSandy to Cloudflare Workers" />
    </Frame>
 
 2. Add the deployment URL to the client:
 
    ```ts lib/client.ts {5,8-16}
    import type { AppRouter } from "@/server"
-   import { createClient } from "jstack"
+   import { createClient } from "@jsandy/rpc"
 
    export const client = createClient<AppRouter>({
      baseUrl: `${getBaseUrl()}/api`,
@@ -84,9 +84,9 @@ When you deploy your front-end application:
 If you are experiencing CORS problems, make sure your Worker is configured correctly:
 
 ```ts server/index.ts {8}
-import { InferRouterInputs, InferRouterOutputs } from "jstack"
+import { InferRouterInputs, InferRouterOutputs } from "@jsandy/rpc"
 import { postRouter } from "./routers/post-router"
-import { j } from "./jstack"
+import { j } from "./jsandy"
 
 const api = j
   .router()
@@ -103,4 +103,4 @@ export type AppRouter = typeof appRouter
 export default appRouter
 ```
 
-[&rarr; More about CORS in JStack](/docs/backend/app-router#cors)
+[&rarr; More about CORS in JSandy](/docs/backend/app-router#cors)

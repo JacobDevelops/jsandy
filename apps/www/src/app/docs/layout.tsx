@@ -1,16 +1,16 @@
 import type { PropsWithChildren } from "react";
 import Link from "next/link";
 import { unstable_cache } from "next/cache";
-import { AlignLeft, ChevronDown, Star } from "lucide-react"; // Using GithubIcon alias for clarity
+import { AlignLeft, ChevronDown, Star } from "lucide-react";
 import { Suspense } from "react";
 
 import { ShinyButton } from "@/components/shiny-button";
-import { constructMetadata } from "@/lib/metadata"; // Assuming this exists
-import { Icons } from "@/components/icons"; // Will create this
+import { constructMetadata } from "@/lib/metadata";
+import { Icons } from "@/components/icons";
 import SearchBar from "@/components/search-bar";
-import { TableOfContents } from "@/components/table-of-contents"; // Will create this
-import { MobileNavigation } from "./mobile-nav"; // Will create this
-import { DocNavigation } from "./doc-navigation"; // Will create this
+import { TableOfContents } from "@/components/table-of-contents";
+import { MobileNavigation } from "./mobile-nav";
+import { DocNavigation } from "./doc-navigation";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 
@@ -82,7 +82,7 @@ const DocsLayout = async ({ children }: PropsWithChildren) => {
 				className={cn(
 					"fixed top-0 z-40 w-full border-b supports-[backdrop-filter]:bg-background/60",
 					"border-border bg-background/95 backdrop-blur",
-					"max-w-8xl", // Assuming this custom max-width is intended
+					"max-w-8xl",
 				)}
 			>
 				<div className="grid grid-cols-1 lg:grid-cols-[256px_1fr] xl:grid-cols-[256px_1fr_256px] mx-auto">
@@ -100,7 +100,6 @@ const DocsLayout = async ({ children }: PropsWithChildren) => {
 								alt="JSandy Logo"
 								className="h-6 w-6 text-sand-600 dark:text-sand-400"
 							/>
-							{/* Assuming Icons.logo exists */}
 							<div className="flex items-baseline gap-1.5">
 								<p className="font-semibold tracking-tight text-foreground">
 									JSandy

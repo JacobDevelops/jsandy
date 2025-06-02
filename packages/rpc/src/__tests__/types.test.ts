@@ -1,4 +1,4 @@
-import { beforeEach, describe, it, mock } from "bun:test";
+import { beforeEach, describe, expect, it, mock } from "bun:test";
 import { j } from "./__mocks__/jsandy.mock";
 import { combinedRouter } from "./__mocks__/router.mock";
 import { createClient } from "..";
@@ -27,11 +27,17 @@ describe("Schema", () => {
 				baseUrl: "https://api.example.com",
 			});
 
-			client.rpc.health.$get();
-			client.rpc.user.$get({
+			// These calls should compile without TypeScript errors
+			const healthResponse = client.rpc.health.$get();
+			const userResponse = client.rpc.user.$get({
 				id: "1",
 			});
-			client.rpc.profile.$get();
+			const profileResponse = client.rpc.profile.$get();
+
+			// Verify the methods return promises
+			expect(healthResponse).toBeInstanceOf(Promise);
+			expect(userResponse).toBeInstanceOf(Promise);
+			expect(profileResponse).toBeInstanceOf(Promise);
 		});
 	});
 });

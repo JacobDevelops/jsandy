@@ -11,9 +11,10 @@ export function useDocNavigation() {
 
 	const docsByCategory = Object.entries(DOCS_CONFIG.categories).reduce(
 		(acc, [category, config]) => {
-			const categoryDocs = allDocs.filter(
-				(doc) => doc._meta.path.split("/")[0] === category,
-			);
+			const categoryDocs = allDocs.filter((doc) => {
+				const pathSegments = doc._meta.path.split("/");
+				return pathSegments.length >= 1 && pathSegments[0] === category;
+			});
 			const sortedDocs = categoryDocs.sort((a, b) => {
 				const aIndex = config.items.indexOf(
 					a._meta.path.split("/")[1] as string,
@@ -21,7 +22,10 @@ export function useDocNavigation() {
 				const bIndex = config.items.indexOf(
 					b._meta.path.split("/")[1] as string,
 				);
-				return aIndex - bIndex;
+				// Handle items not found in config by placing them at the end
+				const aOrder = aIndex === -1 ? Number.POSITIVE_INFINITY : aIndex;
+				const bOrder = bIndex === -1 ? Number.POSITIVE_INFINITY : bIndex;
+				return aOrder - bOrder;
 			});
 			acc[category] = sortedDocs;
 			return acc;

@@ -1,19 +1,19 @@
 ---
 title: AppRouter
-summary: The AppRouter in JStack
+summary: The AppRouter in JSandy
 ---
 
 # appRouter Overview
 
-The `appRouter` in JStack:
+The `appRouter` in JSandy:
 
 - Routes requests to the procedure that handles them
 - Serves as an entry point to deploy your backend
 
-```plaintext JStack File Structure {4}
+```plaintext JSandy File Structure {4}
 app/
   └── server/
-      ├── jstack.ts        # Initialize JStack
+      ├── jsandy.ts        # Initialize JSandy
       ├── index.ts         # Main appRouter
       └── routers/         # Router directory
           ├── user-router.ts
@@ -21,7 +21,7 @@ app/
           └── ...
 ```
 
-An `appRouter` knows all the routes and their handlers; deploying your backend is as easy as deploying the `appRouter`. Since JStack is built on top of Hono, you can deploy this router anywhere: Vercel, Netlify, Cloudflare, AWS, Railway, etc.
+An `appRouter` knows all the routes and their handlers; deploying your backend is as easy as deploying the `appRouter`. Since JSandy is built on top of Hono, you can deploy this router anywhere: Vercel, Netlify, Cloudflare, AWS, Railway, etc.
 
 ---
 
@@ -30,7 +30,7 @@ An `appRouter` knows all the routes and their handlers; deploying your backend i
 An `appRouter` is built on top of a base `api` that defines global behaviors. For example, where your API is served from, error handling, 404 response handling, or global middleware:
 
 ```ts server/index.ts {4,11}
-import { j } from "./jstack"
+import { j } from "./jsandy"
 import { postRouter } from "./routers/post-router"
 
 // 1️⃣ Creating the base API with global configuration
@@ -53,7 +53,7 @@ export default appRouter
 
 ## Configuration Options
 
-All JStack routers are lightweight, minimal extensions built on top of the [Hono API](https://hono.dev/docs/api/hono). Any method you can call on the Hono API, you can also call on JStack routers:
+All JSandy routers are lightweight, minimal extensions built on top of the [Hono API](https://hono.dev/docs/api/hono). Any method you can call on the Hono API, you can also call on JSandy routers:
 
 - Global error handling
 - 404 response handling
@@ -65,10 +65,10 @@ Here are the most common methods:
 
 ### Error Handling
 
-I recommend using JStacks default error handler via `j.defaults.errorHandler`. It catches all router errors and returns standardized error responses that you can easily handle on the frontend.
+I recommend using JSandy's default error handler via `j.defaults.errorHandler`. It catches all router errors and returns standardized error responses that you can easily handle on the frontend.
 
 ```ts server/index.ts {7}
-import { j } from "../jstack"
+import { j } from "../jsandy"
 
 const api = j
   .router()
@@ -124,18 +124,18 @@ const api = j
 ```
 
 <Frame>
-  <Image src="/change-api-dirname.png" alt="Change JStack API path" />
+  <Image src="/change-api-dirname.png" alt="Change JSandy API path" />
 </Frame>
 
 ---
 
 ### CORS
 
-Nobody likes CORS (🤮), but it's a necessary evil for security reasons. I recommend using JStack's default CORS middleware:
+Nobody likes CORS (🤮), but it's a necessary evil for security reasons. I recommend using JSandy's default CORS middleware:
 
 ```ts server/index {2,8}
-import { InferRouterInputs, InferRouterOutputs } from "jstack"
-import { j } from "./jstack"
+import { InferRouterInputs, InferRouterOutputs } from "@jsandy/rpc"
+import { j } from "./jsandy"
 import { postRouter } from "./routers/post-router"
 
 const api = j
@@ -145,7 +145,8 @@ const api = j
   .onError(j.defaults.errorHandler)
 ```
 
-You can also customize CORS if needed using [Hono's built-in CORS middleware](https://hono.dev/docs/middleware/builtin/cors). In this case, it's very important to whitelist the `x-is-superjson` header, as JStack uses this internally for `c.superjson()` responses:
+You can also customize CORS if needed using [Hono's built-in CORS middleware](https://hono.dev/docs/middleware/builtin/cors). In this case, it's essential to whitelist the `x-is-superjson` header, as JStack uses this internally for `c.superjson()` responses:
+
 
 ```ts {4-5}
 import { cors } from "hono/cors"
@@ -163,8 +164,8 @@ cors({
 ### Inferring Router Inputs/Outputs
 
 ```ts
-import type { AppRouter } from "./jstack"
-import type { InferRouterInputs, InferRouterOutputs } from "jstack"
+import type { AppRouter } from "./jsandy"
+import type { InferRouterInputs, InferRouterOutputs } from "@jsandy/rpc"
 
 type InferInput = InferRouterInputs<AppRouter>
 type InferOutput = InferRouterOutputs<AppRouter>

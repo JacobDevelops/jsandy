@@ -3,20 +3,20 @@ title: Environment Variables
 summary: Managing environment variables for different deployment targets
 ---
 
-# Environment Variables in JStack
+# Environment Variables in JSandy
 
-JStack supports multiple deployment targets such as Cloudflare Workers, Vercel, Netlify, and more. This guide will help you set up environment variables correctly based on your deployment platform.
+JSandy supports multiple deployment targets such as Cloudflare Workers, Vercel, Netlify, and more. This guide will help you set up environment variables correctly based on your deployment platform.
 
-JStack supports **full environment variable type-safety**:
+JSandy supports **full environment variable type-safety**:
 
-```ts server/jstack.ts {3-5,7}
-import { jstack } from "jstack"
+```ts server/jsandy.ts {3-5,7}
+import { jsandy } from "@jsandy/rpc"
 
 interface Env {
   Bindings: { DATABASE_URL: string }
 }
 
-export const j = jstack.init<Env>()
+export const j = jsandy.init<Env>()
 
 /**
  * Public (unauthenticated) procedures
@@ -29,7 +29,7 @@ export const publicProcedure = j.procedure
 
 ## Node.js (Vercel, Netlify, etc.)
 
-If you deploy JStack in a Node.js environment (e.g., Vercel, Netlify), both the frontend and the backend will run on Node.js. You can access environment variables anywhere using `process.env`.
+If you deploy JSandy in a Node.js environment (e.g., Vercel, Netlify), both the frontend and the backend will run on Node.js. You can access environment variables anywhere using `process.env`.
 
 1. **Local development**
 
@@ -65,7 +65,7 @@ When using Cloudflare Workers (either locally with `wrangler dev` or in producti
    ```ts {2, 7}
    // Backend (API)
    import { env } from "hono/adapter"
-   import { j } from "jstack"
+   import { j } from "@jsandy/rpc"
 
    export const postRouter = j.router({
      recent: j.procedure.get(({ c }) => {

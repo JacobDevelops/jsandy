@@ -126,7 +126,7 @@ const SearchBar = () => {
 
 		const tokens = text.split(/(\s+|[.,!?;])/g);
 
-		return tokens.map((token) => {
+		return tokens.map((token, idx) => {
 			const tokenLower = token.trim().toLowerCase();
 			if (!tokenLower) return token;
 
@@ -178,19 +178,16 @@ const SearchBar = () => {
 				}
 			}
 
+			const content =
+				typeof highlightedToken === "string"
+					? highlightedToken
+					: highlightedToken;
 			return shouldHighlight ? (
-				typeof highlightedToken === "string" ? (
-					<mark
-						key={token}
-						className="bg-brand-400/20 text-brand-400 px-0.5 rounded"
-					>
-						{token}
-					</mark>
-				) : (
-					<span key={token}>{highlightedToken}</span>
-				)
+				// biome-ignore lint/suspicious/noArrayIndexKey: This is a valid key
+				<span key={`${token}-${idx}`}>{content}</span>
 			) : (
-				token
+				// biome-ignore lint/suspicious/noArrayIndexKey: This is a valid key
+				<span key={`${token}-${idx}`}>{token}</span>
 			);
 		});
 	};

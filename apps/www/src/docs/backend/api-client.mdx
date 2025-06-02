@@ -1,11 +1,11 @@
 ---
 title: API Client
-summary: The API Client in JStack
+summary: The API Client in JSandy
 ---
 
 # Type-Safe API Client
 
-One of the best features of JStack is its **end-to-end type safety** 😎. Let's see how to make type-safe API calls - so TypeScript knows exactly what data to expect from our server.
+One of the best features of JSandy is its **end-to-end type safety** 😎. Let's see how to make type-safe API calls - so TypeScript knows exactly what data to expect from our server.
 
 ---
 
@@ -14,7 +14,7 @@ One of the best features of JStack is its **end-to-end type safety** 😎. Let's
 Create a type-safe client that knows about all your API routes by passing it the `AppRouter` type - the type of your entire backend:
 
 ```ts lib/client.ts /AppRouter/
-import { createClient } from "jstack"
+import { createClient } from "@jsandy/rpc"
 import type { AppRouter } from "@/server"
 
 export const client = createClient<AppRouter>({
@@ -46,7 +46,7 @@ const post = await res.json()
 
 ## 3. Example with React Query
 
-JStack's client works anywhere and **with any state manager** because it's simply a type-safe `fetch` wrapper. For example, it pairs perfectly with React Query:
+JSandy's client works anywhere and **with any state manager** because it's simply a type-safe `fetch` wrapper. For example, it pairs perfectly with React Query:
 
 ```tsx app/page.tsx {4, 7-13}
 "use client"
@@ -69,4 +69,4 @@ export default function Page() {
 }
 ```
 
-You can use the client with any other state manager you prefer, such as Zustand, Jotai, or Redux. JStack does not care 🤷‍♂️.
+You can use the client with any other state manager you prefer, such as Zustand, Jotai, or Redux. JSandy does not care 🤷‍♂️.

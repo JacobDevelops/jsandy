@@ -1,17 +1,17 @@
 ---
 title: Middleware
-summary: Understanding and implementing middleware in JStack
+summary: Understanding and implementing middleware in JSandy
 ---
 
 # Middleware
 
-Middleware in JStack allows you to add reusable logic between your procedure requests and handlers. It's perfect for cross-cutting concerns like authentication, logging, or error handling.
+Middleware in JSandy allows you to add reusable logic between your procedure requests and handlers. It's perfect for cross-cutting concerns like authentication, logging, or error handling.
 
 ---
 
 ## Basic Middleware Structure
 
-```ts server/jstack.ts
+```ts server/jsandy.ts
 const myMiddleware = j.middleware(async ({ c, next }) => {
   // 1️⃣ Code that runs before the handler
   // ...
@@ -27,17 +27,17 @@ const myMiddleware = j.middleware(async ({ c, next }) => {
 
 ### Authentication Middleware
 
-The following middleware authenticates a user. When our procedure runs, we can be 100% sure that this user really exists, because otherwise the middleware will throw an error and prevent the procedure from running:
+The following middleware authenticates a user. When our procedure runs, we can be 100% sure that this user really exists because otherwise the middleware will throw an error and prevent the procedure from running:
 
-```ts server/jstack.ts {10-22, 29}
+```ts server/jsandy.ts {10-22, 29}
 import { HTTPException } from "hono/http-exception"
-import { jstack } from "jstack"
+import { jsandy } from "@jsandy/rpc"
 
 interface Env {
   Bindings: { DATABASE_URL: string }
 }
 
-export const j = jstack.init<Env>()
+export const j = jsandy.init<Env>()
 
 const authMiddleware = j.middleware(async ({ c, next }) => {
   // Mocked user authentication check...
@@ -64,7 +64,7 @@ export const privateProcedure = publicProcedure.use(authMiddleware)
 On any `privateProcedure` we can now safely access the user object:
 
 ```ts server/routers/post-router.ts {5-6}
-import { j, privateProcedure } from "../jstack"
+import { j, privateProcedure } from "../jsandy"
 
 export const postRouter = j.router({
   list: privateProcedure.get(({ c, ctx }) => {
@@ -89,16 +89,16 @@ const enhancedProcedure = publicProcedure
   .use(rateLimitMiddleware)
 ```
 
-If you have multiple middlewares that depend on each other, by definition JStack cannot know the order in which they were run. Therefore, use the type inference utility:
+If you have multiple middlewares that depend on each other, by definition JSandy cannot know the order in which they were run. Therefore, use the type inference utility:
 
-```ts server/jstack.ts {14, 18}
-import { InferMiddlewareOutput, jstack } from "jstack"
+```ts server/jsandy.ts {14, 18}
+import { InferMiddlewareOutput, jsandy } from "@jsandy/rpc"
 
 interface Env {
   Bindings: { DATABASE_URL: string }
 }
 
-export const j = jstack.init<Env>()
+export const j = jsandy.init<Env>()
 
 // 1️⃣ Auth middleware runs first
 const authMiddleware = j.middleware(async ({ c, next }) => {
@@ -132,10 +132,10 @@ export const privateProcedure = publicProcedure
 
 ## Using Hono Middleware
 
-JStack is compatible with Hono middleware via the `fromHono` adapter:
+JSandy is compatible with Hono middleware via the `fromHono` adapter:
 
 ```ts
-import { j } from "./jstack"
+import { j } from "./jsandy"
 import { cors } from "hono/cors"
 
 const corsMiddleware = j.fromHono(cors())

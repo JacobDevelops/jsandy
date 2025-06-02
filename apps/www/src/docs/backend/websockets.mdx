@@ -1,13 +1,13 @@
 ---
 title: WebSockets
-summary: WebSockets in JStack
+summary: WebSockets in JSandy
 ---
 
 # WebSockets
 
 WebSocket procedures enable **real-time bi-directional communication** between the client and server without the need to manage _any kind of infrastructure_ 🥳.
 
-> **Important:** JStack's WebSocket implementation is designed specifically for Cloudflare Workers. This is because Cloudflare Workers allow [long-lived real-time connections](https://developers.cloudflare.com/workers/runtime-apis/websockets/) while Vercel and other Node.js runtime providers do not.
+> **Important:** JSandy's WebSocket implementation is designed specifically for Cloudflare Workers. This is because Cloudflare Workers allow [long-lived real-time connections](https://developers.cloudflare.com/workers/runtime-apis/websockets/) while Vercel and other Node.js runtime providers do not.
 
 A WebSocket handler receives the following objects:
 
@@ -16,7 +16,7 @@ A WebSocket handler receives the following objects:
 - `io`: Connection manager for sending messages to clients
 
 ```ts {4}
-import { j } from "../jstack"
+import { j } from "../jsandy"
 
 export const postRouter = j.router({
   chat: j.procedure.ws(({ c, io, ctx }) => ({
@@ -44,7 +44,7 @@ WebSockets are incredible for real-time features:
 
 ```ts server/routers/chat-router.ts /chatValidator/
 import { z } from "zod"
-import { j } from "jstack"
+import { j } from "@jsandy/rpc"
 
 const chatValidator = z.object({
   message: z.object({
@@ -78,7 +78,7 @@ You can now listen to (and emit) real-time events on the client:
 "use client"
 
 import { client } from "@/lib/client"
-import { useWebSocket } from "jstack/client"
+import { useWebSocket } from "jsandy/client"
 
 /**
  * Connect socket above component to avoid mixing
@@ -117,7 +117,7 @@ export default function Page() {
 
 ### Development
 
-To make scalable, serverless WebSockets possible, JStack uses [Upstash Redis](https://upstash.com/) as its real-time engine. Deploying real-world, production WebSocket applications is possible without a credit card, entirely on their free tier.
+To make scalable, serverless WebSockets possible, JSandy uses [Upstash Redis](https://upstash.com/) as its real-time engine. Deploying real-world, production WebSocket applications is possible without a credit card, entirely on their free tier.
 
 _Side note: In the future, I'd like to add the ability to provide your own Redis connection string (e.g. self-hosted)._
 
@@ -148,7 +148,7 @@ _Side note: In the future, I'd like to add the ability to provide your own Redis
 
    ```ts {5-6}
    import type { AppRouter } from "@/server"
-   import { createClient } from "jstack"
+   import { createClient } from "@jsandy/rpc"
 
    export const client = createClient<AppRouter>({
      // 👇 Point to Cloudflare Worker API
@@ -156,7 +156,7 @@ _Side note: In the future, I'd like to add the ability to provide your own Redis
    })
    ```
 
-   **That's it! 🎉** You can now use WebSockets for your local development. See below for an examle usage.
+   **That's it! 🎉** You can now use WebSockets for your local development. See below for an example usage.
 
 ---
 
@@ -173,14 +173,14 @@ _Side note: In the future, I'd like to add the ability to provide your own Redis
    The console output looks like this:
 
    <Frame>
-     <Image src="/cf-deployment-url.png" alt="Deploy JStack WebSockets to Cloudflare" />
+     <Image src="/cf-deployment-url.png" alt="Deploy JSandy WebSockets to Cloudflare" />
    </Frame>
 
 2. Add the deployment URL to the client:
 
    ```ts lib/client.ts {5,8-16}
    import type { AppRouter } from "@/server"
-   import { createClient } from "jstack"
+   import { createClient } from "@jsandy/rpc"
 
    export const client = createClient<AppRouter>({
      baseUrl: `${getBaseUrl()}/api`,
@@ -220,5 +220,5 @@ _Side note: In the future, I'd like to add the ability to provide your own Redis
    ```
 
    <Frame>
-     <Image src="/verify-ws-connection.png" alt="Verify your JStack WebSocket connection" />
+     <Image src="/verify-ws-connection.png" alt="Verify your JSandy WebSocket connection" />
    </Frame>

@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { ThemeToggle } from "./theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Github, Menu, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const navigation = [
 	{ name: "Home", href: "/" },
@@ -24,6 +24,17 @@ export function Navigation() {
 	if (pathname.includes("/docs")) {
 		return null;
 	}
+
+	useEffect(() => {
+		const handleEscape = (e: KeyboardEvent) => {
+			if (e.key === "Escape") setMobileMenuOpen(false);
+		};
+
+		if (mobileMenuOpen) {
+			document.addEventListener("keydown", handleEscape);
+			return () => document.removeEventListener("keydown", handleEscape);
+		}
+	}, [mobileMenuOpen]);
 
 	return (
 		<header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -72,7 +83,7 @@ export function Navigation() {
 				</div>
 				<div className="hidden lg:flex lg:flex-1 lg:justify-end lg:gap-x-4">
 					<Button variant="ghost" size="icon" asChild>
-						<Link href="https://github.com/yourusername/jsandy">
+						<Link href="https://github.com/JacobDevelops/jsandy">
 							<Github className="h-4 w-4" />
 							<span className="sr-only">GitHub</span>
 						</Link>
@@ -84,7 +95,12 @@ export function Navigation() {
 			{/* Mobile menu */}
 			{mobileMenuOpen && (
 				<div className="lg:hidden">
-					<div className="fixed inset-0 z-50" />
+					{/* biome-ignore lint/a11y/useKeyWithClickEvents: Handled By useEffect*/}
+					<div
+						className="fixed inset-0 z-50"
+						onClick={() => setMobileMenuOpen(false)}
+						aria-hidden="true"
+					/>
 					<div className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-background px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-border/10">
 						<div className="flex items-center justify-between">
 							<Link href="/" className="-m-1.5 p-1.5 flex items-center gap-3">
@@ -130,7 +146,7 @@ export function Navigation() {
 								</div>
 								<div className="py-6 flex gap-4">
 									<Button variant="ghost" size="icon" asChild>
-										<Link href="https://github.com/yourusername/jsandy">
+										<Link href="https://github.com/JacobDevelops/jsandy">
 											<Github className="h-4 w-4" />
 											<span className="sr-only">GitHub</span>
 										</Link>

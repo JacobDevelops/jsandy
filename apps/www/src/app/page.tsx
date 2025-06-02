@@ -92,8 +92,8 @@ export default function Home() {
 							},
 						].map((feature, index) => (
 							<div
-								key={feature.icon}
-								className="glass rounded-2xl p-6 animate-slide-up border! border-sand-200! dark:border-sand-800/10!" // Glass effect should still work well
+								key={feature.title}
+								className="glass rounded-2xl p-6 animate-slide-up border! border-sand-200! dark:border-sand-800/10!"
 								style={{ animationDelay: `${index * 0.1}s` }}
 							>
 								<div className="text-3xl mb-4">{feature.icon}</div>

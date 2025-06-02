@@ -11,10 +11,11 @@
 		"start": "next start"
 	},
 	"dependencies": {
-		"@jsandy/rpc": "workspace:*",
+		"@jsandy/rpc": "1.1.0",
 		"@radix-ui/react-dialog": "^1.1.14",
 		"@radix-ui/react-scroll-area": "^1.2.9",
 		"@radix-ui/react-slot": "^1.2.3",
+		"@tanstack/react-query": "^5.79.0",
 		"@upstash/qstash": "^2.8.1",
 		"@upstash/redis": "^1.34.9",
 		"@upstash/vector": "^1.2.1",

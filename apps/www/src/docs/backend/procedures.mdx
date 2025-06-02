@@ -1,20 +1,20 @@
 ---
 title: Procedures
-summary: Procedures in JStack
+summary: Procedures in JSandy
 ---
 
 # Procedures
 
-A procedure in JStack is an **API endpoint that handles a specific operation**. There are three kinds of procedures:
+A procedure in JSandy is an **API endpoint that handles a specific operation**. There are three kinds of procedures:
 
 - `get` procedures for GET requests
 - `post` procedures for POST requests
 - `ws` (WebSocket) procedures for real-time communication
 
-```plaintext JStack File Structure {3}
+```plaintext JSandy File Structure {3}
 app/
   └── server/
-      ├── jstack.ts        # Initialize JStack
+      ├── jsandy.ts        # Initialize JSandy
       ├── index.ts         # Main appRouter
       └── routers/         # Router directory
           ├── user-router.ts
@@ -22,22 +22,22 @@ app/
           └── payment-router.ts
 ```
 
-For simplicity, I recommend defining procedures and middleware in the `jstack.ts` file. You can create a separate file if necessary.
+For simplicity, I recommend defining procedures and middleware in the `jsandy.ts` file. You can create a separate file if necessary.
 
 ---
 
 ## Procedures Overview
 
-By default, JStack provides a `publicProcedure` that anyone, authenticated or not, can call. It serves as a base from which to build new procedures:
+By default, JSandy provides a `publicProcedure` that anyone, authenticated or not, can call. It serves as a base from which to build new procedures:
 
-```ts server/jstack.ts {9-13}
-import { jstack } from "jstack"
+```ts server/jsandy.ts {9-13}
+import { jsandy } from "@jsandy/rpc"
 
 interface Env {
   Bindings: { DATABASE_URL: string }
 }
 
-export const j = jstack.init<Env>()
+export const j = jsandy.init<Env>()
 
 /**
  * Public (unauthenticated) procedures
@@ -52,15 +52,15 @@ export const publicProcedure = j.procedure
 
 Let's create a procedure that **only authenticated users** can call:
 
-```ts server/jstack.ts {10-22, 29}
+```ts server/jsandy.ts {10-22, 29}
 import { HTTPException } from "hono/http-exception"
-import { jstack } from "jstack"
+import { jsandy } from "@jsandy/rpc"
 
 interface Env {
   Bindings: { DATABASE_URL: string }
 }
 
-export const j = jstack.init<Env>()
+export const j = jsandy.init<Env>()
 
 const authMiddleware = j.middleware(async ({ c, next }) => {
   // Mocked user authentication check...
@@ -87,7 +87,7 @@ export const privateProcedure = publicProcedure.use(authMiddleware)
 ### Example Procedure Usage
 
 ```ts server/routers/post-router.ts /privateProcedure/
-import { j, privateProcedure } from "../jstack"
+import { j, privateProcedure } from "../jsandy"
 
 export const postRouter = j.router({
   list: privateProcedure.get(({ c }) => {
@@ -111,7 +111,7 @@ The handler receives the following objects:
 - `input`: Validated input (optional)
 
 ```ts server/routers/post-router.ts {4}
-import { j, publicProcedure } from "../jstack"
+import { j, publicProcedure } from "../jsandy"
 
 export const postRouter = j.router({
   recent: publicProcedure.get(({ c, ctx, input }) => {
@@ -146,7 +146,7 @@ Like GET procedures, the handler receives the following objects:
 - `input`: Validated input (optional)
 
 ```ts server/routers/post-router.ts {4}
-import { j, publicProcedure } from "../jstack"
+import { j, publicProcedure } from "../jsandy"
 
 export const postRouter = j.router({
   create: publicProcedure.post(({ c, ctx, input }) => {
@@ -167,11 +167,11 @@ const res = await client.post.create.$post()
 
 ## Input Validation
 
-JStack has built-in runtime validation for user input using [Zod](https://zod.dev/?id=basic-usage). To set up an input validator, use the `procedure.input()` method:
+JSandy has built-in runtime validation for user input using [Zod](https://zod.dev/?id=basic-usage). To set up an input validator, use the `procedure.input()` method:
 
 ```ts server/routers/post-router.ts /input/
 import { z } from "zod"
-import { j, publicProcedure } from "../jstack"
+import { j, publicProcedure } from "../jsandy"
 
 export const postRouter = j.router({
   create: publicProcedure
@@ -209,7 +209,7 @@ The handler receives the following objects:
 - `io`: Connection manager for sending messages to clients
 
 ```ts server/routers/post-router.ts
-import { j, publicProcedure } from "../jstack"
+import { j, publicProcedure } from "../jsandy"
 import { z } from "zod"
 
 const incomingEvents = z.object({
@@ -245,6 +245,6 @@ export const postRouter = j.router({
 })
 ```
 
-WebSocket procedures are serverless, with no additional infrastructure management. To make this possible, JStack uses Upstash Redis as its real-time engine and expects WebSocket procedures to be deployed to Cloudflare Workers.
+WebSocket procedures are serverless, with no additional infrastructure management. To make this possible, JSandy uses Upstash Redis as its real-time engine and expects WebSocket procedures to be deployed to Cloudflare Workers.
 
-[&rarr; JStack WebSocket Docs](/docs/backend/websockets)
+[&rarr; JSandy WebSocket Docs](/docs/backend/websockets)

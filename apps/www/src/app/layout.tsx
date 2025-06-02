@@ -11,6 +11,27 @@ export const metadata: Metadata = {
 	title: "JSandy - RPC Service Framework",
 	description:
 		"A cutting-edge RPC service framework built on top of Hono with WebSocket support",
+	keywords: ["RPC", "WebSocket", "Hono", "TypeScript", "API", "Framework"],
+	authors: [{ name: "JSandy Team" }],
+	creator: "JSandy Team",
+	openGraph: {
+		title: "JSandy - RPC Service Framework",
+		description:
+			"A cutting-edge RPC service framework built on top of Hono with WebSocket support",
+		type: "website",
+		locale: "en_US",
+		siteName: "JSandy",
+	},
+	twitter: {
+		card: "summary_large_image",
+		title: "JSandy - RPC Service Framework",
+		description:
+			"A cutting-edge RPC service framework built on top of Hono with WebSocket support",
+	},
+	robots: {
+		index: true,
+		follow: true,
+	},
 	icons: {
 		apple: [
 			{ url: "/apple-icon-57x57.png", sizes: "57x57" },

@@ -2,7 +2,13 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
 	return {
-		name: "App",
+		name: "JSandy Documentation",
+		short_name: "JSandy Docs",
+		description: "Documentation website for JSandy",
+		start_url: "/",
+		display: "standalone",
+		theme_color: "#000000",
+		background_color: "#ffffff",
 		icons: [
 			{
 				src: "/android-icon-36x36.png",

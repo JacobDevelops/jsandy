@@ -1,11 +1,11 @@
 ---
 title: Routers
-summary: Routers in JStack
+summary: Routers in JSandy
 ---
 
 # About Routers
 
-A router in JStack is a **collection of procedures** (API endpoints) related to a specific feature or resource. For example:
+A router in JSandy is a **collection of procedures** (API endpoints) related to a specific feature or resource. For example:
 
 - `userRouter` for user management operations
 - `postRouter` for blog post operations
@@ -14,7 +14,7 @@ A router in JStack is a **collection of procedures** (API endpoints) related to 
 ```plaintext {5-8}
 app/
   └── server/
-      ├── jstack.ts        # Initializing JStack
+      ├── jsandy.ts        # Initializing JSandy
       ├── index.ts         # Main appRouter
       └── routers/         # Router directory
           ├── user-router.ts
@@ -29,7 +29,7 @@ app/
 1. Create a new file in `server/routers`:
 
    ```ts server/routers/post-router.ts
-   import { j } from "../jstack"
+   import { j } from "../jsandy"
 
    export const postRouter = j.router({
      // Procedures go here...
@@ -39,7 +39,7 @@ app/
 2. Add procedures to your router:
 
    ```ts {4-10} server/routers/post-router.ts
-   import { j, publicProcedure } from "../jstack"
+   import { j, publicProcedure } from "../jsandy"
 
    export const postRouter = j.router({
      list: publicProcedure.get(({ c }) => {
@@ -55,7 +55,7 @@ app/
 3. Register your router with the main `appRouter`:
 
    ```ts server/index.ts {2, 11}
-   import { j } from "./jstack"
+   import { j } from "./jsandy"
    import { postRouter } from "./routers/post-router" 
 
    const api = j 
@@ -68,7 +68,7 @@ app/
      post: postRouter, 
    })
 
-   export type AppType = typeof appRouter
+   export type AppRouter = typeof appRouter
 
    export default appRouter
    ```

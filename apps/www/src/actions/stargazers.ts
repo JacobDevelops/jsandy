@@ -76,7 +76,11 @@ export const fetchStargazers = async ({
 
 				const previousPageStargazers =
 					(await previousPageRes.json()) as Stargazer[];
-				stargazers = previousPageStargazers.slice(-(20 - remainingItems));
+				const itemsToTake = Math.min(
+					20 - remainingItems,
+					previousPageStargazers.length,
+				);
+				stargazers = previousPageStargazers.slice(-itemsToTake);
 			} catch (error) {
 				console.error("[GitHub API Error] Failed to fetch previous page:", {
 					page: lastPage - 1,

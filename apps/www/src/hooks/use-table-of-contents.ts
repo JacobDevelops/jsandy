@@ -20,9 +20,17 @@ export const useTableOfContents = create<State>()((set) => ({
 	sections: [],
 	visibleSections: [],
 	setVisibleSections: (visibleSections) =>
-		set((state) =>
-			state.visibleSections.join() === visibleSections.join()
-				? {}
-				: { visibleSections },
-		),
+		set((state) => {
+			if (state.visibleSections.length !== visibleSections.length) {
+				return { visibleSections };
+			}
+			if (
+				state.visibleSections.some(
+					(item, index) => item !== visibleSections[index],
+				)
+			) {
+				return { visibleSections };
+			}
+			return {};
+		}),
 }));

@@ -1,6 +1,6 @@
 ---
 title: Local Development
-summary: Local development with JStack
+summary: Local development with JSandy
 ---
 
 # Quickstart
@@ -17,7 +17,7 @@ This command will start your Next.js application at `http://localhost:3000`. Thi
 
 ## Cloudflare Worker Setup
 
-If you are using JStack to develop for Cloudflare Workers, launch two terminal windows to run the frontend and backend separately:
+If you are using JSandy to develop for Cloudflare Workers, launch two terminal windows to run the frontend and backend separately:
 
 ```bash Terminal
 # Terminal 1: Frontend
@@ -36,7 +36,7 @@ To let your frontend know about your backend on a separate port, adjust your cli
 
 ```ts lib/client.ts {5-6}
 import type { AppRouter } from "@/server"
-import { createClient } from "jstack"
+import { createClient } from "@jsandy/rpc"
 
 export const client = createClient<AppRouter>({
   // 👇 Add our port 8080 cloudflare URL

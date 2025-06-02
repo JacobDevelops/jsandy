@@ -10,7 +10,6 @@ export function constructMetadata({
 	description?: string;
 	image?: string;
 	icons?: string;
-	noIndex?: boolean;
 } = {}): Metadata {
 	return {
 		title,
