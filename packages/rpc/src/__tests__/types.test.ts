@@ -31,11 +31,7 @@ describe("Schema", () => {
 			client.rpc.user.$get({
 				id: "1",
 			});
-			client.rpc.users.create.$post({
-				name: "John Doe",
-				email: "john@example.com",
-				age: 30,
-			});
+			client.rpc.profile.$get();
 		});
 	});
 });

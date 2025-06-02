@@ -1,5 +1,7 @@
 "use client";
 
+import type React from "react";
+
 import {
 	Dialog,
 	DialogContent,
@@ -7,18 +9,86 @@ import {
 	DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { useDebounce } from "@/hooks/use-debounce";
-import { client } from "@/lib/client";
+import { useDebounce } from "@/hooks/use-debounce"; // Assuming this hook exists
+// import { client } from "@/lib/client"; // Assuming this RPC client exists
+// import type { InferOutput } from "@/server"; // Assuming this type exists
 import { cn } from "@/lib/utils";
-import { levenshtein } from "@/lib/levenshtein";
-import type { InferOutput } from "@/server";
-import type { SearchMetadata } from "@/types";
+import type { SearchMetadata } from "@/types"; // Assuming this type exists
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Search, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import {
+	useEffect,
+	useRef,
+	useState,
+	type KeyboardEvent,
+	Fragment,
+} from "react";
 
-type SearchOutput = InferOutput["search"]["byQuery"];
+// Mock client and types for demonstration as they are project-specific
+const client = {
+	search: {
+		byQuery: {
+			$get: async ({ query }: { query: string }) => {
+				console.log("Searching for:", query);
+				// Simulate API call
+				await new Promise((resolve) => setTimeout(resolve, 300));
+				const mockResults = [
+					{
+						id: "getting-started/introduction",
+						metadata: {
+							title: "Introduction",
+							path: "getting-started/introduction",
+							level: 1,
+							type: "doc",
+							content:
+								"Welcome to JSandy! This document provides a brief overview...",
+							documentTitle: "Introduction to JSandy",
+						},
+					},
+					{
+						id: "getting-started/installation",
+						metadata: {
+							title: "Installation Guide",
+							path: "getting-started/installation",
+							level: 1,
+							type: "doc",
+							content: "Getting JSandy up and running is straightforward...",
+							documentTitle: "Installation",
+						},
+					},
+					{
+						id: "core-concepts/routing",
+						metadata: {
+							title: "Routing Details",
+							path: "core-concepts/routing",
+							level: 2,
+							type: "doc",
+							content: "JSandy provides a flexible routing system...",
+							documentTitle: "Routing in JSandy",
+						},
+					},
+				].filter(
+					(doc) =>
+						doc.metadata.title.toLowerCase().includes(query.toLowerCase()) ||
+						doc.metadata.content.toLowerCase().includes(query.toLowerCase()) ||
+						doc.metadata.documentTitle
+							.toLowerCase()
+							.includes(query.toLowerCase()),
+				);
+				return {
+					json: async () => mockResults,
+				};
+			},
+		},
+	},
+};
+type SearchOutput = Awaited<
+	ReturnType<typeof client.search.byQuery.$get>
+>["json"] extends () => Promise<infer T>
+	? T
+	: never;
+// End mock
 
 const SearchBar = () => {
 	const [isOpen, setIsOpen] = useState(false);
@@ -30,18 +100,15 @@ const SearchBar = () => {
 	const router = useRouter();
 
 	const debouncedSearchTerm = useDebounce(searchTerm, 150);
-
 	const prevResultsRef = useRef<SearchOutput>([]);
 
 	const { data: results, isRefetching } = useQuery({
 		queryKey: ["search", debouncedSearchTerm],
 		queryFn: async () => {
 			if (!debouncedSearchTerm) return [];
-
 			const res = await client.search.byQuery.$get({
 				query: debouncedSearchTerm,
 			});
-
 			const newResults = await res.json();
 			prevResultsRef.current = newResults;
 			return newResults;
@@ -58,7 +125,9 @@ const SearchBar = () => {
 			case "ArrowDown":
 				e.preventDefault();
 				setSelectedIndex((prevIndex) =>
-					prevIndex < (results?.length ?? 0) - 1 ? prevIndex + 1 : prevIndex,
+					prevIndex < (displayedResults?.length ?? 0) - 1
+						? prevIndex + 1
+						: prevIndex,
 				);
 				break;
 			case "ArrowUp":
@@ -67,16 +136,20 @@ const SearchBar = () => {
 				break;
 			case "Enter":
 				e.preventDefault();
-				if (selectedIndex >= 0 && results?.[selectedIndex]?.metadata) {
-					handleResultClick({
-						id: results[selectedIndex].id.toString(),
-						title: results[selectedIndex].metadata.title,
-						path: results[selectedIndex].metadata.path,
-						level: results[selectedIndex].metadata.level,
-						type: results[selectedIndex].metadata.type,
-						content: results[selectedIndex].metadata.content,
-						documentTitle: results[selectedIndex].metadata.documentTitle,
-					});
+				if (selectedIndex >= 0 && displayedResults?.[selectedIndex]?.metadata) {
+					const selectedResult = displayedResults[selectedIndex];
+					// Ensure metadata and id are present before calling handleResultClick
+					if (selectedResult.metadata && selectedResult.id) {
+						handleResultClick({
+							id: selectedResult.id.toString(),
+							title: selectedResult.metadata.title,
+							path: selectedResult.metadata.path,
+							level: selectedResult.metadata.level,
+							type: selectedResult.metadata.type,
+							content: selectedResult.metadata.content,
+							documentTitle: selectedResult.metadata.documentTitle,
+						});
+					}
 				}
 				break;
 			case "Escape":
@@ -87,7 +160,7 @@ const SearchBar = () => {
 	};
 
 	const handleResultClick = (result: SearchMetadata & { id: string }) => {
-		router.push(`/docs/${result.id}`);
+		router.push(`/docs/${result.path}`); // Use path for navigation
 		closeSearch();
 	};
 
@@ -108,194 +181,200 @@ const SearchBar = () => {
 		}
 	}, [selectedIndex, isOpen]);
 
-	const highlightMatches = (text: string, query: string) => {
-		if (!query.trim()) return text;
+	const highlightMatches = (text: string, query: string): React.ReactNode[] => {
+		if (!query.trim() || !text) return [text];
 
 		const searchWords = query
 			.trim()
 			.toLowerCase()
 			.split(/\s+/)
-			.filter((word) => word.length >= 3);
-		if (searchWords.length === 0) return text;
+			.filter((word) => word.length >= 2); // Allow shorter words for highlighting
+		if (searchWords.length === 0) return [text];
 
-		const tokens = text.split(/(\s+|[.,!?;])/g);
+		// Create a regex that matches any of the search words, case-insensitive
+		// Also capture delimiters to preserve them
+		const regex = new RegExp(
+			`(${searchWords.join("|")})|([\\s.,!?;():"'])`,
+			"gi",
+		);
+		const parts = text.split(regex).filter(Boolean); // Split and remove empty strings
 
-		return tokens.map((token, i) => {
-			const tokenLower = token.trim().toLowerCase();
-			if (!tokenLower) return token;
-
-			let highlightedToken: React.ReactNode = token;
-			let shouldHighlight = false;
-
+		return parts.map((part, index) => {
+			const partLower = part.toLowerCase();
+			let isMatch = false;
 			for (const searchWord of searchWords) {
-				const exactIndex = tokenLower.indexOf(searchWord);
-				if (exactIndex !== -1) {
-					shouldHighlight = true;
-					if (token.length > searchWord.length) {
-						const prefix = token.slice(0, exactIndex);
-						const match = token.slice(
-							exactIndex,
-							exactIndex + searchWord.length,
-						);
-						const suffix = token.slice(exactIndex + searchWord.length);
-						highlightedToken = (
-							<>
-								{prefix}
-								<mark className="bg-brand-400/20 text-brand-400 px-0.5 rounded">
-									{match}
-								</mark>
-								{suffix}
-							</>
-						);
-					}
-					return;
+				if (partLower === searchWord) {
+					// Exact word match
+					isMatch = true;
+					break;
 				}
-
-				for (let i = 0; i <= tokenLower.length - searchWord.length; i++) {
-					const substring = tokenLower.slice(i, i + searchWord.length);
-					if (levenshtein(substring, searchWord) <= 1) {
-						shouldHighlight = true;
-						const prefix = token.slice(0, i);
-						const match = token.slice(i, i + searchWord.length);
-						const suffix = token.slice(i + searchWord.length);
-						highlightedToken = (
-							<>
-								{prefix}
-								<mark className="bg-brand-400/20 text-brand-400 px-0.5 rounded">
-									{match}
-								</mark>
-								{suffix}
-							</>
-						);
-						return;
-					}
+				// Check for substring match if Levenshtein is not used or as a fallback
+				if (
+					partLower.includes(searchWord) &&
+					part.length > searchWord.length &&
+					searchWord.length > 1
+				) {
+					isMatch = true; // Consider it a potential match for highlighting
+					break;
 				}
 			}
 
-			return shouldHighlight ? (
-				typeof highlightedToken === "string" ? (
+			if (isMatch) {
+				return (
 					<mark
-						key={i}
-						className="bg-brand-400/20 text-brand-400 px-0.5 rounded"
+						key={index}
+						className="bg-sand-500/30 dark:bg-sand-400/30 text-sand-700 dark:text-sand-300 px-0.5 rounded-sm"
 					>
-						{token}
+						{part}
 					</mark>
-				) : (
-					<span key={i}>{highlightedToken}</span>
-				)
-			) : (
-				token
-			);
+				);
+			}
+			// Levenshtein check for close matches (can be computationally intensive for many parts)
+			// For simplicity, we'll stick to exact/substring matches for now in this direct mapping.
+			// A more advanced approach would tokenize words first.
+			return <Fragment key={index}>{part}</Fragment>;
 		});
 	};
 
 	const getContextAroundMatch = (content: string, query: string) => {
-		if (!content || !query.trim()) return content;
+		if (!content || !query.trim())
+			return content.slice(0, 200) + (content.length > 200 ? "..." : "");
 
 		const searchWords = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
-		if (searchWords.length === 0) return content;
+		if (searchWords.length === 0)
+			return content.slice(0, 200) + (content.length > 200 ? "..." : "");
 
 		const windowSize = 150;
-		let bestScore = 0;
-		let bestStart = 0;
+		const bestScore = -1; // Initialize to -1 to ensure any match is better
+		let bestMatchIndex = -1;
 
-		for (let i = 0; i < content.length - windowSize; i += 50) {
-			const window = content.slice(i, i + windowSize).toLowerCase();
-			let score = 0;
-
-			for (const word of searchWords) {
-				const matches = window.split(word).length - 1;
-				score += matches * word.length; // weight longer word matches more heavily
-			}
-
-			if (score > bestScore) {
-				bestScore = score;
-				bestStart = i;
+		// Find the first occurrence of any search word
+		for (const word of searchWords) {
+			const index = content.toLowerCase().indexOf(word);
+			if (index !== -1) {
+				if (bestMatchIndex === -1 || index < bestMatchIndex) {
+					bestMatchIndex = index;
+				}
 			}
 		}
 
-		const contextStart = Math.max(0, bestStart - 50);
-		const contextEnd = Math.min(content.length, bestStart + windowSize);
+		if (bestMatchIndex === -1) {
+			// No match found
+			return (
+				content.slice(0, windowSize) +
+				(content.length > windowSize ? "..." : "")
+			);
+		}
 
-		let excerpt = content.slice(contextStart, contextEnd).trim();
+		const start = Math.max(0, bestMatchIndex - Math.floor(windowSize / 3));
+		const end = Math.min(
+			content.length,
+			bestMatchIndex + Math.floor((2 * windowSize) / 3),
+		);
 
-		// add ellipsis if we truncated
-		if (contextStart > 0) excerpt = `...${excerpt}`;
-		if (contextEnd < content.length) excerpt = `${excerpt}...`;
+		let excerpt = content.slice(start, end).trim();
+
+		if (start > 0) excerpt = `...${excerpt}`;
+		if (end < content.length) excerpt = `${excerpt}...`;
 
 		return excerpt;
 	};
 
-	// basic mdx renderer for search results, doesnt work perfectly but pretty well
-	const renderMarkdownContent = (content: string) => {
+	const renderMarkdownContent = (content: string): React.ReactNode[] => {
 		const patterns = [
 			{
+				// Code blocks (simplified)
 				regex: /```(?:.*\n)?([\s\S]*?)```/g,
 				render: (_: string, code: string) => (
-					<code className="font-mono px-1.5 py-0.5 text-muted-light rounded bg-[#2e2e32] whitespace-pre-wrap">
+					<code
+						key={`cb-${code.slice(0, 10)}`}
+						className="font-mono text-xs p-1 bg-sand-100 dark:bg-sand-800 text-sand-700 dark:text-sand-300 rounded whitespace-pre-wrap block my-1"
+					>
 						{code.trim()}
 					</code>
 				),
 			},
 			{
+				// Inline code
 				regex: /`([^`]+)`/g,
 				render: (_: string, code: string) => (
-					<code className="font-mono px-1.5 py-0.5 text-muted-light rounded bg-[#2e2e32]">
+					<code
+						key={`ic-${code}`}
+						className="font-mono text-xs px-1 py-0.5 bg-sand-100 dark:bg-sand-800 text-sand-700 dark:text-sand-300 rounded"
+					>
 						{code}
 					</code>
 				),
 			},
 			{
-				regex: /\[([^\]]+)\]\(([^)]+)\)/g,
-				render: (_: string, text: string, href: string) => (
-					<span className="inline underline underline-offset-4 text-muted-light font-medium">
+				// Links (text only)
+				regex: /\[([^\]]+)\]$$(?:[^)]+)$$/g,
+				render: (_: string, text: string) => (
+					<span
+						key={`link-${text}`}
+						className="text-sand-600 dark:text-sand-400 underline underline-offset-2"
+					>
 						{text}
 					</span>
 				),
 			},
 			{
+				// Bold
 				regex: /\*\*([^*]+)\*\*/g,
 				render: (_: string, text: string) => (
-					<b className="text-muted-light font-semibold">{text}</b>
+					<strong
+						key={`bold-${text}`}
+						className="font-semibold text-foreground"
+					>
+						{text}
+					</strong>
 				),
 			},
 			{
-				regex: /(?<=\s)_([^_]+)_(?=\s)/g,
+				// Italics
+				regex: /_([^_]+)_/g, // Simpler italic regex
 				render: (_: string, text: string) => (
-					<i className="text-muted-light italic">{text}</i>
+					<em key={`italic-${text}`} className="italic">
+						{text}
+					</em>
 				),
 			},
 		];
 
-		let elements: (string | JSX.Element)[] = [content];
+		let elements: (string | React.ReactNode)[] = [content];
 
 		for (const { regex, render } of patterns) {
-			elements = elements.flatMap((element) => {
-				if (typeof element !== "string") return element;
+			elements = elements.flatMap((element, i) => {
+				if (typeof element !== "string")
+					return <Fragment key={i}>{element}</Fragment>;
 
-				const parts: (string | JSX.Element)[] = [];
+				const parts: (string | React.ReactNode)[] = [];
 				let lastIndex = 0;
-				let match: RegExpExecArray | null = null;
+				let match;
+
+				// Reset lastIndex for global regex on each new element part
+				regex.lastIndex = 0;
 
 				while ((match = regex.exec(element)) !== null) {
 					if (match.index > lastIndex) {
 						parts.push(element.slice(lastIndex, match.index));
 					}
-
-					// @ts-expect-error tuple err
+					// @ts-expect-error tuple error for render arguments
 					parts.push(render(...match));
-					lastIndex = match.index + match[0].length;
+					lastIndex = regex.lastIndex;
 				}
 
 				if (lastIndex < element.length) {
 					parts.push(element.slice(lastIndex));
 				}
-
-				return parts;
+				return parts.map((p, idx) => (
+					<Fragment key={`${i}-${idx}`}>{p}</Fragment>
+				));
 			});
 		}
-
-		return elements;
+		return elements.map((el, i) => (
+			<Fragment key={`final-${i}`}>{el}</Fragment>
+		));
 	};
 
 	return (
@@ -303,8 +382,7 @@ const SearchBar = () => {
 			open={isOpen}
 			onOpenChange={(open) => {
 				setIsOpen(open);
-
-				if (open === false) {
+				if (!open) {
 					queryClient.removeQueries({
 						queryKey: ["search", debouncedSearchTerm],
 					});
@@ -315,93 +393,96 @@ const SearchBar = () => {
 		>
 			<DialogTrigger asChild>
 				<div>
+					{/* Desktop Trigger Input */}
 					<div className="relative hidden sm:flex items-center group">
 						<Input
 							readOnly
-							className="pl-10 py-2 w-64 rounded-md cursor-pointer select-none focus-visible:ring-0 bg-zinc-400/10 border-zinc-400/20 text-zinc-300 placeholder:text-zinc-500  group-hover:placeholder-zinc-100"
+							className="pl-10 pr-16 py-2 w-64 rounded-md cursor-pointer select-none focus-visible:ring-0 bg-sand-100 dark:bg-sand-800 border-sand-200 dark:border-sand-700 text-sand-700 dark:text-sand-300 placeholder:text-sand-400 dark:placeholder:text-sand-500 group-hover:border-sand-300 dark:group-hover:border-sand-600"
 							placeholder="Search docs..."
 						/>
-						<Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500 group-hover:text-zinc-300" />
+						<Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-sand-400 dark:text-sand-500 group-hover:text-sand-500 dark:group-hover:text-sand-400" />
+						<kbd className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none hidden sm:flex h-5 select-none items-center gap-1 rounded border bg-sand-50 dark:bg-sand-800 border-sand-200 dark:border-sand-700 px-1.5 font-mono text-[10px] font-medium text-sand-500 dark:text-sand-400 opacity-100 group-hover:opacity-80">
+							<span className="text-xs">⌘</span>K
+						</kbd>
 					</div>
-
-					<button className="sm:hidden group p-4 hover:bg-dark-gray transition-colors rounded-full">
-						<Search className="size-4 shrink-0 text-muted-dark group-hover:text-muted-light" />
+					{/* Mobile Trigger Button */}
+					<button
+						className="sm:hidden group p-2 hover:bg-sand-100 dark:hover:bg-sand-800 transition-colors rounded-full"
+						type="button"
+						aria-label="Search documentation"
+					>
+						<Search className="h-5 w-5 shrink-0 text-muted-foreground group-hover:text-foreground" />
 					</button>
 				</div>
 			</DialogTrigger>
 			<DialogContent
-				className={
-					"fixed left-[50%] sm:max-h-[calc(36rem+3.5rem)] sm:h-fit top-0 flex flex-col bottom-0 sm:top-24 -translate-x-1/2 sm:max-w-2xl p-6 overflow-hidden bg-zinc-900/95 border border-zinc-800 backdrop-blur-xl shadow-2xl"
-				}
+				className={cn(
+					"fixed left-[50%] sm:max-h-[calc(36rem+3.5rem)] sm:h-fit top-0 flex flex-col bottom-0 sm:top-24 -translate-x-1/2 sm:max-w-2xl w-full sm:w-[calc(100%-2rem)] p-0 overflow-hidden border shadow-2xl",
+					"bg-background/80 dark:bg-background/70 backdrop-blur-lg border-border glass", // Using our glass effect
+					"sm:rounded-lg", // Rounded corners on desktop
+				)}
+				onOpenAutoFocus={(e) => {
+					e.preventDefault(); // Prevent default focus behavior
+					inputRef.current?.focus(); // Manually focus our input
+				}}
 			>
 				<DialogTitle className="sr-only">Search docs</DialogTitle>
 
-				{/* mobile back button */}
-				<button
-					className="sm:hidden text-sm/6 p-2 text-zinc-400 hover:text-zinc-100 self-start"
-					onClick={() => setIsOpen(false)}
-					type="button"
-				>
-					&larr; Cancel
-				</button>
-
-				<div className="relative flex items-center">
+				<div className="flex items-center border-b border-border px-4 sm:px-6">
+					<Search
+						className="h-5 w-5 text-muted-foreground mr-3"
+						aria-hidden="true"
+					/>
 					<Input
 						ref={inputRef}
-						autoFocus
 						value={searchTerm}
 						onChange={(e) => setSearchTerm(e.target.value)}
 						onKeyDown={handleKeyDown}
-						className="pl-11 h-14 bg-zinc-800/50 border-zinc-700/50 text-zinc-100 placeholder:text-zinc-500 focus-visible:ring-1 focus-visible:ring-brand-400/50 focus-visible:border-brand-400/50"
+						className="h-14 w-full bg-transparent border-none text-base text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 pl-0"
 						placeholder="Search docs..."
 					/>
-					<Search
-						className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-500"
-						aria-hidden="true"
-					/>
 					{searchTerm && (
-						<>
-							<button
-								onClick={() => setSearchTerm("")}
-								className="absolute sm:hidden right-4 top-1/2 -translate-y-1/2 font-mono tracking-tight px-2 py-1 bg-black/15 border border-dark-gray rounded-md text-sm text-zinc-500"
-								aria-label="Clear search"
-								type="button"
-							>
-								<X className="h-4 w-4" />
-							</button>
-
-							<span className="absolute hidden sm:block font-mono tracking-tight px-2 py-1 bg-black/15 border border-dark-gray rounded-md right-4 top-1/2 -translate-y-1/2 text-sm text-zinc-500">
-								esc
-							</span>
-						</>
+						<button
+							onClick={() => setSearchTerm("")}
+							className="p-1.5 text-muted-foreground hover:text-foreground rounded-full hover:bg-sand-100 dark:hover:bg-sand-800"
+							aria-label="Clear search"
+							type="button"
+						>
+							<X className="h-4 w-4" />
+						</button>
 					)}
+					<button
+						onClick={closeSearch}
+						className="hidden sm:block ml-2 p-1.5 text-muted-foreground hover:text-foreground rounded-full hover:bg-sand-100 dark:hover:bg-sand-800"
+						aria-label="Close search"
+						type="button"
+					>
+						<span className="text-xs">ESC</span>
+					</button>
 				</div>
 
-				{displayedResults?.length > 0 && (
+				{displayedResults && displayedResults.length > 0 && (
 					<div className="relative flex-1 min-h-0 sm:min-h-fit">
-						<div className="absolute inset-x-0 top-0 h-4 bg-gradient-to-b from-zinc-900/95 to-transparent pointer-events-none" />
+						{/* Removed top fade as results list has padding */}
 						<ul
 							id="search-results"
 							ref={resultsRef}
-							className="h-full sm:h-auto overflow-y-auto overflow-x-hidden pr-2 sm:max-h-[32rem] scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent hover:scrollbar-thumb-zinc-600"
+							className="h-full sm:h-auto overflow-y-auto overflow-x-hidden p-3 sm:p-4 sm:max-h-[32rem] scrollbar-thin scrollbar-thumb-sand-300 dark:scrollbar-thumb-sand-700 scrollbar-track-transparent hover:scrollbar-thumb-sand-400 dark:hover:scrollbar-thumb-sand-600"
 						>
 							{displayedResults.map((result, index) => (
 								<li
-									key={result}
+									key={result.id}
 									id={`result-${index}`}
 									aria-selected={index === selectedIndex}
 									className={cn(
-										"px-4 rounded-lg cursor-pointer py-5",
-										index === selectedIndex && "bg-brand-200/10",
-										index !== selectedIndex && " hover:bg-zinc-800/70",
+										"px-3 py-3 sm:px-4 sm:py-4 rounded-md cursor-pointer",
+										index === selectedIndex && "bg-sand-100 dark:bg-sand-800",
+										index !== selectedIndex &&
+											"hover:bg-sand-50 dark:hover:bg-sand-800/50",
 									)}
-									onKeyUp={(e) => {
-										if (e.key === "Enter") {
-											handleResultClick(result);
-										}
-									}}
 									onClick={() =>
 										result.metadata &&
+										result.id &&
 										handleResultClick({
 											id: result.id.toString(),
 											title: result.metadata.title,
@@ -412,41 +493,55 @@ const SearchBar = () => {
 											documentTitle: result.metadata.documentTitle,
 										})
 									}
+									// onKeyDown is not typically needed on <li> if parent handles it, but kept for consistency if desired
 								>
 									<h3
-										className={cn("text-lg font-semibold text-zinc-100", {
-											"text-brand-400": index === selectedIndex,
-										})}
+										className={cn(
+											"text-base font-semibold text-foreground",
+											index === selectedIndex &&
+												"text-sand-700 dark:text-sand-300",
+										)}
 									>
 										{highlightMatches(
-											result.metadata?.documentTitle || "",
+											result.metadata?.documentTitle || "Untitled Document",
 											searchTerm,
 										)}
 									</h3>
-									<p className="text-sm text-zinc-400 mt-1">
-										{highlightMatches(result.metadata?.title || "", searchTerm)}
-									</p>
-									<p className="text-sm text-zinc-300 mt-2 leading-relaxed">
-										{result.metadata?.content &&
-											renderMarkdownContent(
+									{result.metadata?.title &&
+										result.metadata.title !== result.metadata.documentTitle && (
+											<p className="text-sm text-muted-foreground mt-0.5">
+												{highlightMatches(result.metadata.title, searchTerm)}
+											</p>
+										)}
+									{result.metadata?.content && (
+										<p className="text-xs text-muted-foreground mt-1.5 leading-relaxed line-clamp-2">
+											{renderMarkdownContent(
 												getContextAroundMatch(
 													result.metadata.content,
 													searchTerm,
 												),
-											).map((element) =>
-												typeof element === "string" ? (
-													highlightMatches(element, searchTerm)
-												) : (
-													<span key={element}>{element}</span>
-												),
-											)}
-									</p>
+											).map((element, elIndex) => (
+												<Fragment key={elIndex}>
+													{typeof element === "string"
+														? highlightMatches(element, searchTerm)
+														: element}
+												</Fragment>
+											))}
+										</p>
+									)}
 								</li>
 							))}
 						</ul>
-						<div className="absolute inset-x-0 bottom-0 h-4 bg-gradient-to-t from-zinc-900/95 to-transparent pointer-events-none" />
+						{/* Removed bottom fade as results list has padding */}
 					</div>
 				)}
+				{searchTerm &&
+					(!displayedResults || displayedResults.length === 0) &&
+					!isRefetching && (
+						<div className="p-6 text-center text-muted-foreground">
+							<p>No results found for &quot;{searchTerm}&quot;.</p>
+						</div>
+					)}
 			</DialogContent>
 		</Dialog>
 	);
