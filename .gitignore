@@ -31,7 +31,7 @@ dist
 *.log*
 
 ## Docs
-.content-collections
+.content-collections/cache
 
 # Misc
 .DS_Store
@@ -39,5 +39,4 @@ dist
 
 # Next
 next-env.d.ts
-.content-collections
 *.tsbuildinfo
