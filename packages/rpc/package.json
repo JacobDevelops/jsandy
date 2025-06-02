@@ -4,6 +4,11 @@
 	"publishConfig": {
 		"access": "public"
 	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/JacobDevelops/jsandy.git",
+		"directory": "packages/rpc"
+	},
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"files": ["dist", "README.md", "CHANGELOG.md"],

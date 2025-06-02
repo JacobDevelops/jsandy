@@ -6,16 +6,18 @@
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/jacob/jsandy.git",
+		"url": "git+https://github.com/JacobDevelops/jsandy.git",
 		"directory": "packages/cli"
 	},
+	"files": ["dist", "README.md", "CHANGELOG.md"],
 	"engines": {
 		"node": ">=18.0.0"
 	},
-	"module": "index.ts",
+	"main": "dist/index.js",
 	"type": "module",
 	"scripts": {
 		"build": "bun build.ts",
+		"prebuild": "rm -rf dist",
 		"start": "node dist/index.js"
 	},
 	"bin": {
