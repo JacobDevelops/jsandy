@@ -41,7 +41,7 @@ export const DOCS_CONFIG: DocsConfig = {
 			title: "Deploy",
 			emoji: "💻",
 			order: 4,
-			items: ["vercel, cloudflare"],
+			items: ["vercel", "cloudflare"],
 		},
 	},
 };

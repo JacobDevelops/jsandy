@@ -82,7 +82,7 @@ export const postRouter = j.router({
 
 Chain multiple middlewares using `.use()`:
 
-```ts
+```ts server/jsandy.ts
 const enhancedProcedure = publicProcedure
   .use(authMiddleware)
   .use(loggingMiddleware)
@@ -135,7 +135,7 @@ export const privateProcedure = publicProcedure
 JSandy is compatible with Hono middleware via the `fromHono` adapter:
 
 ```ts
-import { j } from "./jsandy"
+import { j, publicProcedure } from "./jsandy"
 import { cors } from "hono/cors"
 
 const corsMiddleware = j.fromHono(cors())

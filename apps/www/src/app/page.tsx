@@ -3,6 +3,45 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Github, BookOpen } from "lucide-react";
 import Link from "next/link";
 
+const features = [
+	{
+		title: "Hono Foundation",
+		description:
+			"Built on top of Hono's ultra-fast runtime, ensuring optimal performance for your RPC services.",
+		icon: "⚡",
+	},
+	{
+		title: "Type Safety",
+		description:
+			"End-to-end TypeScript support with automatic type inference for both client and server.",
+		icon: "🔒",
+	},
+	{
+		title: "WebSocket Integration",
+		description:
+			"Seamless WebSocket support through Cloudflare for real-time communication.",
+		icon: "🌐",
+	},
+	{
+		title: "Next.js Ready",
+		description:
+			"Perfect integration with Next.js applications, both inside and outside the framework.",
+		icon: "⚛️",
+	},
+	{
+		title: "Minimal Setup",
+		description:
+			"Get started quickly with minimal configuration and sensible defaults.",
+		icon: "🚀",
+	},
+	{
+		title: "Developer Experience",
+		description:
+			"Excellent DX with hot reloading, error handling, and comprehensive documentation.",
+		icon: "💻",
+	},
+];
+
 export default function Home() {
 	return (
 		<div className="min-h-screen bg-gradient-to-br from-sand-50/10 via-background to-sand-100/10 dark:from-sand-950/10 dark:via-background dark:to-sand-900/10">
@@ -53,44 +92,7 @@ export default function Home() {
 					</div>
 
 					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-						{[
-							{
-								title: "Hono Foundation",
-								description:
-									"Built on top of Hono's ultra-fast runtime, ensuring optimal performance for your RPC services.",
-								icon: "⚡",
-							},
-							{
-								title: "Type Safety",
-								description:
-									"End-to-end TypeScript support with automatic type inference for both client and server.",
-								icon: "🔒",
-							},
-							{
-								title: "WebSocket Integration",
-								description:
-									"Seamless WebSocket support through Cloudflare for real-time communication.",
-								icon: "🌐",
-							},
-							{
-								title: "Next.js Ready",
-								description:
-									"Perfect integration with Next.js applications, both inside and outside the framework.",
-								icon: "⚛️",
-							},
-							{
-								title: "Minimal Setup",
-								description:
-									"Get started quickly with minimal configuration and sensible defaults.",
-								icon: "🚀",
-							},
-							{
-								title: "Developer Experience",
-								description:
-									"Excellent DX with hot reloading, error handling, and comprehensive documentation.",
-								icon: "💻",
-							},
-						].map((feature, index) => (
+						{features.map((feature, index) => (
 							<div
 								key={feature.title}
 								className="glass rounded-2xl p-6 animate-slide-up border! border-sand-200! dark:border-sand-800/10!"

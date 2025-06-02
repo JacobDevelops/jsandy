@@ -7,7 +7,7 @@
 		"build:docs": "content-collections build",
 		"check-types": "tsc --noEmit",
 		"dev": "next dev --turbopack",
-		"precheck-types": "bun build:docs",
+		"precheck-types": "bun run build:docs",
 		"start": "next start"
 	},
 	"dependencies": {

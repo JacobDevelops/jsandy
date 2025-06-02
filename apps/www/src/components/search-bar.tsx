@@ -144,14 +144,15 @@ const SearchBar = () => {
 							exactIndex + searchWord.length,
 						);
 						const suffix = token.slice(exactIndex + searchWord.length);
-						highlightedToken = (
-							<>
+						return (
+							// biome-ignore lint/suspicious/noArrayIndexKey: This is a valid key
+							<span key={`${token}-${idx}`}>
 								{prefix}
 								<mark className="bg-brand-400/20 text-brand-400 px-0.5 rounded">
 									{match}
 								</mark>
 								{suffix}
-							</>
+							</span>
 						);
 					}
 					return;
@@ -393,7 +394,7 @@ const SearchBar = () => {
 						>
 							{displayedResults.map((result, index) => (
 								<li
-									key={result.id}
+									key={`${result.id}-${index}`}
 									id={`result-${index}`}
 									aria-selected={index === selectedIndex}
 									className={cn(
