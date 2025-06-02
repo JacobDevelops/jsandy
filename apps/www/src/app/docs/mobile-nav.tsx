@@ -5,6 +5,9 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { DocNavigation } from "./doc-navigation";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import SearchBar from "@/components/search-bar";
 
 export function MobileNavigation() {
 	const [isOpen, setIsOpen] = useState(false);
@@ -23,52 +26,77 @@ export function MobileNavigation() {
 
 	return (
 		<>
-			<button
+			<Button
+				variant="ghost"
+				size="icon"
 				onClick={() => setIsOpen(true)}
-				className="flex items-center gap-1.5 text-muted-light"
+				className="text-muted-foreground hover:text-foreground"
 				type="button"
+				aria-label="Open navigation menu"
 			>
-				<Menu className="size-4" />
-				<p>Menu</p>
-			</button>
+				<Menu className="size-5" />
+			</Button>
+
 			{isOpen && (
-				<div className="fixed inset-0 z-50 bg-zinc-800/40 backdrop-blur-sm dark:bg-black/80 lg:hidden" />
+				<div
+					className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden"
+					onClick={() => setIsOpen(false)}
+					onKeyDown={(e) => {
+						if (e.key === "Enter" || e.key === " ") {
+							e.preventDefault();
+							setIsOpen(false);
+						}
+					}}
+				/>
 			)}
+
 			<div
 				className={cn(
-					"fixed bg-zinc-900 flex w-4/5 flex-col gap-4 inset-y-0 left-0 z-50 overflow-y-auto px-8 pb-4 pt-3 shadow-lg lg:hidden",
+					"fixed bg-background border-r border-border flex w-4/5 max-w-xs flex-col gap-4 inset-y-0 left-0 z-50 overflow-y-auto p-4 transition-transform duration-300 ease-in-out lg:hidden",
 					isOpen ? "translate-x-0" : "-translate-x-full",
 				)}
 			>
-				<div className="flex items-center justify-between">
+				<div className="flex items-center justify-between pb-2 border-b border-border">
 					<Link
 						onClick={() => setIsOpen(false)}
 						href="/"
 						aria-label="Home"
-						className="flex h-full"
+						className="flex items-center gap-2"
 					>
-						<div className="flex gap-3 py-1.5 items-center justify-center">
-							<div className="flex items-center gap-1.5">
-								<p className="text-muted-light font-semibold tracking-tight">
-									JSandy
-								</p>
-								<p className="text-muted-dark">docs</p>
-							</div>
+						<Image
+							src="/logo.png"
+							height={512}
+							width={512}
+							alt="JSandy Logo"
+							className="h-6 w-6 text-sand-600 dark:text-sand-400"
+						/>
+						<div className="flex items-baseline gap-1.5">
+							<p className="font-semibold tracking-tight text-foreground">
+								JSandy
+							</p>
+							<p className="text-sm text-muted-foreground">docs</p>
 						</div>
 					</Link>
-					<button
+					<Button
+						variant="ghost"
+						size="icon"
 						type="button"
 						onClick={() => setIsOpen(false)}
-						className="rounded-md p-1.5 hover:bg-zinc-800"
+						className="rounded-md p-1.5 text-muted-foreground hover:text-foreground hover:bg-sand-100 dark:hover:bg-sand-800"
 						aria-label="Close navigation menu"
 					>
 						<X className="h-5 w-5" />
-					</button>
+					</Button>
 				</div>
 
-				<hr className="w-full h-0.5 border-0 bg-dark-gray" />
+				<div className="mb-4">
+					<SearchBar /> {/* Add SearchBar here for mobile */}
+				</div>
 
-				<DocNavigation onLinkClick={() => setIsOpen(false)} className="mt-2" />
+				<DocNavigation
+					onLinkClick={() => setIsOpen(false)}
+					className="mt-2 flex-grow"
+				/>
 			</div>
 		</>
 	);

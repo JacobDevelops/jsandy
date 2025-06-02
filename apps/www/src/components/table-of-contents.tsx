@@ -1,6 +1,6 @@
 "use client";
 
-import { useTableOfContents } from "@/hooks/use-table-of-contents";
+import { useTableOfContents } from "@/hooks/use-table-of-contents"; // Assuming this hook exists
 import { cn } from "@/lib/utils";
 import { slugify } from "@/lib/slugify";
 import Link from "next/link";
@@ -19,64 +19,70 @@ export const TableOfContents = ({
 	);
 
 	useEffect(() => {
-		if (!allHeadings[0]) return;
+		if (!allHeadings || allHeadings.length === 0) return;
 
 		if (allHeadings.length > 0 && visibleSections.length === 0) {
 			const firstHeadingSlug = slugify(allHeadings[0].text);
-			setVisibleSections([firstHeadingSlug]);
+			if (firstHeadingSlug) {
+				setVisibleSections([firstHeadingSlug]);
+			}
 		}
 	}, [allHeadings, visibleSections, setVisibleSections]);
 
 	const handleClick = useCallback(
 		(headingText: string) => {
 			const slug = slugify(headingText);
-			setVisibleSections([slug]);
+			if (slug) {
+				setVisibleSections([slug]);
+			}
 		},
 		[setVisibleSections],
 	);
 
-	return (
-		<div className="antialiased">
-			<div className={cn("text-sm/7 relative", className)} {...props}>
-				<p className="text-sm/7 font-semibold text-muted-light pl-4 ">
-					On this page
+	if (!allHeadings || allHeadings.length === 0) {
+		return (
+			<div className={cn("text-sm", className)} {...props}>
+				<p className="font-medium text-muted-foreground pl-1">
+					No sections on this page.
 				</p>
-				<ul>
-					{allHeadings.map((heading) => {
-						const isVisible = visibleSections.some(
-							(section) => section === slugify(heading.text),
-						);
-
-						return (
-							<li key={heading.text} className="leading-relaxed py-1">
-								<Link
-									href={`#${slugify(heading.text)}`}
-									onClick={() => handleClick(heading.text)}
-									className="relative flex"
-								>
-									<div
-										className={cn(
-											"absolute left-4 w-0.5 top-0 h-full -translate-x-4 transition-colors",
-											isVisible ? "bg-brand-300" : "bg-transparent",
-										)}
-									/>
-									<p
-										className={cn(
-											"text-muted-dark hover:text-muted-light transition pl-4 py-1",
-											{
-												"text-muted-light": isVisible,
-											},
-										)}
-										key={heading.text}
-									>
-										{heading.text}
-									</p>
-								</Link>
-							</li>
-						);
-					})}
-				</ul>
 			</div>
+		);
+	}
+
+	return (
+		<div className={cn("text-sm", className)} {...props}>
+			<p className="font-semibold text-sand-700 dark:text-sand-300 mb-3">
+				On this page
+			</p>
+			<ul className="space-y-2">
+				{allHeadings.map((heading) => {
+					const slug = slugify(heading.text);
+					if (!slug) return null;
+					const isVisible = visibleSections.includes(slug);
+
+					return (
+						<li
+							key={slug}
+							className={cn("leading-relaxed", `ml-${(heading.level - 2) * 3}`)}
+						>
+							{" "}
+							{/* Indent based on heading level */}
+							<Link
+								href={`#${slug}`}
+								onClick={() => handleClick(heading.text)}
+								className={cn(
+									"block border-l-2 pl-3 py-0.5 transition-colors",
+									isVisible
+										? "border-sand-500 dark:border-sand-400 text-sand-700 dark:text-sand-300 font-medium"
+										: "border-transparent text-muted-foreground hover:text-foreground hover:border-sand-300 dark:hover:border-sand-600",
+								)}
+							>
+								{heading.text}
+							</Link>
+						</li>
+					);
+				})}
+			</ul>
 		</div>
 	);
 };

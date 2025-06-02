@@ -56,46 +56,35 @@ export function DocNavigation({ onLinkClick, className }: DocNavigationProps) {
 	const { sortedCategories, isActiveLink } = useDocNavigation();
 
 	return (
-		<nav className={className}>
-			<ul className="space-y-8">
-				{sortedCategories.map(([category, docs], index) => (
-					<li key={category}>
-						{index > 0 && <div className="h-px bg-dark-gray mb-8" />}
-						<h2 className="px-4 text-sm font-semibold tracking-tight text-muted-light uppercase mb-2">
-							{DOCS_CONFIG.categories[
-								category as keyof typeof DOCS_CONFIG.categories
-							]?.title || category.replace("-", " ")}
-						</h2>
-						<ul className="">
-							{docs.map((doc) => (
-								<li
-									key={doc._meta.path}
-									className={cn("group rounded-sm", {
-										"bg-brand-200/10": isActiveLink(doc._meta.path),
-									})}
+		<nav className={cn("space-y-6", className)}>
+			{sortedCategories.map(([category, docs], index) => (
+				<div key={category}>
+					{index > 0 && <div className="h-px bg-border my-6" />}
+					<h2 className="px-4 text-sm font-semibold tracking-tight text-sand-600 dark:text-sand-400 uppercase mb-3">
+						{DOCS_CONFIG.categories[
+							category as keyof typeof DOCS_CONFIG.categories
+						]?.title || category.replace(/-/g, " ")}
+					</h2>
+					<ul className="space-y-1">
+						{docs.map((doc) => (
+							<li key={doc._meta.path}>
+								<Link
+									href={`/docs/${doc._meta.path}`}
+									onClick={onLinkClick}
+									className={cn(
+										"block px-4 py-1.5 rounded-md text-sm transition-colors",
+										isActiveLink(doc._meta.path)
+											? "font-medium bg-sand-100 dark:bg-sand-800 text-sand-700 dark:text-sand-200"
+											: "text-muted-foreground hover:text-foreground hover:bg-sand-50 dark:hover:bg-sand-800/50",
+									)}
 								>
-									<Link
-										href={`/docs/${doc._meta.path}`}
-										onClick={onLinkClick}
-										className={cn(
-											"block px-4 py-1.5 cursor-pointer rounded-md text-sm font-medium text-muted-dark ",
-											{
-												"text-brand-400 hover:text-brand-400": isActiveLink(
-													doc._meta.path,
-												),
-												"group-hover:text-zinc-300 hover:bg-zinc-200/5":
-													!isActiveLink(doc._meta.path),
-											},
-										)}
-									>
-										{doc.title}
-									</Link>
-								</li>
-							))}
-						</ul>
-					</li>
-				))}
-			</ul>
+									{doc.title}
+								</Link>
+							</li>
+						))}
+					</ul>
+				</div>
+			))}
 		</nav>
 	);
 }
