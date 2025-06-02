@@ -1,6 +1,7 @@
+#!/usr/bin/env node
+
 import fs from "fs-extra";
 import path from "node:path";
-
 import { runCli } from "./cli/index";
 import { scaffoldProject } from "./helpers/scaffold-project";
 import { buildInstallerMap } from "./installers/index";

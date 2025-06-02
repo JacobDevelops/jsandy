@@ -13,10 +13,11 @@
 	"engines": {
 		"node": ">=18.0.0"
 	},
-	"module": "index.ts",
+	"main": "dist/index.js",
 	"type": "module",
 	"scripts": {
 		"build": "bun build.ts",
+		"prebuild": "bun run build.ts",
 		"start": "node dist/index.js"
 	},
 	"bin": {
