@@ -179,10 +179,7 @@ const SearchBar = () => {
 				}
 			}
 
-			const content =
-				typeof highlightedToken === "string"
-					? highlightedToken
-					: highlightedToken;
+			const content = highlightedToken;
 			return shouldHighlight ? (
 				// biome-ignore lint/suspicious/noArrayIndexKey: This is a valid key
 				<span key={`${token}-${idx}`}>{content}</span>

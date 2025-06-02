@@ -23,7 +23,7 @@ export function MobileTableOfContents() {
 			<PopoverTrigger asChild>
 				<Button
 					variant="ghost"
-					size="icon"
+					size="sm"
 					className="flex text-muted-foreground hover:text-foreground p-2"
 					aria-label="Open table of contents"
 				>
@@ -46,7 +46,7 @@ export function MobileTableOfContents() {
 				</div>
 				<div className="max-h-[calc(100vh-12rem)] overflow-y-auto py-2 pr-1 scrollbar-thin scrollbar-thumb-sand-300 dark:scrollbar-thumb-sand-600 scrollbar-track-transparent hover:scrollbar-thumb-sand-400 dark:hover:scrollbar-thumb-sand-500">
 					<TableOfContents
-						onClick={handleLinkClick}
+						onLinkClick={handleLinkClick}
 						className="p-2 pl-4" // Add padding for items within the popover content area
 					/>
 				</div>

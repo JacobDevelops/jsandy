@@ -6,10 +6,13 @@ import { slugify } from "@/lib/slugify";
 import Link from "next/link";
 import { type HTMLAttributes, useCallback, useEffect } from "react";
 
-interface TableOfContentsProps extends HTMLAttributes<HTMLDivElement> {}
+interface TableOfContentsProps extends HTMLAttributes<HTMLDivElement> {
+	onLinkClick?: () => void;
+}
 
 export const TableOfContents = ({
 	className,
+	onLinkClick,
 	...props
 }: TableOfContentsProps) => {
 	const visibleSections = useTableOfContents((state) => state.visibleSections);
@@ -69,7 +72,10 @@ export const TableOfContents = ({
 							{/* Indent based on heading level */}
 							<Link
 								href={`#${slug}`}
-								onClick={() => handleClick(heading.text)}
+								onClick={() => {
+									handleClick(heading.text);
+									onLinkClick?.();
+								}}
 								className={cn(
 									"block border-l-2 pl-3 py-0.5 transition-colors",
 									isVisible
