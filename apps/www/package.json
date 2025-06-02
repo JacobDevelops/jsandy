@@ -8,7 +8,6 @@
 		"check-types": "tsc --noEmit",
 		"deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
 		"dev": "next dev --turbopack",
-		"precheck-types": "bun run build:docs",
 		"preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
 		"start": "next start",
 		"upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload"
