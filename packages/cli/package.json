@@ -1,6 +1,6 @@
 {
 	"name": "create-jsandy-app",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"access": "public",
 	"description": "A CLI tool for scaffolding new jSandy applications with interactive prompts",
 	"license": "MIT",
@@ -9,7 +9,11 @@
 		"url": "git+https://github.com/JacobDevelops/jsandy.git",
 		"directory": "packages/cli"
 	},
-	"files": ["dist", "README.md", "CHANGELOG.md"],
+	"files": [
+		"dist",
+		"README.md",
+		"CHANGELOG.md"
+	],
 	"engines": {
 		"node": ">=18.0.0"
 	},
@@ -39,7 +43,7 @@
 		"execa": "^9.6.0",
 		"fs-extra": "^11.3.0",
 		"hono": "^4.7.11",
-		"@jsandy/rpc": "1.1.0",
+		"@jsandy/rpc": "1.1.1",
 		"ora": "^8.2.0",
 		"sort-package-json": "^2.15.1"
 	}

@@ -1,5 +1,11 @@
 # @jsandy/rpc
 
+## 1.1.1
+
+### Patch Changes
+
+- 8e986d2: Update files array in package.json and add repository information
+
 ## 1.1.0
 
 ### Minor Changes
