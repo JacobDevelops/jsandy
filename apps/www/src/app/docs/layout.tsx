@@ -14,6 +14,7 @@ import { DocNavigation } from "./doc-navigation";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { MobileTableOfContents } from "@/components/mobile-table-of-contents";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export const revalidate = 3600;
 
@@ -139,7 +140,9 @@ const DocsLayout = async ({ children }: PropsWithChildren) => {
 						</div>
 					</div>
 					{/* Right Header Section (Placeholder) */}
-					<div className="h-16 hidden xl:block border-r border-border" />{" "}
+					<div className="h-16 hidden xl:flex items-center justify-start pl-8">
+						<ThemeToggle />
+					</div>
 					{/*Kept structure, ensure border if needed*/}
 				</div>
 			</header>

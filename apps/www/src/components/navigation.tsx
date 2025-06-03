@@ -6,8 +6,16 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "./theme-toggle";
 import { Button } from "@/components/ui/button";
-import { Github, Menu, X } from "lucide-react";
+import { Menu } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Icons } from "./icons";
+import {
+	Sheet,
+	SheetContent,
+	SheetHeader,
+	SheetTitle,
+	SheetTrigger,
+} from "@/components/ui/sheet";
 
 const navigation = [
 	{ name: "Home", href: "/" },
@@ -15,6 +23,19 @@ const navigation = [
 	// { name: "API", href: "/docs/api" },
 	// { name: "Examples", href: "/examples" },
 	// { name: "Blog", href: "/blog" },
+];
+
+const socialLinks = [
+	{
+		name: "GitHub",
+		href: "https://github.com/JacobDevelops/jsandy",
+		icon: Icons.github,
+	},
+	{
+		name: "Discord",
+		href: "https://discord.gg/X9nhTvpYgU",
+		icon: Icons.discord,
+	},
 ];
 
 export function Navigation() {
@@ -55,15 +76,82 @@ export function Navigation() {
 					</Link>
 				</div>
 				<div className="flex lg:hidden">
-					<Button
-						variant="ghost"
-						size="icon"
-						onClick={() => setMobileMenuOpen(true)}
-						className="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5"
-					>
-						<span className="sr-only">Open main menu</span>
-						<Menu className="h-6 w-6" aria-hidden="true" />
-					</Button>
+					{/* Mobile menu */}
+					<Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+						<SheetTrigger asChild>
+							<Button
+								variant="ghost"
+								size="icon"
+								onClick={() => setMobileMenuOpen(true)}
+								className="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5"
+							>
+								<span className="sr-only">Open main menu</span>
+								<Menu className="h-6 w-6" aria-hidden="true" />
+							</Button>
+						</SheetTrigger>
+						<SheetContent
+							side="right"
+							className="bg-background p-0 flex flex-col"
+						>
+							<SheetHeader className="p-4 border-b border-border">
+								<Link
+									href="/"
+									className="-m-1.5 p-1.5 flex items-center gap-3 w-fit"
+								>
+									<Image
+										src="/logo.png"
+										alt="JSandy Logo"
+										width={24}
+										height={24}
+										className="h-6 w-6"
+									/>
+									<SheetTitle className="sr-only">
+										Mobile Navigation Menu
+									</SheetTitle>
+									<span className="text-xl font-bold text-foreground">
+										JSandy
+									</span>
+								</Link>
+							</SheetHeader>
+							<div className="mt-6 flow-root mx-6">
+								<div className="-my-6 divide-y divide-border/10">
+									<div className="space-y-2 py-6">
+										{navigation.map((item) => (
+											<Link
+												key={item.name}
+												href={item.href}
+												className={cn(
+													"-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 transition-colors hover:bg-muted",
+													pathname === item.href
+														? "text-sand-600 dark:text-sand-400"
+														: "text-foreground",
+												)}
+												onClick={() => setMobileMenuOpen(false)}
+											>
+												{item.name}
+											</Link>
+										))}
+									</div>
+									<div className="py-6 flex gap-4 border-t border-border">
+										{socialLinks.map((link) => (
+											<Button
+												variant="ghost"
+												size="icon"
+												asChild
+												key={link.name}
+											>
+												<Link href={link.href}>
+													<link.icon className="h-4 w-4" />
+													<span className="sr-only">{link.name}</span>
+												</Link>
+											</Button>
+										))}
+										<ThemeToggle />
+									</div>
+								</div>
+							</div>
+						</SheetContent>
+					</Sheet>
 				</div>
 				<div className="hidden lg:flex lg:gap-x-12">
 					{navigation.map((item) => (
@@ -82,82 +170,17 @@ export function Navigation() {
 					))}
 				</div>
 				<div className="hidden lg:flex lg:flex-1 lg:justify-end lg:gap-x-4">
-					<Button variant="ghost" size="icon" asChild>
-						<Link href="https://github.com/JacobDevelops/jsandy">
-							<Github className="h-4 w-4" />
-							<span className="sr-only">GitHub</span>
-						</Link>
-					</Button>
+					{socialLinks.map((link) => (
+						<Button variant="ghost" size="icon" key={link.name} asChild>
+							<Link href={link.href}>
+								<link.icon className="h-4 w-4" />
+								<span className="sr-only">{link.name}</span>
+							</Link>
+						</Button>
+					))}
 					<ThemeToggle />
 				</div>
 			</nav>
-
-			{/* Mobile menu */}
-			{mobileMenuOpen && (
-				<div className="lg:hidden">
-					{/* biome-ignore lint/a11y/useKeyWithClickEvents: Handled By useEffect*/}
-					<div
-						className="fixed inset-0 z-50"
-						onClick={() => setMobileMenuOpen(false)}
-						aria-hidden="true"
-					/>
-					<div className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-background px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-border/10">
-						<div className="flex items-center justify-between">
-							<Link href="/" className="-m-1.5 p-1.5 flex items-center gap-3">
-								<Image
-									src="/logo.png"
-									alt="JSandy Logo"
-									width={24}
-									height={24}
-									className="h-6 w-6"
-								/>
-								<span className="text-xl font-bold text-foreground">
-									JSandy
-								</span>
-							</Link>
-							<Button
-								variant="ghost"
-								size="icon"
-								onClick={() => setMobileMenuOpen(false)}
-								className="-m-2.5 rounded-md p-2.5"
-							>
-								<span className="sr-only">Close menu</span>
-								<X className="h-6 w-6" aria-hidden="true" />
-							</Button>
-						</div>
-						<div className="mt-6 flow-root">
-							<div className="-my-6 divide-y divide-border/10">
-								<div className="space-y-2 py-6">
-									{navigation.map((item) => (
-										<Link
-											key={item.name}
-											href={item.href}
-											className={cn(
-												"-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 transition-colors hover:bg-muted",
-												pathname === item.href
-													? "text-sand-600 dark:text-sand-400"
-													: "text-foreground",
-											)}
-											onClick={() => setMobileMenuOpen(false)}
-										>
-											{item.name}
-										</Link>
-									))}
-								</div>
-								<div className="py-6 flex gap-4">
-									<Button variant="ghost" size="icon" asChild>
-										<Link href="https://github.com/JacobDevelops/jsandy">
-											<Github className="h-4 w-4" />
-											<span className="sr-only">GitHub</span>
-										</Link>
-									</Button>
-									<ThemeToggle />
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			)}
 		</header>
 	);
 }
