@@ -82,7 +82,6 @@ export function Navigation() {
 							<Button
 								variant="ghost"
 								size="icon"
-								onClick={() => setMobileMenuOpen(true)}
 								className="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5"
 							>
 								<span className="sr-only">Open main menu</span>
@@ -140,7 +139,11 @@ export function Navigation() {
 												asChild
 												key={link.name}
 											>
-												<Link href={link.href}>
+												<Link
+													href={link.href}
+													target="_blank"
+													rel="noopener noreferrer"
+												>
 													<link.icon className="h-4 w-4" />
 													<span className="sr-only">{link.name}</span>
 												</Link>
@@ -172,7 +175,7 @@ export function Navigation() {
 				<div className="hidden lg:flex lg:flex-1 lg:justify-end lg:gap-x-4">
 					{socialLinks.map((link) => (
 						<Button variant="ghost" size="icon" key={link.name} asChild>
-							<Link href={link.href}>
+							<Link href={link.href} target="_blank" rel="noopener noreferrer">
 								<link.icon className="h-4 w-4" />
 								<span className="sr-only">{link.name}</span>
 							</Link>
