@@ -1,14 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import Image from "next/image";
-import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
-import { ThemeToggle } from "./theme-toggle";
 import { Button } from "@/components/ui/button";
-import { Menu } from "lucide-react";
-import { useEffect, useState } from "react";
-import { Icons } from "./icons";
 import {
 	Sheet,
 	SheetContent,
@@ -16,6 +8,14 @@ import {
 	SheetTitle,
 	SheetTrigger,
 } from "@/components/ui/sheet";
+import { cn } from "@/lib/utils";
+import { Menu } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
+import { Icons } from "./icons";
+import { ThemeToggle } from "./theme-toggle";
 
 const navigation = [
 	{ name: "Home", href: "/" },
@@ -41,17 +41,6 @@ const socialLinks = [
 export function Navigation() {
 	const pathname = usePathname();
 	const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-	useEffect(() => {
-		const handleEscape = (e: KeyboardEvent) => {
-			if (e.key === "Escape") setMobileMenuOpen(false);
-		};
-
-		if (mobileMenuOpen) {
-			document.addEventListener("keydown", handleEscape);
-			return () => document.removeEventListener("keydown", handleEscape);
-		}
-	}, [mobileMenuOpen]);
 
 	if (pathname.includes("/docs")) {
 		return null;
