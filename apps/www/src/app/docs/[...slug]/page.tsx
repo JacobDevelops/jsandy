@@ -7,6 +7,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { DetailedHTMLProps, HTMLAttributes } from "react";
+import { DocsPager } from "./pager";
 
 interface Heading {
 	level: number;
@@ -51,7 +52,7 @@ const Page = async ({ params }: PageProps) => {
 
 	return (
 		<ActiveSectionObserver headings={headings}>
-			<div className="pb-20 space-y-6">
+			<div className="space-y-6">
 				<MDXContent
 					components={{
 						Image: ({ src, alt, width, height }) => (
@@ -194,6 +195,7 @@ const Page = async ({ params }: PageProps) => {
 					code={document.mdx}
 					className="space-y-6"
 				/>
+				<DocsPager page={document} />
 			</div>
 		</ActiveSectionObserver>
 	);
