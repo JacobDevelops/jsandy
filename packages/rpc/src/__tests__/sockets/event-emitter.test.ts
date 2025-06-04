@@ -389,8 +389,7 @@ describe("EventEmitter", () => {
 			emitterNoSchema.handleEvent("test", undefined);
 
 			expect(handler).toHaveBeenCalledTimes(2);
-			expect(handler).toHaveBeenCalledWith(null);
-			expect(handler).toHaveBeenCalledWith(undefined);
+			expect(handler.mock.calls).toEqual([[null], [undefined]]);
 		});
 	});
 });

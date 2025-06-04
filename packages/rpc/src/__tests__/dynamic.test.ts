@@ -213,7 +213,7 @@ describe("Dynamic Router Loading", () => {
 	});
 
 	describe("Performance", () => {
-		it("should only load module when called", () => {
+		it("should only load module when called", async () => {
 			const mockImport = mock(async () => ({ default: testRouter }));
 
 			// Creating the dynamic router should not call the import
@@ -221,7 +221,7 @@ describe("Dynamic Router Loading", () => {
 			expect(mockImport).not.toHaveBeenCalled();
 
 			// Only when we call it should the import happen
-			dynamicRouter();
+			await dynamicRouter();
 			expect(mockImport).toHaveBeenCalled();
 		});
 

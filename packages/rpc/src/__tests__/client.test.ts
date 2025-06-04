@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, mock } from "bun:test";
+import { afterAll, beforeEach, describe, expect, it, mock } from "bun:test";
 import { HTTPException } from "hono/http-exception";
 import superjson from "superjson";
 import { createClient } from "../client";
@@ -6,9 +6,17 @@ import { Router } from "../router";
 import { Procedure } from "../procedure";
 import { z } from "zod/v4";
 
-// Mock global fetch
+const realFetch = global.fetch;
+const realWebSocket = global.WebSocket;
+
 const mockFetch = mock();
 global.fetch = mockFetch as any;
+
+// …WebSocket mock…
+afterAll(() => {
+	global.fetch = realFetch;
+	global.WebSocket = realWebSocket;
+});
 
 // Mock WebSocket for client tests
 global.WebSocket = class MockWebSocket {
@@ -159,7 +167,7 @@ describe("Client", () => {
 		});
 
 		it("should serialize query parameters with SuperJSON", () => {
-			const client = createClient<typeof testRouter>({
+			const _client = createClient<typeof testRouter>({
 				baseUrl: "https://api.example.com",
 			});
 
@@ -177,7 +185,7 @@ describe("Client", () => {
 		});
 
 		it("should serialize request body with SuperJSON", () => {
-			const client = createClient<typeof testRouter>({
+			const _client = createClient<typeof testRouter>({
 				baseUrl: "https://api.example.com",
 			});
 
@@ -264,7 +272,7 @@ describe("Client", () => {
 
 	describe("WebSocket connections", () => {
 		it("should create WebSocket connection", () => {
-			const client = createClient<typeof testRouter>({
+			const _client = createClient<typeof testRouter>({
 				baseUrl: "https://api.example.com",
 			});
 
@@ -338,7 +346,7 @@ describe("Client", () => {
 			};
 
 			// Test the error handling logic
-			const jfetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+			const jfetch = async (_input: RequestInfo | URL, _init?: RequestInit) => {
 				const res = mockResponse as any;
 
 				if (!res.ok) {
@@ -369,7 +377,7 @@ describe("Client", () => {
 							const routePath = [...path, prop];
 
 							if (prop === "$get") {
-								return async (...args: any[]) => {
+								return async (..._args: any[]) => {
 									// Mock GET request logic
 									return { data: "mocked" };
 								};
