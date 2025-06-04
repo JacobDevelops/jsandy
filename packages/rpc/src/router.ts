@@ -337,6 +337,7 @@ export class Router<
 	 * @returns True if the value is an operation type
 	 */
 	private isOperationType(value: any): value is OperationType<any, any, any> {
+		if (value === null) return false;
 		return (
 			value &&
 			typeof value === "object" &&
