@@ -52,7 +52,7 @@ const Page = async ({ params }: PageProps) => {
 
 	return (
 		<ActiveSectionObserver headings={headings}>
-			<div className="pb-20 space-y-6">
+			<div className="space-y-6">
 				<MDXContent
 					components={{
 						Image: ({ src, alt, width, height }) => (
