@@ -1,6 +1,6 @@
 import type { z } from "zod/v4";
-import type { Router } from "./router";
 import type { JSONSchema } from "zod/v4/core";
+import type { Router } from "./router";
 
 /**
  * Utility type that performs strict equality comparison between two types
@@ -90,8 +90,8 @@ export function extractRouterSchemas(router: Router): GroupedRoutes {
 
 	async function traverse(
 		currentRouter: Router | Promise<Router>,
+		currentPath: string,
 		targetGroup: GroupedRoutes,
-		currentPath = "",
 	) {
 		if (currentRouter instanceof Promise) {
 			// biome-ignore lint/style/noParameterAssign: We want it to be reset here
@@ -117,10 +117,7 @@ export function extractRouterSchemas(router: Router): GroupedRoutes {
 					groupPath += `/${segment}`;
 
 					if (!currentGroup[groupPath]) {
-						currentGroup[groupPath] = {
-							routes: [],
-							subGroups: {},
-						};
+						continue;
 					}
 					currentGroup = currentGroup[groupPath].subGroups;
 				}
@@ -147,11 +144,11 @@ export function extractRouterSchemas(router: Router): GroupedRoutes {
 				metadata.subRouters,
 			)) {
 				const newPath = `${currentPath}${routePath}`;
-				traverse(subRouter, targetGroup, newPath);
+				traverse(subRouter, newPath, targetGroup);
 			}
 		}
 	}
 
-	traverse(router, result);
+	traverse(router, "", result);
 	return result;
 }
