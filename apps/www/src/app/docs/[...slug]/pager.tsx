@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useDocNavigation } from "../doc-navigation";
 import { cn } from "@/lib/utils";
 
-export function flattenNestedDocs<T extends DocNav>(nestedArray: T[][]): T[] {
+function flattenNestedDocs<T extends DocNav>(nestedArray: T[][]): T[] {
 	return nestedArray.reduce((acc, curr) => acc.concat(curr), []);
 }
 

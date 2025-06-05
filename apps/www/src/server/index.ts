@@ -3,7 +3,7 @@ import { j } from "./jsandy";
 import { searchRouter } from "./routers/search-router";
 import { stargazersRouter } from "./routers/stargazers-router";
 
-export const api = j
+const api = j
 	.router()
 	.basePath("/api")
 	.use(j.defaults.cors)

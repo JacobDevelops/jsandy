@@ -1,11 +1,107 @@
 {
 	"$schema": "https://unpkg.com/knip@5/schema.json",
 	"workspaces": {
-		"packages/*": {
-			"entry": ["src/**/{index,cli}.ts"],
-			"project": ["**/*.ts, **/*.tsx"]
+		".": {
+			"entry": ["turbo.json"],
+			"project": ["**/*.{ts,tsx,js,jsx,json,md}"],
+			"ignore": [
+				"**/node_modules/**",
+				"**/dist/**",
+				"**/build/**",
+				"**/.next/**",
+				"**/.turbo/**",
+				"**/.content-collections/**",
+				"**/.open-next/**",
+				"**/.wrangler/**",
+				"**/coverage/**"
+			]
+		},
+		"apps/www": {
+			"entry": [
+				"src/app/**/{page,layout,loading,error,not-found,global-error,route,template,default}.{ts,tsx,js,jsx}",
+				"src/app/**/opengraph-image.{ts,tsx,js,jsx}",
+				"src/app/**/icon.{ts,tsx,js,jsx}",
+				"src/app/**/apple-icon.{ts,tsx,js,jsx}",
+				"src/app/**/twitter-image.{ts,tsx,js,jsx}",
+				"src/app/**/favicon.{ts,tsx,js,jsx}",
+				"src/app/**/sitemap.{ts,tsx,js,jsx}",
+				"src/app/**/robots.{ts,tsx,js,jsx}",
+				"src/app/**/manifest.{ts,tsx,js,jsx}",
+				"src/middleware.{ts,tsx,js,jsx}",
+				"src/instrumentation.{ts,tsx,js,jsx}",
+				"next.config.{ts,tsx,js,jsx,mjs}",
+				"tailwind.config.{ts,tsx,js,jsx}",
+				"postcss.config.{ts,tsx,js,jsx,mjs}",
+				"content-collections.ts"
+			],
+			"project": ["src/**/*.{ts,tsx,js,jsx}", "*.{ts,tsx,js,jsx,json}"],
+			"ignore": [
+				"node_modules/**",
+				".next/**",
+				".turbo/**",
+				".content-collections/**",
+				".open-next/**",
+				"dist/**",
+				"build/**",
+				"coverage/**"
+			]
+		},
+		"packages/rpc": {
+			"entry": ["src/index.ts", "src/**/*.test.ts"],
+			"project": ["src/**/*.{ts,tsx}", "*.{ts,js,json}"],
+			"ignore": ["node_modules/**", "dist/**", "coverage/**"]
+		},
+		"packages/cli": {
+			"entry": ["src/index.ts"],
+			"project": ["src/**/*.{ts,tsx}", "*.{ts,js,json}"],
+			"ignore": ["node_modules/**", "dist/**", "src/template/**"]
+		},
+		"packages/builder": {
+			"entry": ["src/index.ts"],
+			"project": ["src/**/*.{ts,tsx}", "*.{ts,js,json}"],
+			"ignore": ["node_modules/**", "dist/**"]
+		},
+		"packages/typescript-config": {
+			"entry": [],
+			"project": ["*.json"],
+			"ignore": ["node_modules/**"]
 		}
 	},
-	"ignore": ["**/node_modules/**", "**/dist/**", "**/gen/**"],
-	"ignoreDependencies": []
+	"ignore": [
+		"**/node_modules/**",
+		"**/ui/**",
+		"**/dist/**",
+		"**/build/**",
+		"**/.next/**",
+		"**/.turbo/**",
+		"**/.content-collections/**",
+		"**/.open-next/**",
+		"**/.wrangler/**",
+		"**/coverage/**",
+		"**/*.test.{ts,tsx,js,jsx}",
+		"**/*.d.ts",
+		"**/types/**",
+		"**/.env*",
+		"**/.dev.vars",
+		"**/public/**",
+		"**/static/**",
+		"**/*.md",
+		"**/*.mdx",
+		"**/LICENSE*",
+		"**/CHANGELOG*",
+		"**/README*",
+		"**/.git*",
+		"**/.husky/**",
+		"**/.vscode/**",
+		"**/bun.lockb",
+		"**/package-lock.json",
+		"**/yarn.lock",
+		"**/pnpm-lock.yaml"
+	],
+	"ignoreDependencies": ["@commitlint/*"],
+	"compilerOptions": {
+		"skipLibCheck": true,
+		"allowSyntheticDefaultImports": true,
+		"esModuleInterop": true
+	}
 }

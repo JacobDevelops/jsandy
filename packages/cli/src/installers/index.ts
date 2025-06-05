@@ -8,13 +8,10 @@ import { planetscaleInstaller } from "./planetscale";
 
 // Turning this into a const allows the list to be iterated over for programmatically creating prompt options
 // Should increase extensibility in the future
-export const orms = ["none", "drizzle"] as const;
-export type Orm = (typeof orms)[number];
+const orms = ["none", "drizzle"] as const;
+type Orm = (typeof orms)[number];
 
-export const dialects = ["postgres"] as const;
-export type Dialect = (typeof dialects)[number];
-
-export const providers = [
+const providers = [
 	"postgres",
 	"neon",
 	"vercel-postgres",

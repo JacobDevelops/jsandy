@@ -2,7 +2,7 @@ import { intro, isCancel, outro, select, text } from "@clack/prompts";
 import color from "picocolors";
 import { getUserPkgManager } from "@/utils/get-user-pkg-manager";
 
-export interface CliResults {
+interface CliResults {
 	projectName: string;
 	orm: "none" | "drizzle" | undefined;
 	dialect?: "postgres" | undefined;
@@ -14,9 +14,6 @@ export interface CliResults {
 		| undefined;
 	noInstall?: boolean;
 }
-
-export type Dialect = CliResults["dialect"];
-export type Orm = CliResults["orm"];
 
 export async function runCli(): Promise<CliResults | undefined> {
 	console.clear();

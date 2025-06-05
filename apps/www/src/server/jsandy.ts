@@ -50,5 +50,5 @@ export const vectorMiddleware = j.middleware(async ({ c, next }) => {
  *
  * This is the base piece you use to build new queries and mutations on your API.
  */
-export const baseProcedure = j.procedure;
+const baseProcedure = j.procedure;
 export const publicProcedure = baseProcedure.use(redisMiddleware);

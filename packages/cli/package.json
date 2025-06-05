@@ -27,7 +27,6 @@
 	"devDependencies": {
 		"@types/fs-extra": "^11.0.4",
 		"@types/node": "^22.15.29",
-		"drizzle-kit": "^0.30.6",
 		"type-fest": "^4.41.0"
 	},
 	"peerDependencies": {
@@ -38,8 +37,6 @@
 		"chalk": "^5.4.1",
 		"execa": "^9.6.0",
 		"fs-extra": "^11.3.0",
-		"hono": "^4.7.11",
-		"@jsandy/rpc": "1.1.1",
 		"ora": "^8.2.0",
 		"sort-package-json": "^2.15.1"
 	}

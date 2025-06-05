@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import type React from "react";
 
-export interface ShinyButtonProps
+interface ShinyButtonProps
 	extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
 	href: string;
 	loading?: boolean; // Prop exists but not used in current JSX
