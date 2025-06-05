@@ -1,48 +1,42 @@
-import { beforeEach, describe, expect, it, mock, spyOn } from "bun:test";
-import { Hono } from "hono";
+import { describe, expect, it, mock, spyOn } from "bun:test";
 import { mergeRouters } from "../merge-routers";
 import { Router } from "../router";
-import { Procedure } from "../procedure";
 import { z } from "zod/v4";
-import { extractRouterSchemas } from "@/schemas";
+import { jsandy } from "..";
+
+const j = jsandy.init();
+const procedure = j.procedure;
+
+const userRouter = j.router({
+	getUser: procedure
+		.input(z.object({ id: z.string() }))
+		.get(({ input, c }) => c.json({ id: input.id, name: "Test User" })),
+	createUser: procedure
+		.input(z.object({ name: z.string(), email: z.string() }))
+		.post(({ input, c }) => c.json({ id: "123", ...input })),
+});
+
+const postRouter = j.router({
+	getPosts: procedure.get(({ c }) => c.json({ posts: [] })),
+	createPost: procedure
+		.input(z.object({ title: z.string(), content: z.string() }))
+		.post(({ input, c }) => c.json({ id: "456", ...input })),
+});
+
+const adminRouter = j.router({
+	getStats: procedure.get(({ c }) => c.json({ users: 100, posts: 50 })),
+	deleteUser: procedure
+		.input(z.object({ id: z.string() }))
+		.post(({ input, c }) => c.json({ deleted: input.id })),
+});
+
+const api = j
+	.router()
+	.basePath("/api")
+	.use(j.defaults.cors)
+	.onError(j.defaults.errorHandler);
 
 describe("Router Merging", () => {
-	let api: Hono;
-	let procedure: Procedure;
-	let userRouter: Router;
-	let postRouter: Router;
-	let adminRouter: Router;
-
-	beforeEach(() => {
-		api = new Hono();
-		procedure = new Procedure();
-
-		userRouter = new Router({
-			getUser: procedure
-				.input(z.object({ id: z.string() }))
-				.get(({ input, c }) => c.json({ id: input.id, name: "Test User" })),
-			createUser: procedure
-				.input(z.object({ name: z.string(), email: z.string() }))
-				.post(({ input, c }) => c.json({ id: "123", ...input })),
-		});
-
-		postRouter = new Router({
-			getPosts: procedure.get(({ c }) => c.json({ posts: [] })),
-			createPost: procedure
-				.input(z.object({ title: z.string(), content: z.string() }))
-				.post(({ input, c }) => c.json({ id: "456", ...input })),
-		});
-
-		adminRouter = new Router({
-			getStats: procedure.get(({ c }) => c.json({ users: 100, posts: 50 })),
-			deleteUser: procedure
-				.input(z.object({ id: z.string() }))
-				.post(({ input, c }) => c.json({ deleted: input.id })),
-		});
-
-		mock.restore();
-	});
-
 	describe("mergeRouters", () => {
 		it("should merge static routers", () => {
 			const merged = mergeRouters(api, {
@@ -106,7 +100,6 @@ describe("Router Merging", () => {
 			expect(merged._metadata.config).toBeDefined();
 			expect(merged._metadata.procedures).toBeDefined();
 			expect(merged._metadata.registeredPaths).toBeDefined();
-			console.log(JSON.stringify(extractRouterSchemas(merged), null, 2));
 		});
 
 		it("should register sub-router middleware", () => {
