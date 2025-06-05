@@ -16,7 +16,7 @@
     },
     "apps/www": {
       "name": "www",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "dependencies": {
         "@jsandy/rpc": "1.1.0",
         "@opennextjs/cloudflare": "^1.1.0",
@@ -73,7 +73,7 @@
     },
     "packages/cli": {
       "name": "create-jsandy-app",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "bin": {
         "create-jsandy-app": "dist/index.js",
       },
@@ -99,7 +99,7 @@
     },
     "packages/rpc": {
       "name": "@jsandy/rpc",
-      "version": "1.1.0",
+      "version": "1.1.1",
       "dependencies": {
         "superjson": "^2.2.2",
       },

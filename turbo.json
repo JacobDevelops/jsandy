@@ -18,7 +18,7 @@
 			"outputs": [".next/**", "!.next/cache/**", "dist/**"]
 		},
 		"check-types": {
-			"dependsOn": ["^build"]
+			"dependsOn": ["^check-types"]
 		},
 		"clean": {
 			"dependsOn": ["^clean"]

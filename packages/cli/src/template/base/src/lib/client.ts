@@ -1,5 +1,5 @@
 import type { AppRouter } from "@/server";
-import { createClient } from "jsandy";
+import { createClient } from "@jsandy/rpc";
 
 /**
  * Your type-safe API client
