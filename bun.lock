@@ -113,6 +113,15 @@
         "zod": "^3.25.42",
       },
     },
+    "packages/rpc-client": {
+      "name": "@jsandy/rpc-client",
+      "devDependencies": {
+        "@types/bun": "latest",
+      },
+      "peerDependencies": {
+        "typescript": "^5",
+      },
+    },
     "packages/typescript-config": {
       "name": "@jsandy/typescript-config",
       "version": "1.0.0",
@@ -503,6 +512,8 @@
     "@jsandy/builder": ["@jsandy/builder@workspace:packages/builder"],
 
     "@jsandy/rpc": ["@jsandy/rpc@workspace:packages/rpc"],
+
+    "@jsandy/rpc-client": ["@jsandy/rpc-client@workspace:packages/rpc-client"],
 
     "@jsandy/typescript-config": ["@jsandy/typescript-config@workspace:packages/typescript-config"],
 

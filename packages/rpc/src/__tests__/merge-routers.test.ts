@@ -4,6 +4,7 @@ import { mergeRouters } from "../merge-routers";
 import { Router } from "../router";
 import { Procedure } from "../procedure";
 import { z } from "zod/v4";
+import { extractRouterSchemas } from "@/schemas";
 
 describe("Router Merging", () => {
 	let api: Hono;
@@ -105,6 +106,7 @@ describe("Router Merging", () => {
 			expect(merged._metadata.config).toBeDefined();
 			expect(merged._metadata.procedures).toBeDefined();
 			expect(merged._metadata.registeredPaths).toBeDefined();
+			console.log(JSON.stringify(extractRouterSchemas(merged), null, 2));
 		});
 
 		it("should register sub-router middleware", () => {

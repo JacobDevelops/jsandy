@@ -3,7 +3,16 @@ import { IO } from "../../sockets/io";
 
 // Mock fetch for Redis API calls
 const mockFetch = mock();
+const mockLogger = {
+	info: mock(),
+	error: mock(),
+	debug: mock(),
+	warn: mock(),
+	success: mock(),
+	log: mock(),
+};
 global.fetch = mockFetch as any;
+global.console = mockLogger as any;
 
 describe("IO", () => {
 	let io: IO<any, any>;
@@ -13,6 +22,11 @@ describe("IO", () => {
 	beforeEach(() => {
 		io = new IO(mockRedisUrl, mockRedisToken);
 		mockFetch.mockClear();
+		mockLogger.info.mockClear();
+		mockLogger.error.mockClear();
+		mockLogger.debug.mockClear();
+		mockLogger.warn.mockClear();
+		mockLogger.success.mockClear();
 		mock.restore();
 	});
 
