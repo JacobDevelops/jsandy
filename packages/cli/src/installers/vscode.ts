@@ -139,7 +139,6 @@ function createVSCodeExtensions(linter: string, orm: string) {
 
 		// Next.js/React specific
 		"ms-vscode.vscode-json",
-		"christian-kohler.path-intellisense",
 		"formulahendry.auto-rename-tag",
 		"ms-vscode.vscode-react-native",
 
@@ -150,7 +149,6 @@ function createVSCodeExtensions(linter: string, orm: string) {
 		// Productivity & Code Quality
 		"streetsidesoftware.code-spell-checker",
 		"usernamehw.errorlens",
-		"oderwat.indent-rainbow",
 		"wix.vscode-import-cost",
 		"christian-kohler.npm-intellisense",
 
