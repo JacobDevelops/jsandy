@@ -14,7 +14,6 @@ export const BASE_PACKAGE_JSON: PackageJson = {
 		"@tailwindcss/postcss": dependencyVersionMap["@tailwindcss/postcss"],
 		"@tanstack/react-query": dependencyVersionMap["@tanstack/react-query"],
 		clsx: dependencyVersionMap.clsx,
-		"drizzle-orm": dependencyVersionMap["drizzle-orm"],
 		hono: dependencyVersionMap.hono,
 		"@jsandy/rpc": dependencyVersionMap["@jsandy/rpc"],
 		next: dependencyVersionMap.next,

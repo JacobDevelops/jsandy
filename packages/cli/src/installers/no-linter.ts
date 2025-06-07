@@ -10,7 +10,7 @@ export const noLinterInstaller: Installer = ({ projectDir }) => {
 		devDependencies: true,
 	});
 
-	fs.writeFile(
+	fs.writeFileSync(
 		path.join(projectDir, "prettier.config.ts"),
 		`import type { Config } from "prettier";
 import type { PluginOptions } from "prettier-plugin-tailwindcss";

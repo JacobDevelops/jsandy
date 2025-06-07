@@ -43,15 +43,21 @@ export const installBaseTemplate = async ({
 		await fs.createFile(path.join(projectDir, "package.json"));
 	}
 
+	const packageJson = { ...BASE_PACKAGE_JSON };
 	if (projectName !== ".") {
-		BASE_PACKAGE_JSON.name = projectName.includes("/")
+		packageJson.name = projectName.includes("/")
 			? projectName.split("/").pop()
 			: projectName;
 	}
 
-	fs.copySync(srcDir, projectDir);
-	fs.writeJSONSync(path.join(projectDir, "package.json"), BASE_PACKAGE_JSON);
-	fs.writeFileSync(path.join(projectDir, ".gitignore"), GITIGNORE_CONTENTS);
+	try {
+		fs.copySync(srcDir, projectDir);
+		fs.writeJSONSync(path.join(projectDir, "package.json"), BASE_PACKAGE_JSON);
+		fs.writeFileSync(path.join(projectDir, ".gitignore"), GITIGNORE_CONTENTS);
+	} catch (error) {
+		spinner.fail(`Failed to create project files: ${(error as Error).message}`);
+		throw error;
+	}
 
 	const scaffoldedName =
 		projectName === "." ? "App" : chalk.cyan.bold(projectName);

@@ -10,14 +10,14 @@ export const biomeInstaller: Installer = ({ projectDir }) => {
 		devDependencies: true,
 	});
 
-	fs.writeFile(
+	fs.writeFileSync(
 		path.join(projectDir, "biome.json"),
 		JSON.stringify(BIOME_CONFIG, null, 2),
 	);
 };
 
 const BIOME_CONFIG = {
-	$schema: "https://biomejs.dev/schemas/1.9.4/schema.json",
+	$schema: "https://biomejs.dev/schemas/1.9.4/schema.json", // TODO: Consider using dynamic version
 	vcs: {
 		enabled: false,
 		clientKind: "git",

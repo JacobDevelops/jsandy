@@ -48,14 +48,14 @@ export const installPackages = (options: InstallPackagesOptions) => {
 	// Handle linter installers
 	for (const [name, pkgOpts] of Object.entries(installers.linter)) {
 		if (pkgOpts.inUse) {
-			const spinner = ora(`Boilerplating provider: ${name}...`).start();
+			const spinner = ora(`Boilerplating linter: ${name}...`).start();
 			try {
 				pkgOpts.installer(options);
 				spinner.succeed(
 					`Successfully setup boilerplate for linter: ${chalk.green.bold(name)}`,
 				);
 			} catch (error) {
-				spinner.fail(`Failed to setup provider: ${name}`);
+				spinner.fail(`Failed to setup linter: ${name}`);
 				logger.error(`Error installing ${name}:`, error);
 				throw error; // Re-throw to halt the process
 			}
