@@ -1,4 +1,4 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+export const GITIGNORE_CONTENTS = `# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
 /node_modules
@@ -40,4 +40,4 @@ yarn-error.log*
 next-env.d.ts
 
 # wrangler
-.wrangler
+.wrangler`;

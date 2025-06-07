@@ -3,9 +3,9 @@ import * as p from "@clack/prompts";
 import chalk from "chalk";
 import fs from "fs-extra";
 import ora, { type Ora } from "ora";
-import { PKG_ROOT } from "@/constants";
 import type { InstallerOptions } from "@/installers/index";
 import { logger } from "@/utils/logger";
+import { BASE_PACKAGE_JSON, GITIGNORE_CONTENTS, PKG_ROOT } from "@/constants";
 
 // This bootstraps the base Next.js application
 export const installBaseTemplate = async ({
@@ -14,16 +14,7 @@ export const installBaseTemplate = async ({
 	pkgManager,
 	noInstall,
 }: InstallerOptions) => {
-	const srcDir = path.join(PKG_ROOT, "src/template/base");
-	const baseAssetsDir = path.join(PKG_ROOT, "src/template/base-assets");
-
-	// Validate source directories exist
-	if (!fs.existsSync(srcDir) || !fs.existsSync(baseAssetsDir)) {
-		throw new Error(
-			"Template source directories not found. Please ensure the CLI package is properly installed.",
-		);
-	}
-
+	const srcDir = path.join(PKG_ROOT, "template/base");
 	if (!noInstall) {
 		logger.info(`\nUsing: ${chalk.cyan.bold(pkgManager)}\n`);
 	} else {
@@ -48,17 +39,25 @@ export const installBaseTemplate = async ({
 
 	spinner.start();
 
-	await fs.copy(srcDir, projectDir);
+	if (!fs.existsSync(path.join(projectDir, "package.json"))) {
+		await fs.createFile(path.join(projectDir, "package.json"));
+	}
 
-	// use package.json from base-assets instead of template/base
-	await fs.remove(path.join(projectDir, "package.json"));
-	const packageJsonPath = path.join(baseAssetsDir, "base-package.json");
-	await fs.copy(packageJsonPath, path.join(projectDir, "package.json"));
+	const packageJson = { ...BASE_PACKAGE_JSON };
+	if (projectName !== ".") {
+		packageJson.name = projectName.includes("/")
+			? projectName.split("/").pop()
+			: projectName;
+	}
 
-	await fs.rename(
-		path.join(projectDir, "_gitignore"),
-		path.join(projectDir, ".gitignore"),
-	);
+	try {
+		fs.copySync(srcDir, projectDir);
+		fs.writeJSONSync(path.join(projectDir, "package.json"), BASE_PACKAGE_JSON);
+		fs.writeFileSync(path.join(projectDir, ".gitignore"), GITIGNORE_CONTENTS);
+	} catch (error) {
+		spinner.fail(`Failed to create project files: ${(error as Error).message}`);
+		throw error;
+	}
 
 	const scaffoldedName =
 		projectName === "." ? "App" : chalk.cyan.bold(projectName);

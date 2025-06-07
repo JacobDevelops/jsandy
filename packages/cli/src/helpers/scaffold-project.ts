@@ -3,17 +3,20 @@ import { getUserPkgManager } from "@/utils/get-user-pkg-manager";
 import path from "node:path";
 import { installBaseTemplate } from "./install-base-template";
 import { installPackages } from "./install-packages";
+import type { Linter } from "@/cli";
 
 interface ScaffoldProjectOptions {
 	projectName: string;
 	installers: InstallerMap;
 	databaseProvider: Provider;
+	linter: Linter;
 }
 
 export const scaffoldProject = async ({
 	databaseProvider,
 	projectName,
 	installers,
+	linter,
 }: ScaffoldProjectOptions) => {
 	const projectDir = path.resolve(process.cwd(), projectName);
 	const pkgManager = getUserPkgManager();
@@ -25,6 +28,7 @@ export const scaffoldProject = async ({
 		installers,
 		projectName,
 		databaseProvider,
+		linter,
 	});
 
 	installPackages({
@@ -34,6 +38,7 @@ export const scaffoldProject = async ({
 		installers,
 		projectName,
 		databaseProvider,
+		linter,
 	});
 
 	return projectDir;
