@@ -321,7 +321,7 @@ function convertZodToOpenAPI(
 		}
 		let jsonSchema: JSONSchema.BaseSchema;
 		if (!("$schema" in zodSchema)) {
-			jsonSchema = toJSONSchema(zodSchema as ZodType);
+			jsonSchema = toJSONSchemaWithDate(zodSchema as ZodType);
 		} else {
 			jsonSchema = zodSchema as JSONSchema.BaseSchema;
 		}
@@ -471,7 +471,10 @@ function createQueryParameters(
 		([name, propSchema]: [string, any]) => ({
 			name,
 			in: "query",
-			required: schema.required?.includes(name) || false,
+			required:
+				Array.isArray(schema.required) &&
+				schema.required.includes(name) &&
+				!propSchema.default,
 			schema: propSchema,
 			description: propSchema.description,
 		}),
@@ -587,4 +590,36 @@ function getReusableSchema(
 	}
 	// biome-ignore lint/style/noNonNullAssertion: We just checked that schemaRef is not null
 	return schemas.get(schemaRef.split("/").pop()!);
+}
+
+/**
+ * Converts a Zod schema to JSON Schema, automatically converting z.date()
+ * instances to ISO datetime string format instead of throwing an error.
+ *
+ * @param schema - The Zod schema to convert
+ * @param options - Additional options to pass to z.toJSONSchema (optional)
+ * @returns JSON Schema representation with dates as datetime strings
+ */
+export function toJSONSchemaWithDate<T extends ZodType>(
+	schema: T,
+	options?: Omit<
+		Parameters<typeof toJSONSchema>[1],
+		"unrepresentable" | "override"
+	>,
+) {
+	return toJSONSchema(schema, {
+		...options,
+		unrepresentable: "any", // Allow unrepresentable types to be processed
+		override: (ctx) => {
+			// Check if this is a date type
+			const def = ctx.zodSchema._zod?.def;
+			if (def.type === "date") {
+				// Convert z.date() to ISO datetime string format
+				ctx.jsonSchema.type = "string";
+				ctx.jsonSchema.format = "date-time";
+				// biome-ignore lint/performance/noDelete: We need to delete the additionalProperties property
+				delete ctx.jsonSchema.additionalProperties; // Clean up any unwanted properties
+			}
+		},
+	});
 }

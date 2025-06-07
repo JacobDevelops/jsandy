@@ -3,9 +3,10 @@ import { env } from "hono/adapter";
 import { HTTPException } from "hono/http-exception";
 import type { Env, ErrorHandler, MiddlewareHandler } from "hono/types";
 import type { StatusCode } from "hono/utils/http-status";
-import { ZodObject, toJSONSchema, z } from "zod/v4";
+import { ZodObject, z } from "zod/v4";
 import type { JSONSchema } from "zod/v4/core";
 import { bodyParsingMiddleware, queryParsingMiddleware } from "./middleware";
+import { toJSONSchemaWithDate } from "./openapi";
 import type { ProcedureDescription } from "./procedure";
 import { IO, ServerSocket } from "./sockets";
 import { logger } from "./sockets/logger";
@@ -252,10 +253,10 @@ export class Router<
 					type: "ws",
 					schema: {
 						incoming: procData.incoming
-							? toJSONSchema(procData.incoming)
+							? toJSONSchemaWithDate(procData.incoming)
 							: null,
 						outgoing: procData.outgoing
-							? toJSONSchema(procData.outgoing)
+							? toJSONSchemaWithDate(procData.outgoing)
 							: null,
 					},
 				} satisfies WSProcedureMetadata;
@@ -263,7 +264,9 @@ export class Router<
 				// Handle GET/POST operations
 				this._metadata.procedures[procName] = {
 					type: procData.type,
-					schema: procData.schema ? toJSONSchema(procData.schema) : null,
+					schema: procData.schema
+						? toJSONSchemaWithDate(procData.schema)
+						: null,
 				} satisfies GetPostProcedureMetadata;
 			}
 		}
@@ -397,10 +400,10 @@ export class Router<
 					type: "ws",
 					schema: {
 						incoming: wsOperation.incoming
-							? toJSONSchema(wsOperation.incoming)
+							? toJSONSchemaWithDate(wsOperation.incoming)
 							: null,
 						outgoing: wsOperation.outgoing
-							? toJSONSchema(wsOperation.outgoing)
+							? toJSONSchemaWithDate(wsOperation.outgoing)
 							: null,
 					},
 				} satisfies WSProcedureMetadata;
@@ -410,7 +413,7 @@ export class Router<
 					type: operation.type, // TypeScript knows this is "get" | "post"
 					schema:
 						operation.schema instanceof ZodObject
-							? toJSONSchema(operation.schema)
+							? toJSONSchemaWithDate(operation.schema)
 							: null,
 				} satisfies GetPostProcedureMetadata;
 			}

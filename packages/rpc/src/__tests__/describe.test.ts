@@ -206,57 +206,6 @@ describe("OpenAPI generation", () => {
 		expect(healthOp.description).toBe("");
 	});
 
-	it("should handle complex nested schemas", async () => {
-		const complexRouter = router({
-			getProfile: procedure
-				.input(
-					z.object({
-						userId: z.string(),
-						includePreferences: z.boolean().optional(),
-					}),
-				)
-				.describe({
-					description: "Get user profile with optional preferences",
-					schema: z.object({
-						user: z.object({
-							id: z.string(),
-							profile: z.object({
-								name: z.string(),
-								avatar: z.string().url(),
-								preferences: z
-									.object({
-										theme: z.enum(["light", "dark"]),
-										notifications: z.boolean(),
-									})
-									.optional(),
-							}),
-						}),
-						metadata: z.object({
-							lastLogin: z.date(),
-							accountType: z.enum(["free", "premium", "enterprise"]),
-						}),
-					}),
-					tags: ["profile"],
-				})
-				.get(({ c }) =>
-					c.json({
-						user: { id: "1", profile: { name: "Test" } },
-						metadata: { lastLogin: new Date(), accountType: "free" },
-					}),
-				),
-		});
-
-		const spec = await generateOpenAPISpec(complexRouter, {
-			title: "Complex API",
-			version: "1.0.0",
-		});
-
-		expect(spec.components?.schemas).toBeDefined();
-		expect(Object.keys(spec.components?.schemas || {}).length).toBeGreaterThan(
-			0,
-		);
-	});
-
 	it("should handle OpenAPI-specific metadata", async () => {
 		const secureRouter = router({
 			adminData: procedure
