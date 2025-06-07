@@ -1,4 +1,4 @@
-import { toJSONSchema } from "zod/v4";
+import { type ZodType, toJSONSchema } from "zod/v4";
 import type { JSONSchema } from "zod/v4/core";
 import type { ProcedureDescription } from "./procedure";
 import type { Router } from "./router";
@@ -311,21 +311,24 @@ function createOperationSpec(
  * Converts a Zod schema to OpenAPI JSON Schema format
  */
 function convertZodToOpenAPI(
-	zodSchema: ZodAny,
+	zodSchema: ZodAny | JSONSchema.BaseSchema,
 	schemas: Map<string, any>,
 ): JSONSchema.BaseSchema {
 	try {
 		// We cannot convert zod v3 schemas to openapi, so we return an empty object
-		if (!("_zod" in zodSchema)) {
+		if (!("_zod" in zodSchema) && !("$schema" in zodSchema)) {
 			return { type: "object" };
 		}
-		const jsonSchema = toJSONSchema(zodSchema);
-
-		// Generate a schema name if it has a title or generate one
-		const schemaName = jsonSchema.title || `Schema_${schemas.size + 1}`;
+		let jsonSchema: JSONSchema.BaseSchema;
+		if (!("$schema" in zodSchema)) {
+			jsonSchema = toJSONSchema(zodSchema as ZodType);
+		} else {
+			jsonSchema = zodSchema as JSONSchema.BaseSchema;
+		}
 
 		// Store reusable schemas in components
-		if (jsonSchema.type === "object" && jsonSchema.properties) {
+		const schemaName = jsonSchema.title;
+		if (schemaName && jsonSchema.type === "object" && jsonSchema.properties) {
 			schemas.set(schemaName, jsonSchema);
 			return { $ref: `#/components/schemas/${schemaName}` };
 		}
@@ -340,7 +343,7 @@ function convertZodToOpenAPI(
 /**
  * Creates OpenAPI query parameters from a JSON schema
  */
-function createQueryParameters(schema: any): any[] {
+function createQueryParameters(schema: JSONSchema.BaseSchema): any[] {
 	if (!schema.properties) {
 		return [];
 	}
@@ -349,7 +352,12 @@ function createQueryParameters(schema: any): any[] {
 		([name, propSchema]: [string, any]) => ({
 			name,
 			in: "query",
-			required: schema.required?.includes(name) || false,
+			required:
+				(Array.isArray(schema.required) &&
+					schema.required.includes(name) &&
+					// Zod Schemas don't realize that values with defaults aren't required
+					!propSchema.default) ||
+				false,
 			schema: propSchema,
 			description: propSchema.description,
 		}),
