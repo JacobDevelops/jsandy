@@ -4,6 +4,7 @@ import type { StatusCode } from "hono/utils/http-status";
 import type superjson from "superjson";
 import type { z as zV3 } from "zod";
 import type { z as zV4 } from "zod/v4";
+import type { ProcedureDescription } from "./procedure";
 import type { IO, ServerSocket } from "./sockets";
 
 /**
@@ -162,6 +163,8 @@ export type WebSocketOperation<
 	}) => OptionalPromise<WebSocketHandler<IncomingSchema, OutgoingSchema>>;
 	/** Array of middleware functions to apply */
 	middlewares: MiddlewareFunction<any, any, E>[];
+	/** Optional description metadata for OpenAPI documentation */
+	description?: ProcedureDescription;
 };
 
 /**
@@ -218,6 +221,8 @@ export type GetOperation<
 	}) => UnwrapResponse<OptionalPromise<Return>>;
 	/** Array of middleware functions to apply */
 	middlewares: MiddlewareFunction<any, any, E>[];
+	/** Optional description metadata for OpenAPI documentation */
+	description?: ProcedureDescription;
 };
 
 /**
@@ -250,6 +255,8 @@ export type PostOperation<
 	}) => UnwrapResponse<OptionalPromise<Return>>;
 	/** Array of middleware functions to apply */
 	middlewares: MiddlewareFunction<any, any, E>[];
+	/** Optional description metadata for OpenAPI documentation */
+	description?: ProcedureDescription;
 };
 
 /**

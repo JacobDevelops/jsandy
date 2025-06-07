@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, mock, spyOn } from "bun:test";
-import { mergeRouters } from "../merge-routers";
-import { Router } from "../router";
+import type { Hono } from "hono";
 import { z } from "zod/v4";
 import { jsandy } from "..";
-import type { Hono } from "hono";
+import { mergeRouters } from "../merge-routers";
+import { Router } from "../router";
 
 const j = jsandy.init();
 const procedure = j.procedure;
