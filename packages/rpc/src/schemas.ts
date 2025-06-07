@@ -1,4 +1,6 @@
 import type { z } from "zod/v4";
+import type { JSONSchema } from "zod/v4/core";
+import type { Router } from "./router";
 
 /**
  * Utility type that performs strict equality comparison between two types
@@ -69,4 +71,86 @@ export function createEnumSchema<T extends string>() {
 		 */
 		schema: z.ZodEnum<U>,
 	): z.ZodEnum<U> => schema;
+}
+
+interface GroupedRoute {
+	path: string;
+	schema: JSONSchema.BaseSchema | null;
+}
+
+interface GroupedRoutes {
+	[groupPath: string]: {
+		routes: GroupedRoute[];
+		subGroups: GroupedRoutes;
+	};
+}
+
+export async function extractRouterSchemas(
+	router: Router,
+): Promise<GroupedRoutes> {
+	const result: GroupedRoutes = {};
+
+	async function traverse(
+		currentRouter: Router | Promise<Router>,
+		currentPath: string,
+		targetGroup: GroupedRoutes,
+	) {
+		if (currentRouter instanceof Promise) {
+			// biome-ignore lint/style/noParameterAssign: We want it to be reset here
+			currentRouter = await currentRouter;
+		}
+		const metadata = currentRouter._metadata;
+
+		// Process procedures at current level
+		if (metadata.procedures) {
+			for (const [procedureName, procedure] of Object.entries(
+				metadata.procedures,
+			)) {
+				const fullPath = `${currentPath}/${procedureName}`;
+				const pathParts = fullPath.split("/").filter(Boolean);
+
+				// Create nested group structure
+				let currentGroup = targetGroup;
+				let groupPath = "";
+
+				// Create groups for each path segment except the last (which is the procedure)
+				for (let i = 0; i < pathParts.length - 1; i++) {
+					const segment = pathParts[i];
+					groupPath += `/${segment}`;
+
+					if (!currentGroup[groupPath]) {
+						currentGroup[groupPath] = { routes: [], subGroups: {} };
+					}
+					currentGroup = currentGroup[groupPath].subGroups;
+				}
+
+				// Add the route to the appropriate group
+				const routeGroupPath = groupPath || "/";
+				if (!targetGroup[routeGroupPath]) {
+					targetGroup[routeGroupPath] = {
+						routes: [],
+						subGroups: {},
+					};
+				}
+
+				targetGroup[routeGroupPath].routes.push({
+					path: fullPath,
+					schema: procedure.schema,
+				});
+			}
+		}
+
+		// Recursively process sub-routers
+		if (metadata.subRouters) {
+			for (const [routePath, subRouter] of Object.entries(
+				metadata.subRouters,
+			)) {
+				const newPath = `${currentPath}${routePath}`;
+				await traverse(subRouter, newPath, targetGroup);
+			}
+		}
+	}
+
+	await traverse(router, "", result);
+	return result;
 }
