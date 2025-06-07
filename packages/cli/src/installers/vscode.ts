@@ -7,18 +7,18 @@ export const vscodeInstaller: Installer = ({
 	linter,
 	databaseProvider,
 }) => {
-	const orm = databaseProvider !== undefined ? databaseProvider : "none";
+	const dbProvider = databaseProvider !== undefined ? databaseProvider : "none";
 	const vscodeDir = path.join(projectDir, ".vscode");
 	fs.ensureDirSync(vscodeDir);
 
 	// Create settings.json
-	const settings = createVSCodeSettings(linter, orm);
+	const settings = createVSCodeSettings(linter, dbProvider);
 	fs.writeJSONSync(path.join(vscodeDir, "settings.json"), settings, {
 		spaces: 2,
 	});
 
 	// Create extensions.json
-	const extensions = createVSCodeExtensions(linter, orm);
+	const extensions = createVSCodeExtensions(linter, dbProvider);
 	fs.writeJSONSync(path.join(vscodeDir, "extensions.json"), extensions, {
 		spaces: 2,
 	});
