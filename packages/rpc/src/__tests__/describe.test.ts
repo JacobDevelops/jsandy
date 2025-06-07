@@ -328,6 +328,105 @@ describe("OpenAPI generation", () => {
 			createOp.requestBody.content["application/json"].schema,
 		).toBeDefined();
 	});
+
+	it("should handle objects in a merged router", async () => {
+		const j = jsandy.init();
+
+		const userRouter = j.router({
+			get: procedure
+				.describe({
+					description: "Get user",
+					tags: ["users"],
+					schema: z.object({
+						id: z.string(),
+						name: z.string(),
+						email: z.string(),
+					}),
+				})
+				.input(z.object({ id: z.string() }))
+				.get(({ c }) => c.json({ user: "data" })),
+			create: procedure
+				.describe({
+					description: "Create user",
+					tags: ["users"],
+					schema: z.object({
+						name: z.string(),
+						email: z.string(),
+					}),
+				})
+				.input(
+					z.object({
+						name: z.string(),
+						email: z.string(),
+					}),
+				)
+				.post(({ c }) => c.json({ user: "data" })),
+		});
+
+		const postRouter = j.router({
+			get: procedure
+				.describe({
+					description: "Get post",
+					tags: ["posts"],
+					schema: z.object({
+						id: z.string(),
+						title: z.string(),
+						content: z.string(),
+					}),
+				})
+				.get(({ c }) => c.json({ post: "data" })),
+			create: procedure
+				.describe({
+					description: "Create post",
+					tags: ["posts"],
+					schema: z.object({
+						id: z.string(),
+						title: z.string(),
+						content: z.string(),
+					}),
+				})
+				.input(
+					z.object({
+						title: z.string(),
+						content: z.string(),
+					}),
+				)
+				.post(({ c }) => c.json({ post: "data" })),
+		});
+
+		const api = j
+			.router()
+			.basePath("/api")
+			.use(j.defaults.cors)
+			.onError(j.defaults.errorHandler);
+
+		const merged = j.mergeRouters(api, {
+			users: userRouter,
+			posts: postRouter,
+		});
+
+		const spec = await generateOpenAPISpec(merged, {
+			title: "Blog API",
+			version: "1.0.0",
+		});
+
+		expect(spec.paths["/api/users/get"]).toBeDefined();
+		expect(spec.paths["/api/users/create"]).toBeDefined();
+		expect(
+			spec.paths["/api/users/create"].post.responses["200"].content[
+				"application/json"
+			].schema.properties,
+		).toEqual({
+			name: {
+				type: "string",
+			},
+			email: {
+				type: "string",
+			},
+		});
+		expect(spec.paths["/api/posts/get"]).toBeDefined();
+		expect(spec.paths["/api/posts/create"]).toBeDefined();
+	});
 });
 
 describe("Integration with existing functionality", () => {
