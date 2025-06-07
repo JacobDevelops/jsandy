@@ -243,7 +243,7 @@ function createOperationSpec(
 
 		if (procedure.type === "get") {
 			// For GET requests, convert schema properties to query parameters
-			operation.parameters = createQueryParameters(inputSchema);
+			operation.parameters = createQueryParameters(inputSchema, schemas);
 		} else if (procedure.type === "post") {
 			// For POST requests, use schema as request body
 			operation.requestBody = {
@@ -326,9 +326,20 @@ function convertZodToOpenAPI(
 			jsonSchema = zodSchema as JSONSchema.BaseSchema;
 		}
 
-		// Store reusable schemas in components
-		const schemaName = jsonSchema.title;
-		if (schemaName && jsonSchema.type === "object" && jsonSchema.properties) {
+		// Only create schema references for complex objects that would benefit from reuse
+		const shouldCreateReference = isComplexSchema(jsonSchema);
+
+		if (shouldCreateReference) {
+			// Use the schema's title if available, otherwise generate a meaningful name
+			const schemaName =
+				jsonSchema.title || generateSchemaName(jsonSchema, schemas);
+
+			// Check if we already have this schema to avoid duplicates
+			const existingSchema = findExistingSchema(jsonSchema, schemas);
+			if (existingSchema) {
+				return { $ref: `#/components/schemas/${existingSchema}` };
+			}
+
 			schemas.set(schemaName, jsonSchema);
 			return { $ref: `#/components/schemas/${schemaName}` };
 		}
@@ -341,23 +352,126 @@ function convertZodToOpenAPI(
 }
 
 /**
- * Creates OpenAPI query parameters from a JSON schema
+ * Determines if a schema is complex enough to warrant creating a reusable reference
  */
-function createQueryParameters(schema: JSONSchema.BaseSchema): any[] {
-	if (!schema.properties) {
-		return [];
+function isComplexSchema(jsonSchema: JSONSchema.BaseSchema): boolean {
+	// Don't create references for simple schemas
+	if (
+		!jsonSchema.type ||
+		jsonSchema.type !== "object" ||
+		!jsonSchema.properties
+	) {
+		return false;
 	}
 
-	return Object.entries(schema.properties).map(
+	const propertyCount = Object.keys(jsonSchema.properties).length;
+
+	// Create references for schemas with:
+	// 1. More than 3 properties (complex enough to be worth reusing)
+	// 2. Nested objects (likely to be reused)
+	// 3. Arrays of objects (complex structure)
+	// 4. Explicit title (developer indicated it should be a named schema)
+
+	if (jsonSchema.title) {
+		return true; // Explicit title indicates developer wants it as a named schema
+	}
+
+	if (propertyCount > 3) {
+		return true; // Complex object with many properties
+	}
+
+	// Check for nested objects or arrays of objects
+	for (const [_, property] of Object.entries(jsonSchema.properties)) {
+		const prop = property as any;
+
+		// Nested object
+		if (prop.type === "object" && prop.properties) {
+			return true;
+		}
+
+		// Array of objects
+		if (
+			prop.type === "array" &&
+			prop.items?.type === "object" &&
+			prop.items?.properties
+		) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * Generates a meaningful schema name based on the schema structure
+ */
+function generateSchemaName(
+	jsonSchema: any,
+	schemas: Map<string, any>,
+): string {
+	// Try to generate a name based on property names
+	const properties = Object.keys(jsonSchema.properties || {});
+
+	if (properties.length === 0) {
+		return `Schema_${schemas.size + 1}`;
+	}
+
+	// Create a name from key properties (max 3 to keep it readable)
+	const keyProps = properties.slice(0, 3);
+	const baseName = keyProps
+		.map((prop) => prop.charAt(0).toUpperCase() + prop.slice(1))
+		.join("");
+
+	// Ensure uniqueness
+	let schemaName = baseName;
+	let counter = 1;
+	while (schemas.has(schemaName)) {
+		schemaName = `${baseName}_${counter}`;
+		counter++;
+	}
+
+	return schemaName;
+}
+
+/**
+ * Finds an existing schema that matches the given schema structure
+ */
+function findExistingSchema(
+	jsonSchema: any,
+	schemas: Map<string, any>,
+): string | null {
+	// Simple structural comparison to avoid duplicate schemas
+	const currentSchemaString = JSON.stringify(jsonSchema);
+
+	for (const [name, existingSchema] of schemas) {
+		if (JSON.stringify(existingSchema) === currentSchemaString) {
+			return name;
+		}
+	}
+
+	return null;
+}
+
+/**
+ * Creates OpenAPI query parameters from a JSON schema
+ */
+function createQueryParameters(
+	schema: JSONSchema.BaseSchema,
+	schemas: Map<string, any>,
+): any[] {
+	if (!schema.properties && !getReusableSchema(schema, schemas)) {
+		return [];
+	}
+	if (schema.$ref) {
+		// biome-ignore lint/style/noParameterAssign: We need to assign the schema to the reusable schema
+		schema = getReusableSchema(schema, schemas) as JSONSchema.BaseSchema;
+	}
+
+	return Object.entries(schema.properties || {}).map(
 		([name, propSchema]: [string, any]) => ({
 			name,
 			in: "query",
-			required:
-				(Array.isArray(schema.required) &&
-					schema.required.includes(name) &&
-					// Zod Schemas don't realize that values with defaults aren't required
-					!propSchema.default) ||
-				false,
+			required: schema.required?.includes(name) || false,
 			schema: propSchema,
 			description: propSchema.description,
 		}),
@@ -461,4 +575,16 @@ export async function addOpenAPIRoutes(
 		const html = createSwaggerUI(specPath, config.title);
 		return c.html(html);
 	});
+}
+
+function getReusableSchema(
+	schema: JSONSchema.BaseSchema,
+	schemas: Map<string, any>,
+): JSONSchema.BaseSchema | null {
+	const schemaRef = schema.$ref;
+	if (!schemaRef || !schemaRef.startsWith("#/components/schemas/")) {
+		return null;
+	}
+	// biome-ignore lint/style/noNonNullAssertion: We just checked that schemaRef is not null
+	return schemas.get(schemaRef.split("/").pop()!);
 }

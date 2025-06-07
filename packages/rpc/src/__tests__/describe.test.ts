@@ -252,7 +252,6 @@ describe("OpenAPI generation", () => {
 		});
 
 		expect(spec.components?.schemas).toBeDefined();
-		console.log("Component Schema: ", JSON.stringify(spec, null, 2));
 		expect(Object.keys(spec.components?.schemas || {}).length).toBeGreaterThan(
 			0,
 		);
@@ -328,8 +327,6 @@ describe("OpenAPI generation", () => {
 			title: "Search API",
 			version: "1.0.0",
 		});
-
-		// console.log(JSON.stringify(spec, null, 2));
 
 		const searchOp = spec.paths["/search"].get;
 		expect(searchOp.parameters).toBeDefined();
