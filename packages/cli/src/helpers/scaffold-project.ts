@@ -10,6 +10,7 @@ interface ScaffoldProjectOptions {
 	installers: InstallerMap;
 	databaseProvider: Provider;
 	linter: Linter;
+	setupVSCode?: boolean;
 }
 
 export const scaffoldProject = async ({
@@ -17,6 +18,7 @@ export const scaffoldProject = async ({
 	projectName,
 	installers,
 	linter,
+	setupVSCode,
 }: ScaffoldProjectOptions) => {
 	const projectDir = path.resolve(process.cwd(), projectName);
 	const pkgManager = getUserPkgManager();
@@ -29,7 +31,10 @@ export const scaffoldProject = async ({
 		projectName,
 		databaseProvider,
 		linter,
+		setupVSCode,
 	});
+
+	console.log("Setup VSCode", setupVSCode);
 
 	installPackages({
 		projectDir,
@@ -39,6 +44,7 @@ export const scaffoldProject = async ({
 		projectName,
 		databaseProvider,
 		linter,
+		setupVSCode,
 	});
 
 	return projectDir;

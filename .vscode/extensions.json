@@ -1,0 +1,28 @@
+{
+	"recommendations": [
+		"ms-vscode.vscode-typescript-next",
+		"bradlc.vscode-tailwindcss",
+		"ms-vscode.vscode-json",
+		"christian-kohler.path-intellisense",
+		"formulahendry.auto-rename-tag",
+		"ms-vscode.vscode-react-native",
+		"eamodio.gitlens",
+		"github.vscode-github-actions",
+		"streetsidesoftware.code-spell-checker",
+		"usernamehw.errorlens",
+		"oderwat.indent-rainbow",
+		"wix.vscode-import-cost",
+		"christian-kohler.npm-intellisense",
+		"ms-vscode.hexeditor",
+		"redhat.vscode-yaml",
+		"ms-vscode.vscode-json",
+		"biomejs.biome",
+		"mtxr.sqltools",
+		"mtxr.sqltools-driver-pg",
+		"ms-vscode.vscode-json",
+		"redhat.vscode-yaml",
+		"ms-vscode.hexeditor",
+		"wix.vscode-import-cost"
+	],
+	"unwantedRecommendations": ["hookyqr.beautify", "ms-vscode.vscode-typescript"]
+}

@@ -62,5 +62,22 @@ export const installPackages = (options: InstallPackagesOptions) => {
 		}
 	}
 
+	console.log("Installers", JSON.stringify(installers, null, 2));
+	for (const [name, pkgOpts] of Object.entries(installers.ide)) {
+		if (pkgOpts.inUse) {
+			const spinner = ora(`Setting up IDE: ${name}...`).start();
+			try {
+				pkgOpts.installer(options);
+				spinner.succeed(
+					`Successfully configured IDE: ${chalk.green.bold(name)}`,
+				);
+			} catch (error) {
+				spinner.fail(`Failed to setup IDE: ${name}`);
+				logger.error(`Error configuring ${name}:`, error);
+				throw error;
+			}
+		}
+	}
+
 	logger.info("");
 };
