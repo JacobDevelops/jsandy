@@ -5,7 +5,7 @@ import fs from "fs-extra";
 import ora, { type Ora } from "ora";
 import type { InstallerOptions } from "@/installers/index";
 import { logger } from "@/utils/logger";
-import { BASE_PACKAGE_JSON, GITIGNORE_CONTENTS } from "@/constants";
+import { BASE_PACKAGE_JSON, GITIGNORE_CONTENTS, PKG_ROOT } from "@/constants";
 
 // This bootstraps the base Next.js application
 export const installBaseTemplate = async ({
@@ -14,6 +14,7 @@ export const installBaseTemplate = async ({
 	pkgManager,
 	noInstall,
 }: InstallerOptions) => {
+	const srcDir = path.join(PKG_ROOT, "template/base");
 	if (!noInstall) {
 		logger.info(`\nUsing: ${chalk.cyan.bold(pkgManager)}\n`);
 	} else {
@@ -42,12 +43,15 @@ export const installBaseTemplate = async ({
 		await fs.createFile(path.join(projectDir, "package.json"));
 	}
 
-	await fs.writeJSON(
-		path.join(projectDir, "package.json"),
-		JSON.stringify(BASE_PACKAGE_JSON, null, 2),
-	);
+	if (projectName !== ".") {
+		BASE_PACKAGE_JSON.name = projectName.includes("/")
+			? projectName.split("/").pop()
+			: projectName;
+	}
 
-	await fs.writeFile(path.join(projectDir, ".gitignore"), GITIGNORE_CONTENTS);
+	fs.copySync(srcDir, projectDir);
+	fs.writeJSONSync(path.join(projectDir, "package.json"), BASE_PACKAGE_JSON);
+	fs.writeFileSync(path.join(projectDir, ".gitignore"), GITIGNORE_CONTENTS);
 
 	const scaffoldedName =
 		projectName === "." ? "App" : chalk.cyan.bold(projectName);

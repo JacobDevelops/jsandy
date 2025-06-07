@@ -14,31 +14,24 @@ export const addPackageDependency = (opts: {
 }) => {
 	const { dependencies, devDependencies, projectDir } = opts;
 
-	const pkgJson = fs.readJSONSync(
-		path.join(projectDir, "package.json"),
+	const pkgJson = structuredClone(
+		fs.readJSONSync(path.join(projectDir, "package.json")),
 	) as PackageJson;
-
-	const mutablePkgJson = {
-		...pkgJson,
-		dependencies: pkgJson.dependencies ? { ...pkgJson.dependencies } : {},
-		devDependencies: pkgJson.devDependencies
-			? { ...pkgJson.devDependencies }
-			: {},
-	};
 
 	for (const pkgName of dependencies) {
 		const version = dependencyVersionMap[pkgName];
-		if (devDependencies && mutablePkgJson.devDependencies) {
-			mutablePkgJson.devDependencies[pkgName] = version;
+		if (devDependencies && pkgJson.devDependencies) {
+			pkgJson.devDependencies[pkgName] = version;
 		} else if (devDependencies) {
-			mutablePkgJson.devDependencies = { [pkgName]: version };
+			pkgJson.devDependencies = { [pkgName]: version };
 		} else if (pkgJson.dependencies) {
 			pkgJson.dependencies[pkgName] = version;
 		} else {
 			pkgJson.dependencies = { [pkgName]: version };
 		}
 	}
-	const sortedPkgJson = sortPackageJson(mutablePkgJson);
+
+	const sortedPkgJson = sortPackageJson(pkgJson);
 
 	fs.writeJSONSync(path.join(projectDir, "package.json"), sortedPkgJson, {
 		spaces: 2,

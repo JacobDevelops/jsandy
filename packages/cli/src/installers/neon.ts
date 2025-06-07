@@ -6,7 +6,7 @@ import { addPackageDependency } from "@/utils/add-package-dep";
 import type { Installer } from "./index";
 
 export const neonInstaller: Installer = ({ projectDir }) => {
-	const extrasDir = path.join(PKG_ROOT, "src/template/extras");
+	const extrasDir = path.join(PKG_ROOT, "template/extras");
 
 	addPackageDependency({
 		projectDir,
