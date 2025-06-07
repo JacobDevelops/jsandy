@@ -1,5 +1,5 @@
 ---
-title: Documenting your API
+title: Documenting
 summary: Creating OpenAPI specifications with JSandy
 ---
 
@@ -312,6 +312,9 @@ console.log(getUserDescription?.tags);
 ## Integration with @hono/zod-openapi
 
 The `.describe()` method is designed to work alongside `@hono/zod-openapi` for maximum compatibility:
+
+> **Note**: Most examples use `zod/v4` for standard schemas. The `@hono/zod-openapi` import provides additional OpenAPI-specific enhancements and should be used when you need advanced OpenAPI metadata on your schemas.
+
 
 ```typescript Integration with @hono/zod-openapi
 // Use enhanced Zod schemas with OpenAPI metadata

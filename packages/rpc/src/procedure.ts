@@ -23,7 +23,7 @@ import type {
  */
 export interface ProcedureDescription {
 	/** Human-readable description of what this endpoint does */
-	description: string;
+	description?: string;
 	/** Optional summary for the endpoint (shorter than description) */
 	summary?: string;
 	/** Zod schema defining the expected output/response structure */
@@ -264,9 +264,7 @@ export class Procedure<
 			c: ContextWithSuperJSON<E>;
 			input: InferZodType<InputSchema>;
 		}) => Return,
-	): GetOperation<InputSchema, ReturnType<typeof handler>, E> & {
-		description?: ProcedureDescription;
-	} {
+	): GetOperation<InputSchema, ReturnType<typeof handler>, E> {
 		return {
 			type: "get",
 			schema: this.inputSchema as
@@ -297,9 +295,7 @@ export class Procedure<
 			c: ContextWithSuperJSON<E>;
 			input: InferZodType<InputSchema>;
 		}) => Return,
-	): GetOperation<InputSchema, Return, E> & {
-		description?: ProcedureDescription;
-	} {
+	): GetOperation<InputSchema, Return, E> {
 		return this.get(handler);
 	}
 
@@ -323,9 +319,7 @@ export class Procedure<
 			c: ContextWithSuperJSON<E>;
 			input: InferZodType<InputSchema>;
 		}) => Return,
-	): PostOperation<InputSchema, ReturnType<typeof handler>, E> & {
-		description?: ProcedureDescription;
-	} {
+	): PostOperation<InputSchema, ReturnType<typeof handler>, E> {
 		return {
 			type: "post",
 			schema: this.inputSchema as
@@ -356,9 +350,7 @@ export class Procedure<
 			c: ContextWithSuperJSON<E>;
 			input: InferZodType<InputSchema>;
 		}) => Return,
-	): PostOperation<InputSchema, Return, E> & {
-		description?: ProcedureDescription;
-	} {
+	): PostOperation<InputSchema, Return, E> {
 		return this.post(handler);
 	}
 
@@ -384,9 +376,7 @@ export class Procedure<
 		}) => OptionalPromise<
 			WebSocketHandler<InferZodType<Incoming>, InferZodType<Outgoing>>
 		>,
-	): WebSocketOperation<InferZodType<Incoming>, InferZodType<Outgoing>, E> & {
-		description?: ProcedureDescription;
-	} {
+	): WebSocketOperation<InferZodType<Incoming>, InferZodType<Outgoing>, E> {
 		return {
 			type: "ws",
 			outputFormat: "ws",

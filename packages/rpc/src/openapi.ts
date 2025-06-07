@@ -193,8 +193,6 @@ async function processRouter(
  */
 function findOperationInRouter(router: Router, procedureName: string): any {
 	// This is a bit of a hack since we need to access the original operations
-	// In a real implementation, you might want to store this differently
-	// For now, we'll try to access it through the router's internal structure
 	try {
 		return router._metadata.operations?.[procedureName];
 	} catch {
@@ -613,7 +611,7 @@ export function toJSONSchemaWithDate<T extends ZodType>(
 		override: (ctx) => {
 			// Check if this is a date type
 			const def = ctx.zodSchema._zod?.def;
-			if (def.type === "date") {
+			if (def?.type === "date") {
 				// Convert z.date() to ISO datetime string format
 				ctx.jsonSchema.type = "string";
 				ctx.jsonSchema.format = "date-time";
