@@ -1,9 +1,9 @@
+import path from "node:path";
+import type { Linter } from "@/cli";
 import type { InstallerMap, Provider } from "@/installers/index";
 import { getUserPkgManager } from "@/utils/get-user-pkg-manager";
-import path from "node:path";
 import { installBaseTemplate } from "./install-base-template";
 import { installPackages } from "./install-packages";
-import type { Linter } from "@/cli";
 
 interface ScaffoldProjectOptions {
 	projectName: string;
@@ -33,8 +33,6 @@ export const scaffoldProject = async ({
 		linter,
 		setupVSCode,
 	});
-
-	console.log("Setup VSCode", setupVSCode);
 
 	installPackages({
 		projectDir,

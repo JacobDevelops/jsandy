@@ -15,14 +15,9 @@
 		"christian-kohler.npm-intellisense",
 		"ms-vscode.hexeditor",
 		"redhat.vscode-yaml",
-		"ms-vscode.vscode-json",
 		"biomejs.biome",
 		"mtxr.sqltools",
-		"mtxr.sqltools-driver-pg",
-		"ms-vscode.vscode-json",
-		"redhat.vscode-yaml",
-		"ms-vscode.hexeditor",
-		"wix.vscode-import-cost"
+		"mtxr.sqltools-driver-pg"
 	],
 	"unwantedRecommendations": ["hookyqr.beautify", "ms-vscode.vscode-typescript"]
 }

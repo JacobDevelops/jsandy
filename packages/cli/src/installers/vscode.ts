@@ -7,7 +7,7 @@ export const vscodeInstaller: Installer = ({
 	linter,
 	databaseProvider,
 }) => {
-	const orm = databaseProvider !== undefined ? "drizzle" : "none";
+	const orm = databaseProvider !== undefined ? databaseProvider : "none";
 	const vscodeDir = path.join(projectDir, ".vscode");
 	fs.ensureDirSync(vscodeDir);
 
@@ -173,14 +173,6 @@ function createVSCodeExtensions(linter: string, orm: string) {
 			"mtxr.sqltools-driver-pg", // PostgreSQL driver
 		);
 	}
-
-	// Additional helpful extensions
-	baseExtensions.push(
-		"ms-vscode.vscode-json",
-		"redhat.vscode-yaml",
-		"ms-vscode.hexeditor",
-		"wix.vscode-import-cost",
-	);
 
 	return {
 		recommendations: baseExtensions,
