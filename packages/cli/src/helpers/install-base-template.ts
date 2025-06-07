@@ -5,7 +5,7 @@ import fs from "fs-extra";
 import ora, { type Ora } from "ora";
 import type { InstallerOptions } from "@/installers/index";
 import { logger } from "@/utils/logger";
-import { BASE_PACKAGE_JSON } from "@/constants";
+import { BASE_PACKAGE_JSON, GITIGNORE_CONTENTS } from "@/constants";
 
 // This bootstraps the base Next.js application
 export const installBaseTemplate = async ({
@@ -47,10 +47,7 @@ export const installBaseTemplate = async ({
 		JSON.stringify(BASE_PACKAGE_JSON, null, 2),
 	);
 
-	await fs.rename(
-		path.join(projectDir, "_gitignore"),
-		path.join(projectDir, ".gitignore"),
-	);
+	await fs.writeFile(path.join(projectDir, ".gitignore"), GITIGNORE_CONTENTS);
 
 	const scaffoldedName =
 		projectName === "." ? "App" : chalk.cyan.bold(projectName);
