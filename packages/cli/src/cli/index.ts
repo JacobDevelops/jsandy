@@ -2,6 +2,7 @@ import { intro, isCancel, outro, select, text } from "@clack/prompts";
 import color from "picocolors";
 import { getUserPkgManager } from "@/utils/get-user-pkg-manager";
 
+export type Linter = "none" | "eslint" | "biome";
 interface CliResults {
 	projectName: string;
 	orm: "none" | "drizzle" | undefined;
@@ -12,6 +13,7 @@ interface CliResults {
 		| "vercel-postgres"
 		| "planetscale"
 		| undefined;
+	linter: Linter | undefined;
 	noInstall?: boolean;
 }
 
@@ -77,6 +79,20 @@ export async function runCli(): Promise<CliResults | undefined> {
 		}
 	}
 
+	const linter = await select<"none" | "eslint" | "biome">({
+		message: "Which linter would you like to use?",
+		options: [
+			{ value: "none", label: "None" },
+			{ value: "eslint", label: "ESLint" },
+			{ value: "biome", label: "Biome" },
+		],
+	});
+
+	if (isCancel(linter)) {
+		outro("Setup cancelled.");
+		return undefined;
+	}
+
 	let noInstall = noInstallFlag;
 	if (!noInstall) {
 		const pkgManager = getUserPkgManager();
@@ -99,6 +115,7 @@ export async function runCli(): Promise<CliResults | undefined> {
 		orm,
 		dialect,
 		provider,
+		linter,
 		noInstall,
 	};
 }

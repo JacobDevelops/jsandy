@@ -16,14 +16,15 @@ const main = async () => {
 		return;
 	}
 
-	const { projectName, orm, provider } = results;
+	const { projectName, orm, provider, linter } = results;
 
-	const installers = buildInstallerMap(orm, provider);
+	const installers = buildInstallerMap(orm, provider, linter);
 
 	const projectDir = await scaffoldProject({
 		databaseProvider: provider ?? "neon",
 		installers,
 		projectName,
+		linter: linter ?? "none",
 	});
 
 	try {

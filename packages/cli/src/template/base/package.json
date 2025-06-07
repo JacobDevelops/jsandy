@@ -5,8 +5,7 @@
 	"scripts": {
 		"dev": "next dev",
 		"build": "next build",
-		"start": "next start",
-		"lint": "next lint"
+		"start": "next start"
 	},
 	"dependencies": {
 		"@tailwindcss/postcss": "^4.1.8",
@@ -29,8 +28,6 @@
 		"@types/react": "^19.1.6",
 		"@types/react-dom": "^19.1.5",
 		"drizzle-kit": "^0.30.6",
-		"eslint": "^9.28.0",
-		"eslint-config-next": "^15.3.3",
 		"postcss": "^8.5.4",
 		"tailwindcss": "^4.1.8",
 		"typescript": "^5.8.3",

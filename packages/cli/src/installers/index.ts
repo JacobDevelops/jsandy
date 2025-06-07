@@ -5,6 +5,10 @@ import { noOrmInstaller } from "./no-orm";
 import { postgresInstaller } from "./postgres";
 import { vercelPostgresInstaller } from "./vercel-postgres";
 import { planetscaleInstaller } from "./planetscale";
+import type { Linter } from "@/cli";
+import { eslintInstaller } from "./eslint";
+import { biomeInstaller } from "./biome";
+import { noLinterInstaller } from "./no-linter";
 
 // Turning this into a const allows the list to be iterated over for programmatically creating prompt options
 // Should increase extensibility in the future
@@ -32,6 +36,12 @@ export type InstallerMap = {
 			installer: Installer;
 		};
 	};
+	linter: {
+		[key in Linter]: {
+			inUse: boolean;
+			installer: Installer;
+		};
+	};
 };
 
 export interface InstallerOptions {
@@ -42,6 +52,7 @@ export interface InstallerOptions {
 	appRouter?: boolean;
 	projectName: string;
 	databaseProvider: Provider;
+	linter: Linter;
 }
 
 export type Installer = (opts: InstallerOptions) => void;
@@ -49,6 +60,7 @@ export type Installer = (opts: InstallerOptions) => void;
 export const buildInstallerMap = (
 	selectedOrm: Orm = "none",
 	selectedProvider?: Provider,
+	selectedLinter?: Linter,
 ): InstallerMap => ({
 	orm: {
 		none: {
@@ -76,6 +88,20 @@ export const buildInstallerMap = (
 		planetscale: {
 			inUse: selectedProvider === "planetscale",
 			installer: planetscaleInstaller,
+		},
+	},
+	linter: {
+		none: {
+			inUse: selectedLinter === "none",
+			installer: noLinterInstaller,
+		},
+		eslint: {
+			inUse: selectedLinter === "eslint",
+			installer: eslintInstaller,
+		},
+		biome: {
+			inUse: selectedLinter === "biome",
+			installer: biomeInstaller,
 		},
 	},
 });
