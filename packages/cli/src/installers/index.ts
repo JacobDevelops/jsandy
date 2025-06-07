@@ -5,6 +5,7 @@ import { noOrmInstaller } from "./no-orm";
 import { postgresInstaller } from "./postgres";
 import { vercelPostgresInstaller } from "./vercel-postgres";
 import { planetscaleInstaller } from "./planetscale";
+import { vscodeInstaller } from "./vscode"; // New import
 import type { Linter } from "@/cli";
 import { eslintInstaller } from "./eslint";
 import { biomeInstaller } from "./biome";
@@ -42,6 +43,12 @@ export type InstallerMap = {
 			installer: Installer;
 		};
 	};
+	ide: {
+		vscode: {
+			inUse: boolean;
+			installer: Installer;
+		};
+	};
 };
 
 export interface InstallerOptions {
@@ -53,6 +60,7 @@ export interface InstallerOptions {
 	projectName: string;
 	databaseProvider: Provider;
 	linter: Linter;
+	setupVSCode?: boolean;
 }
 
 export type Installer = (opts: InstallerOptions) => void;
@@ -61,6 +69,7 @@ export const buildInstallerMap = (
 	selectedOrm: Orm = "none",
 	selectedProvider?: Provider,
 	selectedLinter?: Linter,
+	setupVSCode?: boolean,
 ): InstallerMap => ({
 	orm: {
 		none: {
@@ -102,6 +111,12 @@ export const buildInstallerMap = (
 		biome: {
 			inUse: selectedLinter === "biome",
 			installer: biomeInstaller,
+		},
+	},
+	ide: {
+		vscode: {
+			inUse: setupVSCode === true,
+			installer: vscodeInstaller,
 		},
 	},
 });

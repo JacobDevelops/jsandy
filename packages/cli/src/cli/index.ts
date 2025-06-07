@@ -14,6 +14,7 @@ interface CliResults {
 		| "planetscale"
 		| undefined;
 	linter: Linter | undefined;
+	setupVSCode?: boolean; // New option
 	noInstall?: boolean;
 }
 
@@ -93,6 +94,25 @@ export async function runCli(): Promise<CliResults | undefined> {
 		return undefined;
 	}
 
+	const setupVSCode = await select({
+		message: "Would you like to set up recommended VS Code workspace settings?",
+		options: [
+			{
+				value: true,
+				label: "Yes - Configure VS Code settings and extensions",
+			},
+			{
+				value: false,
+				label: "No - Skip VS Code configuration",
+			},
+		],
+	});
+
+	if (isCancel(setupVSCode)) {
+		outro("Setup cancelled.");
+		return undefined;
+	}
+
 	let noInstall = noInstallFlag;
 	if (!noInstall) {
 		const pkgManager = getUserPkgManager();
@@ -116,6 +136,7 @@ export async function runCli(): Promise<CliResults | undefined> {
 		dialect,
 		provider,
 		linter,
+		setupVSCode,
 		noInstall,
 	};
 }

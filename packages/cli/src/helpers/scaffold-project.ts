@@ -1,15 +1,16 @@
+import path from "node:path";
+import type { Linter } from "@/cli";
 import type { InstallerMap, Provider } from "@/installers/index";
 import { getUserPkgManager } from "@/utils/get-user-pkg-manager";
-import path from "node:path";
 import { installBaseTemplate } from "./install-base-template";
 import { installPackages } from "./install-packages";
-import type { Linter } from "@/cli";
 
 interface ScaffoldProjectOptions {
 	projectName: string;
 	installers: InstallerMap;
 	databaseProvider: Provider;
 	linter: Linter;
+	setupVSCode?: boolean;
 }
 
 export const scaffoldProject = async ({
@@ -17,6 +18,7 @@ export const scaffoldProject = async ({
 	projectName,
 	installers,
 	linter,
+	setupVSCode,
 }: ScaffoldProjectOptions) => {
 	const projectDir = path.resolve(process.cwd(), projectName);
 	const pkgManager = getUserPkgManager();
@@ -29,6 +31,7 @@ export const scaffoldProject = async ({
 		projectName,
 		databaseProvider,
 		linter,
+		setupVSCode,
 	});
 
 	installPackages({
@@ -39,6 +42,7 @@ export const scaffoldProject = async ({
 		projectName,
 		databaseProvider,
 		linter,
+		setupVSCode,
 	});
 
 	return projectDir;
