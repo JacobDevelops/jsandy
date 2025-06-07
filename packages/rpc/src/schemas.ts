@@ -85,7 +85,9 @@ interface GroupedRoutes {
 	};
 }
 
-export function extractRouterSchemas(router: Router): GroupedRoutes {
+export async function extractRouterSchemas(
+	router: Router,
+): Promise<GroupedRoutes> {
 	const result: GroupedRoutes = {};
 
 	async function traverse(
@@ -117,7 +119,7 @@ export function extractRouterSchemas(router: Router): GroupedRoutes {
 					groupPath += `/${segment}`;
 
 					if (!currentGroup[groupPath]) {
-						continue;
+						currentGroup[groupPath] = { routes: [], subGroups: {} };
 					}
 					currentGroup = currentGroup[groupPath].subGroups;
 				}
@@ -144,11 +146,11 @@ export function extractRouterSchemas(router: Router): GroupedRoutes {
 				metadata.subRouters,
 			)) {
 				const newPath = `${currentPath}${routePath}`;
-				traverse(subRouter, newPath, targetGroup);
+				await traverse(subRouter, newPath, targetGroup);
 			}
 		}
 	}
 
-	traverse(router, "", result);
+	await traverse(router, "", result);
 	return result;
 }

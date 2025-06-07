@@ -27,6 +27,7 @@ describe("IO", () => {
 		mockLogger.debug.mockClear();
 		mockLogger.warn.mockClear();
 		mockLogger.success.mockClear();
+		mockLogger.log.mockClear();
 		mock.restore();
 	});
 
@@ -53,7 +54,6 @@ describe("IO", () => {
 				expect.stringContaining('IO emitted to room "null"'),
 				expect.any(Object),
 			);
-			consoleSpy.mockRestore();
 		});
 
 		it("should emit to specific room when targeted", async () => {

@@ -1,8 +1,9 @@
-import { describe, expect, it, mock, spyOn } from "bun:test";
+import { beforeEach, describe, expect, it, mock, spyOn } from "bun:test";
 import { mergeRouters } from "../merge-routers";
 import { Router } from "../router";
 import { z } from "zod/v4";
 import { jsandy } from "..";
+import type { Hono } from "hono";
 
 const j = jsandy.init();
 const procedure = j.procedure;
@@ -30,11 +31,18 @@ const adminRouter = j.router({
 		.post(({ input, c }) => c.json({ deleted: input.id })),
 });
 
-const api = j
-	.router()
-	.basePath("/api")
-	.use(j.defaults.cors)
-	.onError(j.defaults.errorHandler);
+const createApi = () =>
+	j
+		.router()
+		.basePath("/api")
+		.use(j.defaults.cors)
+		.onError(j.defaults.errorHandler);
+
+let api: Hono;
+
+beforeEach(() => {
+	api = createApi();
+});
 
 describe("Router Merging", () => {
 	describe("mergeRouters", () => {
