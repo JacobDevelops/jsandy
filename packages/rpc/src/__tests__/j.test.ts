@@ -1,4 +1,13 @@
-import { beforeEach, describe, expect, it, mock, spyOn } from "bun:test";
+import {
+	afterEach,
+	beforeEach,
+	describe,
+	expect,
+	it,
+	mock,
+	spyOn,
+	type Mock,
+} from "bun:test";
 import { HTTPException } from "hono/http-exception";
 import { ZodError as ZodErrorV3 } from "zod";
 import { ZodError as ZodErrorV4 } from "zod/v4";
@@ -113,12 +122,26 @@ describe("JSandy Framework", () => {
 
 		describe("errorHandler", () => {
 			const { defaults } = jsandy.init();
+			let consoleSpy: Mock<{
+				(...data: any[]): void;
+				(...data: any[]): void;
+				(...data: any[]): void;
+				(message?: any, ...optionalParams: any[]): void;
+			}>;
+			beforeEach(() => {
+				consoleSpy = spyOn(console, "error").mockImplementation(() => {});
+			});
+			afterEach(() => {
+				consoleSpy.mockRestore();
+			});
 
 			it("should handle HTTPException", () => {
 				const httpError = new HTTPException(400, { message: "Bad Request" });
 				const response = defaults.errorHandler(httpError);
 
 				expect(response).toBeInstanceOf(Response);
+
+				consoleSpy.mockRestore();
 			});
 
 			it("should handle Zod v3 validation errors", () => {

@@ -1,4 +1,12 @@
-import { afterAll, beforeEach, describe, expect, it, mock } from "bun:test";
+import {
+	afterAll,
+	beforeEach,
+	describe,
+	expect,
+	it,
+	mock,
+	spyOn,
+} from "bun:test";
 import { HTTPException } from "hono/http-exception";
 import superjson from "superjson";
 import { createClient } from "../client";
@@ -247,6 +255,7 @@ describe("Client", () => {
 		});
 
 		it("should handle invalid JSON", async () => {
+			const consoleSpy = spyOn(console, "error").mockImplementation(() => {});
 			const mockResponse = {
 				text: mock(async () => "invalid json"),
 				headers: new Headers(),
@@ -264,9 +273,10 @@ describe("Client", () => {
 				}
 			};
 
-			await expect(parseJsonResponse(mockResponse)).rejects.toThrow(
+			expect(parseJsonResponse(mockResponse)).rejects.toThrow(
 				"Invalid JSON response",
 			);
+			consoleSpy.mockRestore();
 		});
 	});
 

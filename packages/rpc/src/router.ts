@@ -16,6 +16,7 @@ import type {
 	WebSocketOperation,
 } from "./types";
 import { logger } from "./sockets/logger";
+import type { JSONSchema } from "zod/v4/core";
 
 /**
  * Utility type that flattens nested route structures into a flat key-value mapping
@@ -137,29 +138,13 @@ interface InternalContext {
 }
 
 /**
- * JSON Schema interface for validation and documentation
- */
-interface JSONSchema {
-	/** JSON Schema type definition */
-	type?: string | string[];
-	/** Object property definitions */
-	properties?: Record<string, JSONSchema>;
-	/** Required property names */
-	required?: string[];
-	/** Additional properties configuration */
-	additionalProperties?: boolean | JSONSchema;
-	/** JSON Schema version identifier */
-	$schema?: string;
-}
-
-/**
  * Metadata structure for GET and POST procedures
  */
 type GetPostProcedureMetadata = {
 	/** Operation type identifier */
 	type: "get" | "post";
 	/** JSON Schema for input validation, null if no schema */
-	schema: JSONSchema | null;
+	schema: JSONSchema.BaseSchema | null;
 };
 
 /**
@@ -171,9 +156,9 @@ type WSProcedureMetadata = {
 	/** Schema definitions for incoming and outgoing messages */
 	schema: {
 		/** JSON Schema for incoming messages, null if no schema */
-		incoming: JSONSchema | null;
+		incoming: JSONSchema.BaseSchema | null;
 		/** JSON Schema for outgoing messages, null if no schema */
-		outgoing: JSONSchema | null;
+		outgoing: JSONSchema.BaseSchema | null;
 	} | null;
 };
 
