@@ -1,8 +1,8 @@
 "use client";
 
 import { useTableOfContents } from "@/hooks/use-table-of-contents"; // Assuming this hook exists
-import { cn } from "@/lib/utils";
 import { slugify } from "@/lib/slugify";
+import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { type HTMLAttributes, useCallback, useEffect } from "react";
 
@@ -57,7 +57,7 @@ export const TableOfContents = ({
 			<p className="font-semibold text-sand-700 dark:text-sand-300 mb-3">
 				On this page
 			</p>
-			<ul className="space-y-2">
+			<ul className="space-y-2 md:space-y-0">
 				{allHeadings.map((heading) => {
 					const slug = slugify(heading.text);
 					if (!slug) return null;
@@ -66,9 +66,9 @@ export const TableOfContents = ({
 					return (
 						<li
 							key={slug}
-							className={cn("leading-relaxed", `ml-${(heading.level - 2) * 3}`)}
+							className="leading-relaxed"
+							style={{ marginLeft: `${(heading.level - 2) * 12}px` }}
 						>
-							{" "}
 							{/* Indent based on heading level */}
 							<Link
 								href={`#${slug}`}
@@ -77,10 +77,10 @@ export const TableOfContents = ({
 									onLinkClick?.();
 								}}
 								className={cn(
-									"block border-l-2 pl-3 py-0.5 transition-colors",
+									"block border-l-2 pl-3 py-0.5 transition-colors text-muted-foreground",
 									isVisible
-										? "border-sand-500 dark:border-sand-400 text-sand-700 dark:text-sand-300 font-medium"
-										: "border-transparent text-muted-foreground hover:text-foreground hover:border-sand-300 dark:hover:border-sand-600",
+										? "border-sand-500 dark:border-sand-400 dark:text-sand-300 font-medium"
+										: "border-transparent hover:text-foreground hover:border-sand-300 dark:hover:border-sand-600",
 								)}
 							>
 								{heading.text}

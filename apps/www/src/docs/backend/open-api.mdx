@@ -11,7 +11,7 @@ The `.describe()` method allows you to add comprehensive documentation metadata 
 
 Add documentation to any procedure using the `.describe()` method:
 
-```typescript
+```typescript Example Procedure with .describe()
 import { z } from "zod/v4";
 import { jsandy } from "@jsandy/rpc";
 
@@ -48,7 +48,7 @@ const userRouter = router({
 
 The `.describe()` method accepts a comprehensive configuration object:
 
-```typescript
+```typescript Procedure Description Type
 interface ProcedureDescription {
   /** Human-readable description of what this endpoint does */
   description: string;
@@ -88,7 +88,7 @@ interface ProcedureDescription {
 
 For GET endpoints, input schemas become query parameters in the OpenAPI spec:
 
-```typescript
+```typescript GET Endpoint with .describe()
 const searchPosts = procedure
   .input(z.object({
     query: z.string().min(1),
@@ -121,7 +121,7 @@ const searchPosts = procedure
 
 For POST endpoints, input schemas become request body specifications:
 
-```typescript
+```typescript POST Endpoint with .describe()
 const createPost = procedure
   .input(z.object({
     title: z.string().min(1).max(200),
@@ -152,7 +152,7 @@ const createPost = procedure
 
 Add authentication requirements to specific endpoints:
 
-```typescript
+```typescript Security Requirements with .describe()
 const getAdminStats = procedure
   .describe({
     description: "Retrieves system statistics (admin only)",
@@ -175,7 +175,7 @@ const getAdminStats = procedure
 
 Define additional response codes and schemas:
 
-```typescript
+```typescript Custom Error Responses with .describe()
 const deleteUser = procedure
   .input(z.object({ id: z.string() }))
   .describe({
@@ -226,7 +226,7 @@ const deleteUser = procedure
 
 Use the built-in generator to create OpenAPI specifications:
 
-```typescript
+```typescript Automatic OpenAPI Generation
 import { generateOpenAPISpec, addOpenAPIRoutes } from "@jsandy/rpc";
 import { Hono } from "hono";
 
@@ -258,7 +258,7 @@ await addOpenAPIRoutes(app, userRouter, {
 
 For more control, generate the spec manually:
 
-```typescript
+```typescript Manual OpenAPI Generation
 const openAPISpec = await generateOpenAPISpec(userRouter, {
   title: "My API",
   version: "2.0.0",
@@ -280,7 +280,7 @@ app.get("/api-docs", (c) => {
 
 The `.describe()` method works seamlessly with method chaining:
 
-```typescript
+```typescript Method Chaining with .describe()
 const complexProcedure = procedure
   .input(userInputSchema)           // Add input validation
   .describe({                       // Add documentation
@@ -298,7 +298,7 @@ const complexProcedure = procedure
 
 Retrieve documentation metadata programmatically:
 
-```typescript
+```typescript Accessing Documentation Metadata
 // Get all operations with their descriptions
 const operations = userRouter.getAllOperations();
 
@@ -313,7 +313,7 @@ console.log(getUserDescription?.tags);
 
 The `.describe()` method is designed to work alongside `@hono/zod-openapi` for maximum compatibility:
 
-```typescript
+```typescript Integration with @hono/zod-openapi
 // Use enhanced Zod schemas with OpenAPI metadata
 import { z } from '@hono/zod-openapi';
 
@@ -339,80 +339,3 @@ const getUserProcedure = procedure
     // Implementation
   });
 ```
-
-## Best Practices
-
-### 1. Consistent Tagging
-
-Use consistent tags across related endpoints:
-
-```typescript
-const USER_TAGS = ["users"] as const;
-const ADMIN_TAGS = ["admin", "users"] as const;
-
-// Apply consistently
-const getUserProcedure = procedure.describe({
-  tags: USER_TAGS,
-  // ... other options
-});
-```
-
-### 2. Reusable Schemas
-
-Define schemas once and reuse them:
-
-```typescript
-const UserOutputSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  email: z.string(),
-  createdAt: z.date()
-});
-
-// Use in multiple procedures
-const getUser = procedure.describe({
-  schema: UserOutputSchema,
-  // ...
-});
-
-const updateUser = procedure.describe({
-  schema: UserOutputSchema,
-  // ...
-});
-```
-
-### 3. Meaningful Operation IDs
-
-Use clear, consistent operation IDs:
-
-```typescript
-// Good
-operationId: "getUserById"
-operationId: "createUserAccount"
-operationId: "updateUserProfile"
-
-// Avoid
-operationId: "get"
-operationId: "user1"
-operationId: "doStuff"
-```
-
-### 4. Comprehensive Error Documentation
-
-Document all possible error scenarios:
-
-```typescript
-.describe({
-  description: "Creates a new user account",
-  openapi: {
-    responses: {
-      400: { description: "Invalid input data" },
-      409: { description: "Email already exists" },
-      429: { description: "Rate limit exceeded" },
-      500: { description: "Internal server error" }
-    }
-  }
-})
-```
-
-This documentation system provides a powerful way to create self-documenting APIs that automatically generate comprehensive OpenAPI specifications while maintaining full type safety.
