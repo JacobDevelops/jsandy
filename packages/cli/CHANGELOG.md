@@ -1,5 +1,16 @@
 # create-jsandy-app
 
+## 1.1.0
+
+### Minor Changes
+
+- 84d921a: Added support for biome linting / formatting
+- e83d269: Add support for vscode directory setup
+
+### Patch Changes
+
+- 1885061: Fix typo in library import
+
 ## 1.0.1
 
 ### Patch Changes
