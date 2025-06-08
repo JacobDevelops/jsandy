@@ -133,7 +133,7 @@ async function processRouter(
 		for (const [procedureName, procedure] of Object.entries(
 			metadata.procedures,
 		)) {
-			const fullPath = `${basePath}/${procedureName}`;
+			const fullPath = `${basePath.replace(/\/$/, "")}/${procedureName}`;
 			const pathKey = (configBasePath || "") + fullPath;
 
 			// Skip WebSocket procedures for now (OpenAPI doesn't have great WebSocket support)
@@ -315,6 +315,7 @@ function convertZodToOpenAPI(
 	try {
 		// We cannot convert zod v3 schemas to openapi, so we return an empty object
 		if (!("_zod" in zodSchema) && !("$schema" in zodSchema)) {
+			console.warn("Zod v3 schemas cannot be converted to OpenAPI:", zodSchema);
 			return { type: "object" };
 		}
 		let jsonSchema: JSONSchema.BaseSchema;

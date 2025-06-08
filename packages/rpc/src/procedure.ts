@@ -161,7 +161,7 @@ export class Procedure<
 	 */
 	describe(description: ProcedureDescription) {
 		return new Procedure<E, Ctx, InputSchema, Incoming, Outgoing>(
-			this.middlewares,
+			[...this.middlewares], // clone to isolate
 			this.inputSchema,
 			this.incomingSchema,
 			this.outgoingSchema,
