@@ -35,6 +35,7 @@ export const DOCS_CONFIG: DocsConfig = {
 				"middleware",
 				"websockets",
 				"performance",
+				"open-api",
 			],
 		},
 		deploy: {

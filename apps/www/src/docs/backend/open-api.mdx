@@ -1,0 +1,344 @@
+---
+title: Documenting
+summary: Creating OpenAPI specifications with JSandy
+---
+
+# Documenting your API
+
+The `.describe()` method allows you to add comprehensive documentation metadata to your procedures, which can be used to generate OpenAPI specifications and enhance your API documentation.
+
+## Basic Usage
+
+Add documentation to any procedure using the `.describe()` method:
+
+```typescript Example Procedure with .describe()
+import { z } from "zod/v4";
+import { jsandy } from "@jsandy/rpc";
+
+const { router, procedure } = jsandy.init();
+
+const userRouter = router({
+  getUser: procedure
+    .input(z.object({ id: z.string() }))
+    .describe({
+      description: "Retrieves a user by their unique identifier",
+      summary: "Get user by ID",
+      schema: z.object({
+        id: z.string(),
+        name: z.string(),
+        email: z.string(),
+        createdAt: z.date(),
+      }),
+      tags: ["users"],
+      operationId: "getUserById"
+    })
+    .get(({ input, c }) => {
+      // Implementation
+      return c.json({
+        id: input.id,
+        name: "John Doe",
+        email: "john@example.com",
+        createdAt: new Date()
+      });
+    })
+});
+```
+
+## Description Options
+
+The `.describe()` method accepts a comprehensive configuration object:
+
+```typescript Procedure Description Type
+interface ProcedureDescription {
+  /** Human-readable description of what this endpoint does */
+  description: string;
+
+  /** Optional summary for the endpoint (shorter than description) */
+  summary?: string;
+
+  /** Zod schema defining the expected output/response structure */
+  schema?: ZodAny;
+
+  /** Optional tags for grouping endpoints in documentation */
+  tags?: string[];
+
+  /** Optional operation ID for OpenAPI specification */
+  operationId?: string;
+
+  /** Whether this endpoint is deprecated */
+  deprecated?: boolean;
+
+  /** Additional OpenAPI metadata */
+  openapi?: {
+    /** Security requirements for this endpoint */
+    security?: Array<Record<string, string[]>>;
+
+    /** Additional response definitions */
+    responses?: Record<string, any>;
+
+    /** Request body examples */
+    examples?: Record<string, any>;
+  };
+}
+```
+
+## Working with Different HTTP Methods
+
+### GET Endpoints
+
+For GET endpoints, input schemas become query parameters in the OpenAPI spec:
+
+```typescript GET Endpoint with .describe()
+const searchPosts = procedure
+  .input(z.object({
+    query: z.string().min(1),
+    limit: z.number().min(1).max(100).default(10),
+    category: z.enum(["tech", "business", "lifestyle"]).optional()
+  }))
+  .describe({
+    description: "Search blog posts with pagination and filtering",
+    summary: "Search posts",
+    schema: z.object({
+      posts: z.array(z.object({
+        id: z.string(),
+        title: z.string(),
+        excerpt: z.string()
+      })),
+      pagination: z.object({
+        total: z.number(),
+        hasNext: z.boolean()
+      })
+    }),
+    tags: ["posts", "search"],
+    operationId: "searchPosts"
+  })
+  .get(({ input, c }) => {
+    // Implementation
+  });
+```
+
+### POST Endpoints
+
+For POST endpoints, input schemas become request body specifications:
+
+```typescript POST Endpoint with .describe()
+const createPost = procedure
+  .input(z.object({
+    title: z.string().min(1).max(200),
+    content: z.string().min(10),
+    tags: z.array(z.string()).optional(),
+    publishAt: z.date().optional()
+  }))
+  .describe({
+    description: "Creates a new blog post with the provided content",
+    summary: "Create blog post",
+    schema: z.object({
+      id: z.string(),
+      slug: z.string(),
+      status: z.enum(["draft", "published"]),
+      createdAt: z.date()
+    }),
+    tags: ["posts", "content"],
+    operationId: "createPost"
+  })
+  .post(({ input, c }) => {
+    // Implementation
+  });
+```
+
+## Advanced OpenAPI Features
+
+### Security Requirements
+
+Add authentication requirements to specific endpoints:
+
+```typescript Security Requirements with .describe()
+const getAdminStats = procedure
+  .describe({
+    description: "Retrieves system statistics (admin only)",
+    summary: "Get admin statistics",
+    schema: z.object({
+      totalUsers: z.number(),
+      systemHealth: z.string()
+    }),
+    tags: ["admin"],
+    openapi: {
+      security: [{ bearerAuth: [] }]
+    }
+  })
+  .get(({ c }) => {
+    // Implementation
+  });
+```
+
+### Custom Error Responses
+
+Define additional response codes and schemas:
+
+```typescript Custom Error Responses with .describe()
+const deleteUser = procedure
+  .input(z.object({ id: z.string() }))
+  .describe({
+    description: "Permanently deletes a user account",
+    summary: "Delete user",
+    tags: ["users"],
+    openapi: {
+      responses: {
+        404: {
+          description: "User not found",
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  error: { type: "string", example: "USER_NOT_FOUND" },
+                  message: { type: "string" }
+                }
+              }
+            }
+          }
+        },
+        409: {
+          description: "Cannot delete user with active subscriptions",
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  error: { type: "string", example: "USER_HAS_ACTIVE_SUBSCRIPTIONS" },
+                  subscriptions: { type: "array", items: { type: "string" } }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  })
+  .post(({ input, c }) => {
+    // Implementation
+  });
+```
+
+## Generating OpenAPI Documentation
+
+### Automatic OpenAPI Generation
+
+Use the built-in generator to create OpenAPI specifications:
+
+```typescript Automatic OpenAPI Generation
+import { generateOpenAPISpec, addOpenAPIRoutes } from "@jsandy/rpc";
+import { Hono } from "hono";
+
+const app = new Hono();
+
+// Add automatic documentation routes
+await addOpenAPIRoutes(app, userRouter, {
+  title: "User Management API",
+  version: "1.0.0",
+  description: "Comprehensive user management with authentication",
+  servers: [
+    { url: "https://api.example.com", description: "Production" },
+    { url: "http://localhost:8080", description: "Development" }
+  ],
+  securitySchemes: {
+    bearerAuth: {
+      type: "http",
+      scheme: "bearer",
+      bearerFormat: "JWT"
+    }
+  }
+}, {
+  specPath: "/openapi.json",  // OpenAPI spec endpoint
+  docsPath: "/docs"           // Swagger UI endpoint
+});
+```
+
+### Manual OpenAPI Generation
+
+For more control, generate the spec manually:
+
+```typescript Manual OpenAPI Generation
+const openAPISpec = await generateOpenAPISpec(userRouter, {
+  title: "My API",
+  version: "2.0.0",
+  description: "API documentation",
+  basePath: "/api/v2"
+});
+
+// Serve the specification
+app.get("/api-spec.json", (c) => c.json(openAPISpec));
+
+// Custom Swagger UI with additional configuration
+app.get("/api-docs", (c) => {
+  const html = createSwaggerUI("/api-spec.json", "My API Docs");
+  return c.html(html);
+});
+```
+
+## Method Chaining
+
+The `.describe()` method works seamlessly with method chaining:
+
+```typescript Method Chaining with .describe()
+const complexProcedure = procedure
+  .input(userInputSchema)           // Add input validation
+  .describe({                       // Add documentation
+    description: "Complex operation",
+    tags: ["complex"]
+  })
+  .use(authMiddleware)              // Add authentication
+  .use(rateLimitMiddleware)         // Add rate limiting
+  .get(({ input, ctx, c }) => {     // Define handler
+    // Implementation with full type safety
+  });
+```
+
+## Accessing Documentation Metadata
+
+Retrieve documentation metadata programmatically:
+
+```typescript Accessing Documentation Metadata
+// Get all operations with their descriptions
+const operations = userRouter.getAllOperations();
+
+// Get description for a specific operation
+const getUserDescription = userRouter.getOperationDescription("getUser");
+
+console.log(getUserDescription?.description);
+console.log(getUserDescription?.tags);
+```
+
+## Integration with @hono/zod-openapi
+
+The `.describe()` method is designed to work alongside `@hono/zod-openapi` for maximum compatibility:
+
+> **Note**: Most examples use `zod/v4` for standard schemas. The `@hono/zod-openapi` import provides additional OpenAPI-specific enhancements and should be used when you need advanced OpenAPI metadata on your schemas.
+
+
+```typescript Integration with @hono/zod-openapi
+// Use enhanced Zod schemas with OpenAPI metadata
+import { z } from '@hono/zod-openapi';
+
+const UserSchema = z.object({
+  id: z.string().openapi({ example: '123' }),
+  name: z.string().openapi({ example: 'John Doe' }),
+  email: z.string().email().openapi({ example: 'john@example.com' })
+}).openapi('User');
+
+const getUserProcedure = procedure
+  .input(z.object({
+    id: z.string().openapi({
+      param: { name: 'id', in: 'path' },
+      example: '123'
+    })
+  }))
+  .describe({
+    description: "Get user with enhanced OpenAPI metadata",
+    schema: UserSchema,
+    tags: ["users"]
+  })
+  .get(({ input, c }) => {
+    // Implementation
+  });
+```

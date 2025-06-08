@@ -3,9 +3,13 @@ import { env } from "hono/adapter";
 import { HTTPException } from "hono/http-exception";
 import type { Env, ErrorHandler, MiddlewareHandler } from "hono/types";
 import type { StatusCode } from "hono/utils/http-status";
-import { z, toJSONSchema, ZodObject } from "zod/v4";
+import { ZodObject, z } from "zod/v4";
+import type { JSONSchema } from "zod/v4/core";
 import { bodyParsingMiddleware, queryParsingMiddleware } from "./middleware";
+import { toJSONSchemaWithDate } from "./openapi";
+import type { ProcedureDescription } from "./procedure";
 import { IO, ServerSocket } from "./sockets";
+import { logger } from "./sockets/logger";
 import type {
 	ContextWithSuperJSON,
 	GetOperation,
@@ -15,8 +19,6 @@ import type {
 	RouterConfig,
 	WebSocketOperation,
 } from "./types";
-import { logger } from "./sockets/logger";
-import type { JSONSchema } from "zod/v4/core";
 
 /**
  * Utility type that flattens nested route structures into a flat key-value mapping
@@ -189,6 +191,8 @@ export class Router<
 		procedures: Record<string, ProcedureMetadata>;
 		/** List of registered route paths */
 		registeredPaths: string[];
+		/** Original operations with description metadata */
+		operations: Record<string, OperationType<any, any, E>>;
 	};
 
 	/** Global error handler for the router */
@@ -227,7 +231,11 @@ export class Router<
 			config: {},
 			procedures: {},
 			registeredPaths: [],
+			operations: {},
 		};
+
+		// Store original operations for OpenAPI generation
+		this.storeOperations(procedures);
 
 		// Process procedures to extract metadata
 		for (const [procName, value] of Object.entries(procedures)) {
@@ -236,6 +244,7 @@ export class Router<
 				schema?: ZodObject;
 				incoming?: ZodObject;
 				outgoing?: ZodObject;
+				description?: ProcedureDescription;
 			};
 
 			if (procData.type === "ws") {
@@ -244,18 +253,20 @@ export class Router<
 					type: "ws",
 					schema: {
 						incoming: procData.incoming
-							? toJSONSchema(procData.incoming)
+							? toJSONSchemaWithDate(procData.incoming)
 							: null,
 						outgoing: procData.outgoing
-							? toJSONSchema(procData.outgoing)
+							? toJSONSchemaWithDate(procData.outgoing)
 							: null,
 					},
 				} satisfies WSProcedureMetadata;
 			} else {
 				// Handle GET/POST operations
 				this._metadata.procedures[procName] = {
-					type: procData.type, // Now TypeScript knows this is "get" | "post"
-					schema: procData.schema ? toJSONSchema(procData.schema) : null,
+					type: procData.type,
+					schema: procData.schema
+						? toJSONSchemaWithDate(procData.schema)
+						: null,
 				} satisfies GetPostProcedureMetadata;
 			}
 		}
@@ -266,6 +277,44 @@ export class Router<
 		};
 
 		this.setupRoutes(procedures);
+	}
+
+	/**
+	 * Stores original operations with their description metadata
+	 * This flattens nested procedures and stores them for OpenAPI generation
+	 */
+	private storeOperations(procedures: Record<string, any>) {
+		for (const [key, value] of Object.entries(procedures)) {
+			if (this.isOperationType(value)) {
+				this._metadata.operations[key] = value;
+			} else if (typeof value === "object" && value !== null) {
+				for (const [subKey, subValue] of Object.entries(value)) {
+					if (this.isOperationType(subValue)) {
+						this._metadata.operations[`${key}/${subKey}`] = subValue;
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Gets the description metadata for a specific operation
+	 * @param operationName - Name of the operation to get description for
+	 * @returns Description metadata if available
+	 */
+	getOperationDescription(
+		operationName: string,
+	): ProcedureDescription | undefined {
+		const operation = this._metadata.operations[operationName];
+		return operation?.description;
+	}
+
+	/**
+	 * Gets all operations with their descriptions for OpenAPI generation
+	 * @returns Record of operation names to their full operation definitions
+	 */
+	getAllOperations(): Record<string, OperationType<any, any, E>> {
+		return { ...this._metadata.operations };
 	}
 
 	/**
@@ -351,10 +400,10 @@ export class Router<
 					type: "ws",
 					schema: {
 						incoming: wsOperation.incoming
-							? toJSONSchema(wsOperation.incoming)
+							? toJSONSchemaWithDate(wsOperation.incoming)
 							: null,
 						outgoing: wsOperation.outgoing
-							? toJSONSchema(wsOperation.outgoing)
+							? toJSONSchemaWithDate(wsOperation.outgoing)
 							: null,
 					},
 				} satisfies WSProcedureMetadata;
@@ -364,7 +413,7 @@ export class Router<
 					type: operation.type, // TypeScript knows this is "get" | "post"
 					schema:
 						operation.schema instanceof ZodObject
-							? toJSONSchema(operation.schema)
+							? toJSONSchemaWithDate(operation.schema)
 							: null,
 				} satisfies GetPostProcedureMetadata;
 			}

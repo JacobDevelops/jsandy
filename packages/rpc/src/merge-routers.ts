@@ -79,6 +79,7 @@ export function mergeRouters<
 		config: {},
 		procedures: {},
 		registeredPaths: [],
+		operations: {},
 	};
 
 	// Process each router in the collection
