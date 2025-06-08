@@ -1,5 +1,11 @@
 # @jsandy/rpc
 
+## 1.2.0
+
+### Minor Changes
+
+- 8ef5d81: Update to support exposure of open-api schemas
+
 ## 1.1.1
 
 ### Patch Changes
