@@ -11,7 +11,7 @@
 		"format": "biome format --write .",
 		"lint": "biome lint --write .",
 		"prepare": "husky",
-		"release": "bun build && changeset publish",
+		"release": "bun run build && changeset publish",
 		"test": "turbo run test",
 		"test:coverage": "turbo run test:coverage",
 		"test:watch": "bun run --filter=@jsandy/rpc test:watch"
