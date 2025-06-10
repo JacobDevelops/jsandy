@@ -1,5 +1,5 @@
-import fs from "fs-extra";
 import path from "node:path";
+import fs from "fs-extra";
 import type { PackageJson } from "type-fest";
 
 import { PKG_ROOT } from "@/constants";
@@ -9,10 +9,17 @@ import { addPackageDependency } from "@/utils/add-package-dep";
 export const drizzleInstaller: Installer = ({
 	projectDir,
 	databaseProvider,
+	linter,
 }) => {
+	const devDependencies: ("drizzle-kit" | "eslint-plugin-drizzle")[] = [
+		"drizzle-kit",
+	];
+	if (linter === "eslint") {
+		devDependencies.push("eslint-plugin-drizzle");
+	}
 	addPackageDependency({
 		projectDir,
-		dependencies: ["drizzle-kit", "eslint-plugin-drizzle"],
+		dependencies: devDependencies,
 		devDependencies: true,
 	});
 	addPackageDependency({

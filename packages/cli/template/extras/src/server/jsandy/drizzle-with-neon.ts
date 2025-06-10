@@ -1,7 +1,7 @@
+import { jsandy } from "@jsandy/rpc";
 import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
 import { env } from "hono/adapter";
-import { jsandy } from "jsandy";
 
 interface Env {
 	Bindings: { DATABASE_URL: string };

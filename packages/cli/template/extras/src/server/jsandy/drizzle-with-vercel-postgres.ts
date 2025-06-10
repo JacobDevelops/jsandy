@@ -1,6 +1,6 @@
+import { jsandy } from "@jsandy/rpc";
 import { sql } from "@vercel/postgres";
 import { drizzle } from "drizzle-orm/vercel-postgres";
-import { jsandy } from "jsandy";
 
 interface Env {
 	Bindings: { POSTGRES_URL: string };

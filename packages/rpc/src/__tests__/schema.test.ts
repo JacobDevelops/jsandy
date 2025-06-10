@@ -8,13 +8,6 @@ import {
 	userRouter,
 } from "./__mocks__/router.mock";
 
-mock.module("hono/client", () => ({
-	hc: mock(() => ({
-		$get: mock(),
-		$post: mock(),
-	})),
-}));
-
 const optionalAwait = async <T>(promise: Promise<T> | T): Promise<T> =>
 	promise instanceof Promise ? await promise : promise;
 
@@ -58,15 +51,15 @@ describe("Schema", () => {
 			expect(procedures.health).toBeDefined();
 			expect(procedures.health.type).toBe("get");
 
-			expect(procedures.user).toBeDefined();
-			expect(procedures.user.type).toBe("get");
+			expect(procedures.getUser).toBeDefined();
+			expect(procedures.getUser.type).toBe("get");
 
 			expect(procedures.profile).toBeDefined();
 			expect(procedures.profile.type).toBe("get");
 
 			// Test nested procedures
-			expect(procedures.user).toBeDefined();
-			expect(procedures.user.type).toBe("get");
+			expect(procedures.getUser).toBeDefined();
+			expect(procedures.getUser.type).toBe("get");
 
 			expect(procedures.admin).toBeDefined();
 			expect(procedures.admin.type).toBe("get");
@@ -127,11 +120,11 @@ describe("Schema", () => {
 			)?._metadata.procedures;
 
 			// Test that procedures with schemas have them stored
-			expect(procedures.user.schema).toBeDefined();
-			expect(procedures.user.schema).toBeTypeOf("object");
+			expect(procedures.getUser.schema).toBeDefined();
+			expect(procedures.getUser.schema).toBeTypeOf("object");
 
-			expect(procedures.user.schema).toBeDefined();
-			expect(procedures.user.schema).toBeTypeOf("object");
+			expect(procedures.createUser.schema).toBeDefined();
+			expect(procedures.createUser.schema).toBeTypeOf("object");
 
 			// Test that procedures without schemas have null
 			expect(procedures.health.schema).toBeNull();
@@ -148,7 +141,7 @@ describe("Schema", () => {
 			)?._metadata.procedures;
 
 			// Test that complex schema (like users/create) has proper structure
-			const createUserProcedure = procedures.user;
+			const createUserProcedure = procedures.createUser;
 			expect(createUserProcedure).toBeDefined();
 
 			if (createUserProcedure.type === "post") {
@@ -208,7 +201,7 @@ describe("Schema", () => {
 			});
 
 			expect(typeof client.rpc.health.$get).toBe("function");
-			expect(typeof client.rpc.user.$get).toBe("function");
+			expect(typeof client.rpc.getUser.$get).toBe("function");
 			expect(typeof client.rpc.files.$post).toBe("function");
 		});
 	});

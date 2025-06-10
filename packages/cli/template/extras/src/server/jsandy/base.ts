@@ -1,4 +1,4 @@
-import { jsandy } from "jsandy";
+import { jsandy } from "@jsandy/rpc";
 
 interface Env {
 	// Replace with your own binding types
