@@ -14,7 +14,7 @@
 		"upload": "bun run cf:build && opennextjs-cloudflare upload"
 	},
 	"dependencies": {
-		"@jsandy/rpc": "1.2.0",
+		"@jsandy/rpc": "1.2.1",
 		"@opennextjs/cloudflare": "^1.2.1",
 		"@radix-ui/react-dialog": "^1.1.14",
 		"@radix-ui/react-popover": "^1.1.14",

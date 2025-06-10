@@ -1,5 +1,11 @@
 # @jsandy/rpc
 
+## 1.2.1
+
+### Patch Changes
+
+- 9bc89b1: Fix Bug Where `.$get` and `.$post` weren't callable for nested routes
+
 ## 1.2.0
 
 ### Minor Changes
