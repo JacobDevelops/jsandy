@@ -1,4 +1,4 @@
-import { jsandy } from "jsandy";
+import { jsandy } from "@jsandy/rpc";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { env } from "hono/adapter";
 

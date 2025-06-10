@@ -1,8 +1,8 @@
+import { jsandy } from "@jsandy/rpc";
 import { Client } from "@planetscale/database";
 import { drizzle } from "drizzle-orm/planetscale-serverless";
 import { env } from "hono/adapter";
 import { HTTPException } from "hono/http-exception";
-import { jsandy } from "jsandy";
 
 interface Env {
 	Bindings: { DATABASE_URL: string };

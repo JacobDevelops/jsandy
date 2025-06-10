@@ -27,10 +27,22 @@ export const chatRouter = j.router({
 // Complete app router combining all routes
 export const combinedRouter = j.router({
 	health: procedures.health,
-	user: procedures.getUser,
+	getUser: procedures.getUser,
+	getUsers: procedures.getUsers,
+	createUser: procedures.createUser,
 	profile: procedures.getProfile,
 	admin: procedures.adminOnly,
 	chat: procedures.chat,
 	files: procedures.uploadFile,
 	testing: procedures.errorExample,
+});
+
+const api = j
+	.router()
+	.basePath("/api")
+	.use(j.defaults.cors)
+	.onError(j.defaults.errorHandler);
+
+export const mockAppRouter = j.mergeRouters(api, {
+	combined: combinedRouter,
 });

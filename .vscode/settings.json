@@ -56,5 +56,6 @@
 		"drizzle.config.*": "typescript"
 	},
 	"sqltools.useNodeRuntime": true,
-	"sqltools.connections": []
+	"sqltools.connections": [],
+	"cSpell.words": ["jfetch"]
 }

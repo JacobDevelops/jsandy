@@ -343,7 +343,13 @@ function createProxy(
 					return async (...args: any[]) => {
 						const [data, options] = args;
 						const serializedQuery = serializeWithSuperJSON(data);
-						return target.$get({ query: serializedQuery }, options);
+
+						// Create the nested client path for the Hono client
+						const nestedClient = path.reduce((client, segment) => {
+							return client[segment];
+						}, baseClient);
+
+						return nestedClient.$get({ query: serializedQuery }, options);
 					};
 				}
 
@@ -352,7 +358,13 @@ function createProxy(
 					return async (...args: any[]) => {
 						const [data, options] = args;
 						const serializedJson = serializeWithSuperJSON(data);
-						return target.$post({ json: serializedJson }, options);
+
+						// Create the nested client path for the Hono client
+						const nestedClient = path.reduce((client, segment) => {
+							return client[segment];
+						}, baseClient);
+
+						return nestedClient.$post({ json: serializedJson }, options);
 					};
 				}
 
@@ -389,8 +401,9 @@ function createProxy(
 					};
 				}
 
-				// Return empty proxy for unknown properties to maintain proxy chain
-				return createProxy({}, baseUrl, routePath);
+				// For nested routes, continue the proxy chain but maintain the base client reference
+				// This ensures that $get/$post methods are still available at deeper levels
+				return createProxy(baseClient, baseUrl, routePath);
 			}
 
 			return Reflect.get(target, prop, receiver);

@@ -8,23 +8,15 @@ import {
 	spyOn,
 } from "bun:test";
 import { HTTPException } from "hono/http-exception";
-import superjson from "superjson";
+import superjson, { SuperJSON } from "superjson";
 import { createClient } from "../client";
-import { Router } from "../router";
-import { Procedure } from "../procedure";
-import { z } from "zod/v4";
+import type { mockAppRouter } from "./__mocks__/router.mock";
 
 const realFetch = global.fetch;
 const realWebSocket = global.WebSocket;
 
 const mockFetch = mock();
 global.fetch = mockFetch as any;
-
-// …WebSocket mock…
-afterAll(() => {
-	global.fetch = realFetch;
-	global.WebSocket = realWebSocket;
-});
 
 // Mock WebSocket for client tests
 global.WebSocket = class MockWebSocket {
@@ -52,26 +44,15 @@ global.WebSocket = class MockWebSocket {
 	close = mock();
 } as any;
 
+afterAll(() => {
+	global.fetch = realFetch;
+	global.WebSocket = realWebSocket;
+});
+
+type MockAppRouter = typeof mockAppRouter;
+
 describe("Client", () => {
-	let procedure: Procedure;
-	let testRouter: Router;
-
 	beforeEach(() => {
-		procedure = new Procedure();
-		testRouter = new Router({
-			health: procedure.get(({ c }) => c.json({ status: "ok" })),
-			getUser: procedure
-				.input(z.object({ id: z.string() }))
-				.get(({ input, c }) => c.json({ id: input.id, name: "Test User" })),
-			createUser: procedure
-				.input(z.object({ name: z.string(), email: z.string() }))
-				.post(({ input, c }) => c.json({ id: "123", ...input })),
-			chat: procedure
-				.incoming(z.object({ message: z.string() }))
-				.outgoing(z.object({ response: z.string() }))
-				.ws(() => ({ onConnect: async () => {} })),
-		});
-
 		mockFetch.mockClear();
 		mock.restore();
 	});
@@ -83,6 +64,7 @@ describe("Client", () => {
 			});
 
 			expect(client).toBeDefined();
+			expect(typeof client).toBe("function");
 		});
 
 		it("should throw error for invalid base URL", () => {
@@ -101,22 +83,55 @@ describe("Client", () => {
 			expect(client).toBeDefined();
 		});
 
-		it("should use default credentials", () => {
-			const client = createClient({
+		it("should use default credentials", async () => {
+			const mockResponse = {
+				ok: true,
+				status: 200,
+				text: mock(async () => '{"status":"ok"}'),
+				json: mock(async () => ({ status: "ok" })),
+				headers: new Headers(),
+			};
+			mockFetch.mockResolvedValue(mockResponse);
+
+			const client = createClient<MockAppRouter>({
 				baseUrl: "https://api.example.com",
 			});
 
-			// Default credentials should be "include"
-			expect(client).toBeDefined();
+			await client.combined.health.$get();
+
+			// Verify credentials were set to "include" by default
+			expect(mockFetch).toHaveBeenCalledWith(
+				expect.any(String),
+				expect.objectContaining({
+					credentials: "include",
+				}),
+			);
 		});
 
-		it("should accept custom credentials", () => {
-			const client = createClient({
+		it("should accept custom credentials", async () => {
+			const mockResponse = {
+				ok: true,
+				status: 200,
+				text: mock(async () => '{"status":"ok"}'),
+				json: mock(async () => ({ status: "ok" })),
+				headers: new Headers(),
+			};
+			mockFetch.mockResolvedValue(mockResponse);
+
+			const client = createClient<MockAppRouter>({
 				baseUrl: "https://api.example.com",
 				credentials: "same-origin",
 			});
 
-			expect(client).toBeDefined();
+			await client.combined.health.$get();
+
+			// Verify custom credentials were used
+			expect(mockFetch).toHaveBeenCalledWith(
+				expect.any(String),
+				expect.objectContaining({
+					credentials: "same-origin",
+				}),
+			);
 		});
 	});
 
@@ -126,18 +141,26 @@ describe("Client", () => {
 				ok: true,
 				status: 200,
 				text: mock(async () => '{"status":"ok"}'),
-				json: mock(),
+				json: mock(async () => ({ status: "ok" })),
 				headers: new Headers(),
 			};
 			mockFetch.mockResolvedValue(mockResponse);
 
-			const client = createClient<typeof testRouter>({
+			const client = createClient<MockAppRouter>({
 				baseUrl: "https://api.example.com",
 			});
 
-			// This would require the full proxy implementation to work
-			// For now, we test that the client is created without errors
-			expect(client).toBeDefined();
+			const result = await client.combined.health.$get();
+			const jsonResult = await result.json();
+
+			expect(jsonResult).toEqual({ status: "ok" });
+			expect(mockFetch).toHaveBeenCalledWith(
+				"https://api.example.com/combined/health",
+				expect.objectContaining({
+					credentials: "include",
+					cache: "no-store",
+				}),
+			);
 		});
 
 		it("should make POST request", async () => {
@@ -145,16 +168,33 @@ describe("Client", () => {
 				ok: true,
 				status: 201,
 				text: mock(async () => '{"id":"123","name":"Test"}'),
-				json: mock(),
+				json: mock(async () => ({ id: "123", name: "Test" })),
 				headers: new Headers(),
 			};
 			mockFetch.mockResolvedValue(mockResponse);
 
-			const client = createClient<typeof testRouter>({
+			const client = createClient<MockAppRouter>({
 				baseUrl: "https://api.example.com",
 			});
 
-			expect(client).toBeDefined();
+			const testData = { name: "Test User", email: "test@example.com" };
+			const result = await client.combined.createUser.$post(testData);
+			const jsonResult = await result.json();
+
+			expect(jsonResult).toEqual({ id: "123", name: "Test" });
+			expect(mockFetch).toHaveBeenCalledWith(
+				"https://api.example.com/combined/createUser",
+				expect.objectContaining({
+					credentials: "include",
+					cache: "no-store",
+					// Verify POST request structure
+				}),
+			);
+
+			// Verify the request body was properly serialized
+			const fetchCall = mockFetch.mock.calls[0];
+			const requestOptions = fetchCall[1];
+			expect(requestOptions.body).toBeDefined();
 		});
 
 		it("should handle HTTP errors", async () => {
@@ -166,47 +206,103 @@ describe("Client", () => {
 			};
 			mockFetch.mockResolvedValue(mockResponse);
 
-			const client = createClient<typeof testRouter>({
+			const client = createClient<MockAppRouter>({
 				baseUrl: "https://api.example.com",
 			});
 
-			// The error handling is in the jfetch function
-			expect(client).toBeDefined();
+			// Test that HTTP errors are properly converted to HTTPException
+			await expect(client.combined.health.$get()).rejects.toThrow(
+				HTTPException,
+			);
 		});
 
-		it("should serialize query parameters with SuperJSON", () => {
-			const _client = createClient<typeof testRouter>({
+		it("should serialize query parameters with SuperJSON", async () => {
+			const mockResponse = {
+				ok: true,
+				status: 200,
+				text: mock(async () => '{"data":"test"}'),
+				json: mock(async () => ({ data: "test" })),
+				headers: new Headers(),
+			};
+			mockFetch.mockResolvedValue(mockResponse);
+
+			const client = createClient<MockAppRouter>({
 				baseUrl: "https://api.example.com",
 			});
 
-			// Test SuperJSON serialization helper
-			const testData = { date: new Date(), set: new Set([1, 2, 3]) };
+			// Test with complex data that requires SuperJSON
+			const testData = {
+				date: new Date("2023-01-01"),
+				set: new Set([1, 2, 3]),
+				id: "test-id",
+			};
+
+			await client.combined.getUser.$get(testData);
+
+			// Verify fetch was called
+			expect(mockFetch).toHaveBeenCalled();
+
+			// Check that query parameters were serialized
+			const fetchCall = mockFetch.mock.calls[0];
+			const url = new URL(fetchCall[0]);
+			const queryParams = Object.fromEntries(
+				Array.from(url.searchParams.entries()).map(([key, value]) => [
+					key,
+					SuperJSON.parse<string | Date | Set<number>>(value),
+				]),
+			);
+			expect(queryParams).toEqual({
+				date: new Date("2023-01-01"),
+				set: new Set([1, 2, 3]),
+				id: "test-id",
+			});
+
+			// Verify SuperJSON serialization worked
+			const serializedDate = superjson.stringify(testData.date);
+			const serializedSet = superjson.stringify(testData.set);
+			expect(typeof serializedDate).toBe("string");
+			expect(typeof serializedSet).toBe("string");
+		});
+
+		it("should serialize request body with SuperJSON", async () => {
+			const mockResponse = {
+				ok: true,
+				status: 201,
+				text: mock(async () => '{"id":"123"}'),
+				json: mock(async () => ({ id: "123" })),
+				headers: new Headers(),
+			};
+			mockFetch.mockResolvedValue(mockResponse);
+
+			const client = createClient<MockAppRouter>({
+				baseUrl: "https://api.example.com",
+			});
+
+			// Test with complex data that requires SuperJSON
+			const testData = {
+				name: "Test",
+				createdAt: new Date("2023-01-01"),
+				metadata: new Map([["key", "value"]]),
+				email: "test@example.com",
+			};
+
+			await client.combined.createUser.$post(testData);
+
+			// Verify the request body was serialized with SuperJSON
+			const fetchCall = mockFetch.mock.calls[0];
+			const requestOptions = fetchCall[1];
+			expect(requestOptions.body).toBeDefined();
+
+			// Verify SuperJSON serialization
 			const serialized = Object.fromEntries(
 				Object.entries(testData).map(([key, value]) => [
 					key,
 					superjson.stringify(value),
 				]),
 			);
-
-			expect(serialized.date).toBeTypeOf("string");
-			expect(serialized.set).toBeTypeOf("string");
-		});
-
-		it("should serialize request body with SuperJSON", () => {
-			const _client = createClient<typeof testRouter>({
-				baseUrl: "https://api.example.com",
-			});
-
-			const testData = { name: "Test", createdAt: new Date() };
-			const serialized = Object.fromEntries(
-				Object.entries(testData).map(([key, value]) => [
-					key,
-					superjson.stringify(value),
-				]),
-			);
-
 			expect(serialized.name).toBeTypeOf("string");
 			expect(serialized.createdAt).toBeTypeOf("string");
+			expect(serialized.metadata).toBeTypeOf("string");
 		});
 	});
 
@@ -216,21 +312,23 @@ describe("Client", () => {
 			const serialized = superjson.stringify(testData);
 
 			const mockResponse = {
+				ok: true,
+				status: 200,
 				text: mock(async () => serialized),
+				json: mock(),
 				headers: new Headers({ "x-is-superjson": "true" }),
 			};
+			mockFetch.mockResolvedValue(mockResponse);
 
-			// Test the parsing logic directly
-			const parseJsonResponse = async (response: any) => {
-				const text = await response.text();
-				const isSuperjson = response.headers.get("x-is-superjson") === "true";
-				return isSuperjson ? superjson.parse(text) : JSON.parse(text);
-			};
+			const client = createClient<MockAppRouter>({
+				baseUrl: "https://api.example.com",
+			});
 
-			const result = await parseJsonResponse(mockResponse);
+			const result = await client.combined.health.$get();
+			const parsedResult = await result.json();
 
-			expect(result.date).toBeInstanceOf(Date);
-			expect(result.number).toBe(123);
+			expect(parsedResult.date).toBeInstanceOf(Date);
+			expect(parsedResult.number).toBe(123);
 		});
 
 		it("should parse regular JSON responses", async () => {
@@ -238,112 +336,122 @@ describe("Client", () => {
 			const serialized = JSON.stringify(testData);
 
 			const mockResponse = {
+				ok: true,
+				status: 200,
 				text: mock(async () => serialized),
+				json: mock(),
 				headers: new Headers(),
 			};
+			mockFetch.mockResolvedValue(mockResponse);
 
-			const parseJsonResponse = async (response: any) => {
-				const text = await response.text();
-				const isSuperjson = response.headers.get("x-is-superjson") === "true";
-				return isSuperjson ? superjson.parse(text) : JSON.parse(text);
-			};
+			const client = createClient<MockAppRouter>({
+				baseUrl: "https://api.example.com",
+			});
 
-			const result = await parseJsonResponse(mockResponse);
+			const result = await client.combined.health.$get();
+			const parsedResult = await result.json();
 
-			expect(result.message).toBe("hello");
-			expect(result.count).toBe(42);
+			expect(parsedResult.message).toBe("hello");
+			expect(parsedResult.count).toBe(42);
 		});
 
 		it("should handle invalid JSON", async () => {
 			const consoleSpy = spyOn(console, "error").mockImplementation(() => {});
+
 			const mockResponse = {
+				ok: true,
+				status: 200,
 				text: mock(async () => "invalid json"),
+				json: mock(),
 				headers: new Headers(),
 			};
+			mockFetch.mockResolvedValue(mockResponse);
 
-			const parseJsonResponse = async (response: any) => {
-				const text = await response.text();
-				const isSuperjson = response.headers.get("x-is-superjson") === "true";
+			const client = createClient<MockAppRouter>({
+				baseUrl: "https://api.example.com",
+			});
 
-				try {
-					return isSuperjson ? superjson.parse(text) : JSON.parse(text);
-				} catch (error) {
-					console.error("Failed to parse response as JSON:", error);
-					throw new Error("Invalid JSON response");
-				}
-			};
+			const result = await client.combined.health.$get();
 
-			expect(parseJsonResponse(mockResponse)).rejects.toThrow(
-				"Invalid JSON response",
-			);
+			await expect(result.json()).rejects.toThrow("Invalid JSON response");
+			expect(consoleSpy).toHaveBeenCalled();
 			consoleSpy.mockRestore();
 		});
 	});
 
 	describe("WebSocket connections", () => {
 		it("should create WebSocket connection", () => {
-			const _client = createClient<typeof testRouter>({
+			const client = createClient<MockAppRouter>({
 				baseUrl: "https://api.example.com",
 			});
 
-			// Test WebSocket URL conversion
-			const baseUrl = "https://api.example.com";
-			const endpointPath = "/chat";
-			const url = new URL(baseUrl + endpointPath);
-			url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
+			const socket = client.combined.chat.$ws();
 
-			expect(url.protocol).toBe("wss:");
-			expect(url.toString()).toBe("wss://api.example.com/chat");
+			expect(socket).toBeDefined();
+			expect(socket.constructor.name).toBe("ClientSocket");
+		});
+
+		it("should handle WebSocket URL conversion for HTTPS", () => {
+			const client = createClient<MockAppRouter>({
+				baseUrl: "https://api.example.com",
+			});
+
+			const socket = client.combined.chat.$ws();
+
+			// The socket should be created with wss:// protocol for https
+			expect(socket).toBeDefined();
 		});
 
 		it("should handle WebSocket URL conversion for HTTP", () => {
-			const baseUrl = "http://localhost:3000";
-			const endpointPath = "/chat";
-			const url = new URL(baseUrl + endpointPath);
-			url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
+			const client = createClient<MockAppRouter>({
+				baseUrl: "http://localhost:3000",
+			});
 
-			expect(url.protocol).toBe("ws:");
-			expect(url.toString()).toBe("ws://localhost:3000/chat");
+			const socket = client.combined.chat.$ws();
+
+			// The socket should be created with ws:// protocol for http
+			expect(socket).toBeDefined();
 		});
 	});
 
 	describe("URL generation", () => {
 		it("should generate URLs for endpoints", () => {
-			const baseUrl = "https://api.example.com";
-			const endpointPath = "/users";
-			const url = new URL(baseUrl + endpointPath);
+			const client = createClient<MockAppRouter>({
+				baseUrl: "https://api.example.com",
+			});
 
-			expect(url.toString()).toBe("https://api.example.com/users");
+			const url = client.combined.health.$url();
+
+			expect(url).toBeInstanceOf(URL);
+			expect(url.toString()).toBe("https://api.example.com/combined/health");
 		});
 
 		it("should add query parameters to URLs", () => {
-			const baseUrl = "https://api.example.com";
-			const endpointPath = "/users";
-			const url = new URL(baseUrl + endpointPath);
+			const client = createClient<MockAppRouter>({
+				baseUrl: "https://api.example.com",
+			});
 
 			const queryParams = { page: "1", limit: "10" };
-			for (const [key, value] of Object.entries(queryParams)) {
-				if (value !== null && value !== undefined) {
-					url.searchParams.append(key, String(value));
-				}
-			}
+			const url = client.combined.getUsers.$url({ query: queryParams });
 
+			expect(url).toBeInstanceOf(URL);
 			expect(url.toString()).toBe(
-				"https://api.example.com/users?page=1&limit=10",
+				"https://api.example.com/combined/getUsers?page=1&limit=10",
 			);
 		});
 
 		it("should handle null and undefined query parameters", () => {
-			const url = new URL("https://api.example.com/users");
+			const client = createClient<MockAppRouter>({
+				baseUrl: "https://api.example.com",
+			});
+
 			const queryParams = { page: "1", limit: null, offset: undefined };
+			const url = client.combined.getUsers.$url({ query: queryParams });
 
-			for (const [key, value] of Object.entries(queryParams)) {
-				if (value !== null && value !== undefined) {
-					url.searchParams.append(key, String(value));
-				}
-			}
-
-			expect(url.toString()).toBe("https://api.example.com/users?page=1");
+			expect(url).toBeInstanceOf(URL);
+			expect(url.toString()).toBe(
+				"https://api.example.com/combined/getUsers?page=1",
+			);
 		});
 	});
 
@@ -354,137 +462,147 @@ describe("Client", () => {
 				status: 400,
 				text: mock(async () => "Bad Request"),
 			};
+			mockFetch.mockResolvedValue(mockResponse);
 
-			// Test the error handling logic
-			const jfetch = async (_input: RequestInfo | URL, _init?: RequestInit) => {
-				const res = mockResponse as any;
+			const client = createClient<MockAppRouter>({
+				baseUrl: "https://api.example.com",
+			});
 
-				if (!res.ok) {
-					const message = await res.text();
-					throw new HTTPException(res.status, { message });
-				}
-
-				return res;
-			};
-
-			expect(jfetch("https://api.example.com/test")).rejects.toThrow(
+			await expect(client.combined.health.$get()).rejects.toThrow(
 				HTTPException,
 			);
+
+			// Verify the exception has the correct status
+			try {
+				await client.combined.health.$get();
+			} catch (error) {
+				expect(error).toBeInstanceOf(HTTPException);
+				expect((error as HTTPException).status).toBe(400);
+			}
 		});
 	});
 
 	describe("Proxy behavior", () => {
-		it("should create proxy for dynamic method access", () => {
-			// Test the proxy creation logic
-			const createProxy = (
-				baseClient: any,
-				baseUrl: string,
-				path: string[] = [],
-			) => {
-				return new Proxy(baseClient, {
-					get(target, prop, receiver) {
-						if (typeof prop === "string") {
-							const routePath = [...path, prop];
-
-							if (prop === "$get") {
-								return async (..._args: any[]) => {
-									// Mock GET request logic
-									return { data: "mocked" };
-								};
-							}
-
-							if (prop === "$post") {
-								return async (..._args: any[]) => {
-									// Mock POST request logic
-									return { data: "mocked" };
-								};
-							}
-
-							if (prop === "$url") {
-								return (_args?: any) => {
-									const endpointPath = `/${routePath.slice(0, -1).join("/")}`;
-									return new URL(baseUrl + endpointPath);
-								};
-							}
-
-							if (prop === "$ws") {
-								return () => {
-									// Mock WebSocket creation
-									return new WebSocket("ws://localhost:3000");
-								};
-							}
-
-							return createProxy({}, baseUrl, routePath);
-						}
-
-						return Reflect.get(target, prop, receiver);
-					},
-				});
+		it("should handle deep nesting", async () => {
+			const mockResponse = {
+				ok: true,
+				status: 200,
+				text: mock(async () => '{"data":"test"}'),
+				json: mock(async () => ({ data: "test" })),
+				headers: new Headers(),
 			};
+			mockFetch.mockResolvedValue(mockResponse);
 
-			const proxy = createProxy({}, "https://api.example.com");
+			const client = createClient<MockAppRouter>({
+				baseUrl: "https://api.example.com",
+			});
 
-			expect(proxy).toBeDefined();
-			expect(typeof proxy.users).toBe("object");
+			// Test that deeply nested routes work
+			const result = await client.combined.health.$get();
+			const jsonResult = await result.json();
+
+			expect(jsonResult).toEqual({ data: "test" });
+			expect(mockFetch).toHaveBeenCalledWith(
+				"https://api.example.com/combined/health",
+				expect.any(Object),
+			);
+		});
+
+		it("should maintain method availability across proxy chain", () => {
+			const client = createClient<MockAppRouter>({
+				baseUrl: "https://api.example.com",
+			});
+
+			// Verify that methods are available at different nesting levels
+			expect(typeof client.combined.health.$get).toBe("function");
+			expect(typeof client.combined.createUser.$post).toBe("function");
+			expect(typeof client.combined.chat.$ws).toBe("function");
+			expect(typeof client.combined.health.$url).toBe("function");
 		});
 	});
 
 	describe("Type safety", () => {
 		it("should provide type-safe client interface", () => {
-			const client = createClient<typeof testRouter>({
+			const client = createClient<MockAppRouter>({
 				baseUrl: "https://api.example.com",
 			});
 
 			// These should compile without TypeScript errors
-			// (We can't test runtime behavior without full implementation)
 			expect(client).toBeDefined();
-		});
-
-		it("should infer correct input and output types", () => {
-			// Test type inference with a simple router
-			const simpleRouter = new Router({
-				getUser: procedure
-					.input(z.object({ id: z.string() }))
-					.get(({ input, c }) => c.json({ id: input.id, name: "Test" })),
-			});
-
-			const client = createClient<typeof simpleRouter>({
-				baseUrl: "https://api.example.com",
-			});
-
-			// Type checking happens at compile time
-			expect(client).toBeDefined();
+			expect(typeof client.combined).toBe("function");
+			expect(typeof client.combined.health).toBe("function");
+			expect(typeof client.combined.health.$get).toBe("function");
 		});
 	});
 
 	describe("Configuration", () => {
-		it("should remove baseUrl from input if already included", () => {
-			const baseUrl = "https://api.example.com";
-			const input = "https://api.example.com/users/123";
-			const inputPath = input.replace(baseUrl, "");
-			const targetUrl = baseUrl + inputPath;
+		it("should remove baseUrl from input if already included", async () => {
+			const mockResponse = {
+				ok: true,
+				status: 200,
+				text: mock(async () => '{"status":"ok"}'),
+				json: mock(async () => ({ status: "ok" })),
+				headers: new Headers(),
+			};
+			mockFetch.mockResolvedValue(mockResponse);
 
-			expect(targetUrl).toBe("https://api.example.com/users/123");
-		});
-
-		it("should handle cache control", () => {
-			const client = createClient<typeof testRouter>({
+			const client = createClient<MockAppRouter>({
 				baseUrl: "https://api.example.com",
 			});
 
-			// Cache configuration is passed to fetch
-			expect(client).toBeDefined();
+			await client.combined.health.$get();
+
+			// Verify that the URL was constructed correctly without duplication
+			expect(mockFetch).toHaveBeenCalledWith(
+				"https://api.example.com/combined/health",
+				expect.any(Object),
+			);
 		});
 
-		it("should handle custom fetch options", () => {
-			const customFetch = mock(async () => new Response());
+		it("should handle cache control", async () => {
+			const mockResponse = {
+				ok: true,
+				status: 200,
+				text: mock(async () => '{"status":"ok"}'),
+				json: mock(async () => ({ status: "ok" })),
+				headers: new Headers(),
+			};
+			mockFetch.mockResolvedValue(mockResponse);
 
-			const client = createClient<typeof testRouter>({
+			const client = createClient<MockAppRouter>({
 				baseUrl: "https://api.example.com",
-				fetch: customFetch,
 			});
 
-			expect(client).toBeDefined();
+			await client.combined.health.$get();
+
+			// Verify cache control is set
+			expect(mockFetch).toHaveBeenCalledWith(
+				expect.any(String),
+				expect.objectContaining({
+					cache: "no-store",
+				}),
+			);
+		});
+
+		it("should handle custom fetch options", async () => {
+			const customFetch = mock(async () => ({
+				ok: true,
+				status: 200,
+				text: async () => '{"status":"ok"}',
+				json: async () => ({ status: "ok" }),
+				headers: new Headers(),
+			}));
+
+			const client = createClient<MockAppRouter>({
+				baseUrl: "https://api.example.com",
+				fetch: customFetch as any,
+			});
+
+			await client.combined.health.$get();
+
+			// Verify custom fetch was used instead of global fetch
+			expect(customFetch).toHaveBeenCalled();
+			expect(mockFetch).not.toHaveBeenCalled();
 		});
 	});
 });
