@@ -8,7 +8,7 @@ import {
 	spyOn,
 } from "bun:test";
 import { HTTPException } from "hono/http-exception";
-import superjson, { SuperJSON } from "superjson";
+import superjson from "superjson";
 import { createClient } from "../client";
 import type { mockAppRouter } from "./__mocks__/router.mock";
 
@@ -248,7 +248,7 @@ describe("Client", () => {
 			const queryParams = Object.fromEntries(
 				Array.from(url.searchParams.entries()).map(([key, value]) => [
 					key,
-					SuperJSON.parse<string | Date | Set<number>>(value),
+					superjson.parse<string | Date | Set<number>>(value),
 				]),
 			);
 			expect(queryParams).toEqual({

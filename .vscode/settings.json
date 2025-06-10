@@ -57,5 +57,5 @@
 	},
 	"sqltools.useNodeRuntime": true,
 	"sqltools.connections": [],
-	"cSpell.words": ["jfetch"]
+	"cSpell.words": ["jfetch", "subrouters"]
 }
