@@ -1,5 +1,11 @@
 # create-jsandy-app
 
+## 1.1.1
+
+### Patch Changes
+
+- 9bc89b1: Fix bug where it would import from `"jsandy"` instead of `"@jsandy/rpc"`
+
 ## 1.1.0
 
 ### Minor Changes
