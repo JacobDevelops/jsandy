@@ -208,7 +208,7 @@ describe("Schema", () => {
 			});
 
 			expect(typeof client.rpc.health.$get).toBe("function");
-			expect(typeof client.rpc.user.$get).toBe("function");
+			expect(typeof client.rpc.getUser.$get).toBe("function");
 			expect(typeof client.rpc.files.$post).toBe("function");
 		});
 	});
