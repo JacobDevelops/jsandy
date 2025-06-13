@@ -1,10 +1,5 @@
 "use client";
 
-import Link from "next/link";
-import Image from "next/image";
-import { Menu } from "lucide-react";
-import { useState } from "react"; // Keep for controlling Sheet open state if needed for onLinkClick
-
 import { Button } from "@/components/ui/button";
 import {
 	Sheet,
@@ -13,6 +8,10 @@ import {
 	SheetTitle,
 	SheetTrigger,
 } from "@/components/ui/sheet"; // [^1]
+import { Menu } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useState } from "react"; // Keep for controlling Sheet open state if needed for onLinkClick
 import { DocNavigation } from "./doc-navigation";
 
 export function MobileNavigation() {
