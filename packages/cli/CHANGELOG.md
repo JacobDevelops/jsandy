@@ -1,5 +1,11 @@
 # create-jsandy-app
 
+## 1.1.2
+
+### Patch Changes
+
+- 55ca62e: Update Minor Version of `@jsandy/rpc` dependency
+
 ## 1.1.1
 
 ### Patch Changes
