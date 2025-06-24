@@ -7,7 +7,7 @@ export const dependencyVersionMap = {
 	"@tanstack/react-query": "^5.80.6",
 	clsx: "^2.1.1",
 	hono: "^4.7.11",
-	"@jsandy/rpc": "^1.1.1",
+	"@jsandy/rpc": "^1.2.1",
 	next: "^15.3.3",
 	react: "^19.1.0",
 	"react-dom": "^19.1.0",
