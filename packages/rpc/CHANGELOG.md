@@ -1,5 +1,11 @@
 # @jsandy/rpc
 
+## 2.0.0
+
+### Major Changes
+
+- ca00ffd: Dropped support for zod v3 to only use zod v4
+
 ## 1.2.1
 
 ### Patch Changes
