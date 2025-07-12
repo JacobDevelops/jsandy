@@ -2,8 +2,7 @@ import { cors } from "hono/cors";
 import { HTTPException } from "hono/http-exception";
 import type { Env, HTTPResponseError, MiddlewareHandler } from "hono/types";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
-import { ZodError as ZodErrorV3 } from "zod";
-import { ZodError as ZodErrorV4 } from "zod/v4";
+import { ZodError } from "zod";
 import { mergeRouters } from "./merge-routers";
 import { Procedure } from "./procedure";
 import { Router } from "./router";
@@ -168,7 +167,7 @@ class JSandy {
 					if (err instanceof HTTPException) {
 						return err.getResponse();
 					}
-					if (err instanceof ZodErrorV3 || err instanceof ZodErrorV4) {
+					if (err instanceof ZodError) {
 						const httpError = new HTTPException(422, {
 							message: "Validation error",
 							cause: err,

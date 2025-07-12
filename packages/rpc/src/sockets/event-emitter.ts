@@ -1,11 +1,10 @@
-import { ZodError as ZodV3Error, type ZodTypeAny } from "zod";
-import { ZodError as ZodV4Error, type ZodType } from "zod/v4";
+import { ZodError, type ZodType } from "zod";
 import { logger } from "./logger";
 
 /**
  * Schema type that can be either a ZodObject for validation or void for no validation
  */
-type Schema = ZodTypeAny | ZodType | undefined;
+type Schema = ZodType | undefined;
 
 /**
  * Configuration interface for WebSocket message schemas
@@ -136,7 +135,7 @@ export class EventEmitter {
 	 * @private
 	 */
 	handleSchemaMismatch(event: string, data: any, err: any) {
-		if (err instanceof ZodV3Error || err instanceof ZodV4Error) {
+		if (err instanceof ZodError) {
 			logger.error(`Invalid outgoing event data for "${event}":`, {
 				errors: err.issues
 					.map((e) => `${e.path.join(".")}: ${e.message}`)
@@ -184,7 +183,7 @@ export class EventEmitter {
 			try {
 				validatedData = this.incomingSchema.parse(data);
 			} catch (err) {
-				if (err instanceof ZodV3Error || err instanceof ZodV4Error) {
+				if (err instanceof ZodError) {
 					logger.error(`Invalid incoming event data for "${eventName}":`, {
 						errors: err.issues
 							.map((e) => `${e.path.join(".")}: ${e.message}`)

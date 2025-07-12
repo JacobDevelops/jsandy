@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
-import { z } from "zod/v4";
-import { createSchema, createEnumSchema } from "../schemas";
+import { z } from "zod";
+import { createEnumSchema, createSchema } from "../schemas";
 
 describe("Schema Utilities", () => {
 	describe("createSchema", () => {

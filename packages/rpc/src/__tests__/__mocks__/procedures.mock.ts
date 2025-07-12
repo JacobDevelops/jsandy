@@ -1,4 +1,4 @@
-import { z } from "zod/v4";
+import { z } from "zod";
 import { j } from "./jsandy.mock";
 import { authMiddleware, loggingMiddleware } from "./middleware.mock";
 

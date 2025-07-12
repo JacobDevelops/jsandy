@@ -1,8 +1,8 @@
-import { type ZodType, toJSONSchema } from "zod/v4";
+import type z from "zod";
+import { type ZodType, toJSONSchema } from "zod";
 import type { JSONSchema } from "zod/v4/core";
 import type { ProcedureDescription } from "./procedure";
 import type { Router } from "./router";
-import type { ZodAny } from "./types";
 
 /**
  * OpenAPI specification structure
@@ -309,7 +309,7 @@ function createOperationSpec(
  * Converts a Zod schema to OpenAPI JSON Schema format
  */
 function convertZodToOpenAPI(
-	zodSchema: ZodAny | JSONSchema.BaseSchema,
+	zodSchema: z.ZodType<any> | JSONSchema.BaseSchema,
 	schemas: Map<string, any>,
 ): JSONSchema.BaseSchema {
 	try {

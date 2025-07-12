@@ -1,8 +1,7 @@
 import type { Env } from "hono/types";
 import type { StatusCode } from "hono/utils/http-status";
 import superjson from "superjson";
-import type { ZodType as ZodV3Type } from "zod";
-import type { ZodType as ZodV4Type } from "zod/v4";
+import type { ZodType, z } from "zod";
 import type { IO } from "./sockets";
 import type {
 	ContextWithSuperJSON,
@@ -14,7 +13,6 @@ import type {
 	ResponseType,
 	WebSocketHandler,
 	WebSocketOperation,
-	ZodAny,
 } from "./types";
 
 /**
@@ -27,7 +25,7 @@ export interface ProcedureDescription {
 	/** Optional summary for the endpoint (shorter than description) */
 	summary?: string;
 	/** Zod schema defining the expected output/response structure */
-	schema?: ZodAny;
+	schema?: z.ZodType<any>;
 	/** Optional tags for grouping endpoints in documentation */
 	tags?: string[];
 	/** Optional operation ID for OpenAPI specification */
@@ -58,9 +56,9 @@ export interface ProcedureDescription {
 export class Procedure<
 	E extends Env = any,
 	Ctx = {},
-	InputSchema extends ZodAny | void = void,
-	Incoming extends ZodAny | void = void,
-	Outgoing extends ZodAny | void = void,
+	InputSchema extends z.ZodType<any> | void = void,
+	Incoming extends z.ZodType<any> | void = void,
+	Outgoing extends z.ZodType<any> | void = void,
 > {
 	/** Array of middleware functions to execute in sequence */
 	private readonly middlewares: MiddlewareFunction<Ctx, void, E>[] = [];
@@ -177,7 +175,7 @@ export class Procedure<
 	 * @param schema - Zod schema to validate incoming WebSocket messages
 	 * @returns New Procedure instance with incoming schema configured
 	 */
-	incoming<Schema extends ZodAny>(schema: Schema) {
+	incoming<Schema extends z.ZodType<any>>(schema: Schema) {
 		return new Procedure<E, Ctx, InputSchema, Schema, Outgoing>(
 			this.middlewares,
 			this.inputSchema,
@@ -195,7 +193,7 @@ export class Procedure<
 	 * @param schema - Zod schema to validate outgoing WebSocket messages
 	 * @returns New Procedure instance with outgoing schema configured
 	 */
-	outgoing<Schema extends ZodAny>(schema: Schema) {
+	outgoing<Schema extends z.ZodType<any>>(schema: Schema) {
 		return new Procedure<E, Ctx, InputSchema, Incoming, Schema>(
 			this.middlewares,
 			this.inputSchema,
@@ -213,7 +211,7 @@ export class Procedure<
 	 * @param schema - Zod schema to validate input parameters
 	 * @returns New Procedure instance with input schema configured
 	 */
-	input<Schema extends ZodAny>(schema: Schema) {
+	input<Schema extends z.ZodType<any>>(schema: Schema) {
 		return new Procedure<E, Ctx, Schema, Incoming, Outgoing>(
 			this.middlewares,
 			schema,
@@ -267,10 +265,7 @@ export class Procedure<
 	): GetOperation<InputSchema, ReturnType<typeof handler>, E> {
 		return {
 			type: "get",
-			schema: this.inputSchema as
-				| ZodV3Type<InputSchema>
-				| ZodV4Type<InputSchema>
-				| void,
+			schema: this.inputSchema as ZodType<InputSchema> | void,
 			handler: handler as any,
 			middlewares: this.middlewares,
 			description: this.description,
@@ -322,10 +317,7 @@ export class Procedure<
 	): PostOperation<InputSchema, ReturnType<typeof handler>, E> {
 		return {
 			type: "post",
-			schema: this.inputSchema as
-				| ZodV3Type<InputSchema>
-				| ZodV4Type<InputSchema>
-				| void,
+			schema: this.inputSchema as ZodType<InputSchema> | void,
 			handler: handler as any,
 			middlewares: this.middlewares,
 			description: this.description,

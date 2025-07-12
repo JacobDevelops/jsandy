@@ -3,7 +3,7 @@ import { slugify } from "@/lib/slugify";
 import { defineCollection, defineConfig } from "@content-collections/core";
 import { compileMDX } from "@content-collections/mdx";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
-import { z } from "zod/v4";
+import { z } from "zod";
 
 // for more information on configuration, visit:
 // https://www.content-collections.dev/docs/configuration

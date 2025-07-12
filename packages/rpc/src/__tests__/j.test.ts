@@ -1,4 +1,5 @@
 import {
+	type Mock,
 	afterEach,
 	beforeEach,
 	describe,
@@ -6,14 +7,12 @@ import {
 	it,
 	mock,
 	spyOn,
-	type Mock,
 } from "bun:test";
 import { HTTPException } from "hono/http-exception";
-import { ZodError as ZodErrorV3 } from "zod";
-import { ZodError as ZodErrorV4 } from "zod/v4";
-import { jsandy, fromHono } from "../j";
-import { Router } from "../router";
+import { ZodError } from "zod";
+import { fromHono, jsandy } from "../j";
 import { Procedure } from "../procedure";
+import { Router } from "../router";
 
 describe("JSandy Framework", () => {
 	beforeEach(() => {
@@ -144,25 +143,8 @@ describe("JSandy Framework", () => {
 				consoleSpy.mockRestore();
 			});
 
-			it("should handle Zod v3 validation errors", () => {
-				const zodError = new ZodErrorV3([
-					{
-						code: "invalid_type",
-						expected: "string",
-						received: "number",
-						path: ["name"],
-						message: "Expected string, received number",
-					},
-				]);
-
-				const response = defaults.errorHandler(zodError);
-
-				expect(response).toBeInstanceOf(Response);
-				expect(response.status).toBe(422);
-			});
-
-			it("should handle Zod v4 validation errors", () => {
-				const zodError = new ZodErrorV4([
+			it("should handle Zod validation errors", () => {
+				const zodError = new ZodError([
 					{
 						code: "invalid_type",
 						expected: "string",

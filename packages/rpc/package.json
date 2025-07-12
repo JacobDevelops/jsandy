@@ -43,7 +43,7 @@
 	},
 	"peerDependencies": {
 		"hono": "^4.7.11",
-		"zod": "^3.25.42"
+		"zod": "^4.0.5"
 	},
 	"dependencies": {
 		"superjson": "^2.2.2"

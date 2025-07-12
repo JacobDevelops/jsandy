@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, mock } from "bun:test";
-import { z } from "zod/v4";
+import { z } from "zod";
 import { Procedure } from "../procedure";
 
 describe("Procedure", () => {

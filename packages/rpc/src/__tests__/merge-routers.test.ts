@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, mock, spyOn } from "bun:test";
 import type { Hono } from "hono";
-import { z } from "zod/v4";
+import { z } from "zod";
 import { jsandy } from "..";
 import { mergeRouters } from "../merge-routers";
 import { Router } from "../router";

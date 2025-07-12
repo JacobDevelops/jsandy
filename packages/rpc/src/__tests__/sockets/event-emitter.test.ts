@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, mock, spyOn } from "bun:test";
-import { z } from "zod/v4";
+import { z } from "zod";
 import { EventEmitter } from "../../sockets/event-emitter";
 
 // Mock WebSocket
