@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import { jsandy } from "@/j";
 import { generateOpenAPISpec } from "@/openapi";
-import { z } from "zod/v4";
+import { z } from "zod";
 
 const { router, procedure } = jsandy.init();
 

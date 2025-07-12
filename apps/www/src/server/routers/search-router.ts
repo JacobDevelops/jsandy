@@ -1,5 +1,5 @@
 import type { SearchMetadata } from "@/types";
-import { z } from "zod/v4";
+import { z } from "zod";
 import { j, publicProcedure, vectorMiddleware } from "../jsandy";
 
 export const searchRouter = j.router({

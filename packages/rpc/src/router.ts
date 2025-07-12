@@ -3,7 +3,7 @@ import { env } from "hono/adapter";
 import { HTTPException } from "hono/http-exception";
 import type { Env, ErrorHandler, MiddlewareHandler } from "hono/types";
 import type { StatusCode } from "hono/utils/http-status";
-import { ZodObject, z } from "zod/v4";
+import { ZodObject, z } from "zod";
 import type { JSONSchema } from "zod/v4/core";
 import { bodyParsingMiddleware, queryParsingMiddleware } from "./middleware";
 import { toJSONSchemaWithDate } from "./openapi";

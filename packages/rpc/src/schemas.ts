@@ -1,4 +1,4 @@
-import type { z } from "zod/v4";
+import type { z } from "zod";
 import type { JSONSchema } from "zod/v4/core";
 import type { Router } from "./router";
 

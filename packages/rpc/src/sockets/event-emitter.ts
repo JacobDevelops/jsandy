@@ -1,5 +1,5 @@
-import { ZodError as ZodV3Error, type ZodTypeAny } from "zod";
-import { ZodError as ZodV4Error, type ZodType } from "zod/v4";
+import { type ZodTypeAny, ZodError as ZodV3Error } from "zod";
+import { type ZodType, ZodError as ZodV4Error } from "zod";
 import { logger } from "./logger";
 
 /**

@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, mock } from "bun:test";
 import { Hono } from "hono";
-import { z } from "zod/v4";
-import { Router } from "../router";
+import { z } from "zod";
 import { Procedure } from "../procedure";
+import { Router } from "../router";
 
 // Mock WebSocketPair for testing
 // @ts-ignore

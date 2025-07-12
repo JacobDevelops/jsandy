@@ -2,8 +2,7 @@ import type { Context, TypedResponse } from "hono";
 import type { Env, Input } from "hono/types";
 import type { StatusCode } from "hono/utils/http-status";
 import type superjson from "superjson";
-import type { z as zV3 } from "zod";
-import type { z as zV4 } from "zod/v4";
+import type { z } from "zod";
 import type { ProcedureDescription } from "./procedure";
 import type { IO, ServerSocket } from "./sockets";
 
@@ -205,7 +204,7 @@ export type GetOperation<
 	/** Operation type identifier */
 	type: "get";
 	/** Optional input validation schema */
-	schema?: zV3.ZodType<Schema> | zV4.ZodType<Schema> | void;
+	schema?: z.ZodType<Schema> | void;
 	/** Handler function for the GET operation */
 	handler: <Input>({
 		c,
@@ -239,7 +238,7 @@ export type PostOperation<
 	/** Operation type identifier */
 	type: "post";
 	/** Optional input validation schema */
-	schema?: zV3.ZodType<Schema> | zV4.ZodType<Schema> | void;
+	schema?: z.ZodType<Schema> | void;
 	/** Handler function for the POST operation */
 	handler: <Input, _Output>({
 		ctx,
@@ -299,10 +298,6 @@ export type RouterRecord = Record<
 
 export type InferZodType<S, T = void> = S extends void
 	? T
-	: S extends zV3.ZodTypeAny
-		? zV3.infer<S>
-		: S extends zV4.ZodType
-			? zV4.infer<S>
-			: T;
-
-export type ZodAny = zV3.ZodTypeAny | zV4.ZodType;
+	: S extends z.ZodType<any>
+		? z.infer<S>
+		: T;

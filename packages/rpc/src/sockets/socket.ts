@@ -1,5 +1,5 @@
 import type { ZodSchema } from "zod";
-import { type ZodType, z } from "zod/v4";
+import { type ZodType, z } from "zod";
 import { EventEmitter } from "./event-emitter";
 import { logger } from "./logger";
 
