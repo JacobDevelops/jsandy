@@ -36,7 +36,7 @@
 		"rehype-pretty-code": "^0.14.1",
 		"rehype-stringify": "^10.0.1",
 		"tailwind-merge": "^3.3.0",
-		"zod": "^3.25.56",
+		"zod": "^4.0.5",
 		"zustand": "^5.0.5"
 	},
 	"devDependencies": {
