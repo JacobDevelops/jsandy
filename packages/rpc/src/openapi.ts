@@ -462,7 +462,6 @@ function createQueryParameters(
 		return [];
 	}
 	if (schema.$ref) {
-		// biome-ignore lint/style/noParameterAssign: We need to assign the schema to the reusable schema
 		schema = getReusableSchema(schema, schemas) as JSONSchema.BaseSchema;
 	}
 
@@ -616,7 +615,6 @@ export function toJSONSchemaWithDate<T extends ZodType>(
 				// Convert z.date() to ISO datetime string format
 				ctx.jsonSchema.type = "string";
 				ctx.jsonSchema.format = "date-time";
-				// biome-ignore lint/performance/noDelete: We need to delete the additionalProperties property
 				delete ctx.jsonSchema.additionalProperties; // Clean up any unwanted properties
 			}
 		},

@@ -17,15 +17,18 @@
 		"test:watch": "bun run --filter=@jsandy/rpc test:watch"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "1.9.4",
-		"@changesets/cli": "^2.29.4",
+		"@biomejs/biome": "2.2.2",
+		"@changesets/cli": "^2.29.6",
 		"@commitlint/cli": "^19.8.1",
 		"@commitlint/config-conventional": "^19.8.1",
 		"@commitlint/types": "^19.8.1",
 		"husky": "^9.1.7",
-		"knip": "^5.59.1",
-		"turbo": "^2.5.4"
+		"knip": "^5.63.0",
+		"turbo": "^2.5.6"
 	},
-	"workspaces": ["apps/*", "packages/*"],
+	"workspaces": [
+		"apps/*",
+		"packages/*"
+	],
 	"packageManager": "bun@1.2.14"
 }

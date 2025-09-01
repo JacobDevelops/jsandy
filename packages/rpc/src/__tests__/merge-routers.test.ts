@@ -143,7 +143,7 @@ describe("Router Merging", () => {
 		it("should handle many routers", () => {
 			const routers = {};
 			for (let i = 0; i < 10; i++) {
-				// @ts-ignore - this is a test
+				// @ts-expect-error - this is a test
 				routers[`router${i}`] = new Router({
 					test: procedure.get(({ c }) => c.json({ index: i })),
 				});

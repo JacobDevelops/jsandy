@@ -96,7 +96,6 @@ export async function extractRouterSchemas(
 		targetGroup: GroupedRoutes,
 	) {
 		if (currentRouter instanceof Promise) {
-			// biome-ignore lint/style/noParameterAssign: We want it to be reset here
 			currentRouter = await currentRouter;
 		}
 		const metadata = currentRouter._metadata;

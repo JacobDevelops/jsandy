@@ -155,7 +155,7 @@ const SearchBar = () => {
 							</span>
 						);
 					}
-					return;
+					continue;
 				}
 
 				for (let i = 0; i <= tokenLower.length - searchWord.length; i++) {
@@ -174,7 +174,6 @@ const SearchBar = () => {
 								{suffix}
 							</>
 						);
-						return;
 					}
 				}
 			}
@@ -394,7 +393,7 @@ const SearchBar = () => {
 								<li
 									key={`${result.id}-${index}`}
 									id={`result-${index}`}
-									aria-selected={index === selectedIndex}
+									// aria-selected={index === selectedIndex}
 									className={cn(
 										"px-4 rounded-lg cursor-pointer py-5",
 										index === selectedIndex && "bg-brand-200/10",

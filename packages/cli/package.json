@@ -9,7 +9,12 @@
 		"url": "git+https://github.com/JacobDevelops/jsandy.git",
 		"directory": "packages/cli"
 	},
-	"files": ["dist", "README.md", "CHANGELOG.md", "template"],
+	"files": [
+		"dist",
+		"README.md",
+		"CHANGELOG.md",
+		"template"
+	],
 	"engines": {
 		"node": ">=18.0.0"
 	},

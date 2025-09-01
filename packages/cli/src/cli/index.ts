@@ -59,12 +59,12 @@ export async function runCli(): Promise<CliResults | undefined> {
 		return undefined;
 	}
 
-	let dialect = undefined;
-	let provider = undefined;
+	let dialect: CliResults["dialect"];
+	let provider: CliResults["provider"];
 	if (orm === "drizzle") {
 		dialect = "postgres" as const; // Only offering postgres
 
-		provider = await select({
+		provider = (await select({
 			message: "Which Postgres provider would you like to use?",
 			options: [
 				{ value: "postgres", label: "PostgreSQL" },
@@ -72,7 +72,7 @@ export async function runCli(): Promise<CliResults | undefined> {
 				{ value: "vercel-postgres", label: "Vercel Postgres" },
 				{ value: "planetscale", label: "PlanetScale" },
 			],
-		});
+		})) as CliResults["provider"];
 
 		if (isCancel(provider)) {
 			outro("Setup cancelled.");
@@ -117,7 +117,9 @@ export async function runCli(): Promise<CliResults | undefined> {
 	if (!noInstall) {
 		const pkgManager = getUserPkgManager();
 		const shouldInstall = await select({
-			message: `Should we run '${pkgManager}${pkgManager === "yarn" ? "" : " install"}' for you?`,
+			message: `Should we run '${pkgManager}${
+				pkgManager === "yarn" ? "" : " install"
+			}' for you?`,
 			options: [
 				{ value: true, label: "Yes" },
 				{ value: false, label: "No" },
