@@ -117,25 +117,42 @@ export default function Page() {
 
 ### Development
 
-To make scalable, serverless WebSockets possible, JSandy uses [Upstash Redis](https://upstash.com/) as its real-time engine. Deploying real-world, production WebSocket applications is possible without a credit card, entirely on their free tier.
+JSandy uses a pluggable Pub/Sub adapter for real-time messaging. You can choose any provider (e.g., Upstash Redis, native Redis, Kafka, NATS, or Cloudflare Pub/Sub). Upstash remains a great option, but it's no longer required.
 
-_Side note: In the future, I'd like to add the ability to provide your own Redis connection string (e.g. self-hosted)._
+1. Provide a Pub/Sub adapter via router config
 
-1. After [logging into Upstash](https://upstash.com/), create a Redis database by clicking the _Create Database_ button
+   ```ts server/jsandy.ts {4,10-18}
+   import { jsandy, UpstashRestPubSub, type PubSubAdapter } from "@jsandy/rpc"
+   import { env } from "hono/adapter"
 
-   <Frame>
-     <Image src="/create-redis-db.png" alt="Create an Upstash Redis database" />
-   </Frame>
+   export const j = jsandy.init()
 
-2. Copy the `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` env variables into a `.dev.vars` file in the root of your app
+   // Example: Upstash adapter (optional, replace with your own implementation)
+   const getPubSubAdapter = (c: any): PubSubAdapter => {
+     const { UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN } = env(c)
+     return new UpstashRestPubSub(UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN)
+   }
 
-   <Frame>
-     <Image src="/copy-redis-env-variables.png" alt="Copy Upstash Redis environment variables" />
-   </Frame>
+   export const api = j.router().config({ getPubSubAdapter })
+   ```
 
-   ```plaintext .dev.vars
-    UPSTASH_REDIS_REST_URL=
-    UPSTASH_REDIS_REST_TOKEN=
+2. Alternatively for local development, you can use an in-memory adapter
+
+   ```ts /dev/null/in-memory-adapter.ts
+   import type { PubSubAdapter } from "@jsandy/rpc"
+
+   class InMemoryPubSub implements PubSubAdapter {
+     subs = new Map<string, Set<(p: unknown) => void>>()
+     async publish(topic: string, payload: unknown) {
+       const set = this.subs.get(topic); if (!set) return
+       for (const cb of set) cb(payload)
+     }
+     async subscribe(topic: string, onMessage: (payload: unknown) => void, opts?: { signal?: AbortSignal; onOpen?: () => void }) {
+       let set = this.subs.get(topic); if (!set) { set = new Set(); this.subs.set(topic, set) }
+       set.add(onMessage); opts?.onOpen?.()
+       opts?.signal?.addEventListener("abort", () => set!.delete(onMessage), { once: true })
+     }
+   }
    ```
 
 3. Start your Cloudflare backend using
@@ -197,7 +214,7 @@ _Side note: In the future, I'd like to add the ability to provide your own Redis
    }
    ```
 
-   3. Set the `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` env variables in your Worker so it can access them:
+   3. If you use Upstash, set the `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` env variables in your Worker:
 
    ```bash Terminal
     # Create UPSTASH_REDIS_REST_URL environment variable

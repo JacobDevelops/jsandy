@@ -2,19 +2,30 @@ import type { ZodSchema } from "zod";
 import { type ZodType, z } from "zod";
 import { EventEmitter } from "./event-emitter";
 import { logger } from "./logger";
+import { UpstashRestPubSub, type PubSubAdapter } from "./pubsub";
 
 /**
  * Configuration options for creating a ServerSocket instance
  */
 interface ServerSocketOptions {
-	/** Redis server URL for pub/sub functionality */
-	redisUrl: string;
-	/** Authentication token for Redis connection */
-	redisToken: string;
+	/**
+	 * Generic Pub/Sub adapter implementation. If not provided, a default
+	 * REST adapter (Upstash-compatible) will be created from redisUrl/redisToken for
+	 * backward compatibility.
+	 */
+	adapter?: PubSubAdapter;
+	/** Backward-compat: Redis server URL for pub/sub functionality (Upstash REST) */
+	redisUrl?: string;
+	/** Backward-compat: Authentication token for Redis connection (Upstash REST) */
+	redisToken?: string;
 	/** Zod schema for validating incoming events */
 	incomingSchema: ZodSchema | ZodType;
 	/** Zod schema for validating outgoing events */
 	outgoingSchema: ZodSchema | ZodType;
+	/** Heartbeat ping interval in ms (default: 30000) */
+	heartbeatIntervalMs?: number;
+	/** Heartbeat timeout threshold in ms (default: 45000) */
+	heartbeatTimeoutMs?: number;
 }
 
 /**
@@ -28,7 +39,7 @@ export interface SystemEvents {
 }
 
 /**
- * Server-side WebSocket implementation with Redis pub/sub support for room-based messaging
+ * Server-side WebSocket implementation with pluggable Pub/Sub adapter support for room-based messaging
  * @template IncomingEvents - Type definition for events this socket can receive
  * @template OutgoingEvents - Type definition for events this socket can emit
  */
@@ -38,9 +49,8 @@ export class ServerSocket<IncomingEvents, OutgoingEvents> {
 	private controllers: Map<string, AbortController> = new Map();
 	private emitter: EventEmitter;
 
-	// private redis: Redis
-	private redisUrl: string;
-	private redisToken: string;
+	// pluggable pub/sub adapter
+	private adapter: PubSubAdapter;
 	private lastPingTimes: Map<string, number> = new Map();
 	private heartbeatTimers: Map<
 		string,
@@ -53,17 +63,27 @@ export class ServerSocket<IncomingEvents, OutgoingEvents> {
 	/**
 	 * Creates a new ServerSocket instance
 	 * @param ws - WebSocket connection to wrap
-	 * @param opts - Configuration options including Redis connection details and schemas
+	 * @param opts - Configuration options including Pub/Sub adapter and schemas
 	 */
 	constructor(ws: WebSocket, opts: ServerSocketOptions) {
-		const { incomingSchema, outgoingSchema, redisUrl, redisToken } = opts;
+		const {
+			incomingSchema,
+			outgoingSchema,
+			adapter,
+			redisUrl,
+			redisToken,
+		} = opts;
 
-		this.redisUrl = redisUrl;
-		this.redisToken = redisToken;
-		// this.redis = new Redis({
-		//   url: redisUrl,
-		//   token: redisToken,
-		// })
+		// Prefer provided adapter; otherwise, fallback to Upstash REST adapter for backward compatibility
+		if (adapter) {
+			this.adapter = adapter;
+		} else if (redisUrl && redisToken) {
+			this.adapter = new UpstashRestPubSub(redisUrl, redisToken);
+		} else {
+			throw new Error(
+				"Missing PubSub adapter. Provide `adapter` or `redisUrl` and `redisToken`.",
+			);
+		}
 
 		this.ws = ws;
 		this.emitter = new EventEmitter(ws, { incomingSchema, outgoingSchema });
@@ -145,7 +165,7 @@ export class ServerSocket<IncomingEvents, OutgoingEvents> {
 	}
 
 	/**
-	 * Joins a room and subscribes to its messages via Redis pub/sub
+	 * Joins a room and subscribes to its messages via the configured Pub/Sub adapter
 	 * Sets up heartbeat monitoring for connection health
 	 * @param room - Name of the room to join
 	 */
@@ -186,14 +206,7 @@ export class ServerSocket<IncomingEvents, OutgoingEvents> {
 	private createHeartbeat(room: string) {
 		const heartbeat = {
 			sender: setInterval(async () => {
-				await fetch(`${this.redisUrl}/publish/${room}`, {
-					method: "POST",
-					headers: {
-						Authorization: `Bearer ${this.redisToken}`,
-						"Content-Type": "application/json",
-					},
-					body: JSON.stringify(["ping", null]),
-				});
+				await this.adapter.publish(room, ["ping", null]);
 			}, 30000),
 
 			monitor: setInterval(() => {
@@ -210,15 +223,13 @@ export class ServerSocket<IncomingEvents, OutgoingEvents> {
 	}
 
 	/**
-	 * Subscribes to Redis pub/sub for a specific room
-	 * Establishes Server-Sent Events stream and processes incoming messages
+	 * Subscribes to a topic/room via the configured Pub/Sub adapter
+	 * and processes incoming messages
 	 * @param room - Room name to subscribe to
 	 */
 	private async subscribe(room: string): Promise<void> {
-		// Return a new Promise that encapsulates the asynchronous logic
+		// Return a new Promise that resolves once the subscription opens
 		return new Promise<void>((resolve, reject) => {
-			// Wrap the entire asynchronous logic in an IIFE or a named async function
-			// and call it immediately. This allows you to use await inside.
 			(async () => {
 				try {
 					const controller = new AbortController();
@@ -227,62 +238,15 @@ export class ServerSocket<IncomingEvents, OutgoingEvents> {
 					// initialize heartbeat
 					this.lastPingTimes.set(room, Date.now());
 
-					const stream = await fetch(`${this.redisUrl}/subscribe/${room}`, {
-						headers: {
-							Authorization: `Bearer ${this.redisToken}`,
-							accept: "text/event-stream",
-						},
-						signal: controller.signal,
-					});
+					await this.adapter.subscribe(
+						room,
+						(payload: unknown) => {
+							try {
+								logger.info("Received message:", payload as any);
 
-					const reader = stream.body?.getReader();
-					const decoder = new TextDecoder();
-					let buffer = "";
+								const parsed = payload as any;
 
-					// Resolve the promise once the connection is established and
-					// before entering the potentially long-running while loop.
-					// This allows the caller of `subscribe` to know the subscription
-					// has successfully initiated.
-					resolve();
-
-					while (reader) {
-						const { done, value } = await reader.read();
-
-						if (done) break;
-
-						const chunk = decoder.decode(value);
-						buffer += chunk;
-
-						const messages = buffer.split("\n");
-						buffer = messages.pop() || "";
-
-						for (const message of messages) {
-							logger.info("Received message:", message);
-							if (message.startsWith("data: ")) {
-								const data = message.slice(6);
-								try {
-									// extract payload from message format: message,room,payload
-									// skip first two commas to get the start of the payload
-									const firstCommaIndex = data.indexOf(",");
-									const secondCommaIndex = data.indexOf(
-										",",
-										firstCommaIndex + 1,
-									);
-
-									if (firstCommaIndex === -1 || secondCommaIndex === -1) {
-										logger.warn("Invalid message format - missing commas");
-										continue;
-									}
-
-									const payloadStr = data.slice(secondCommaIndex + 1);
-
-									if (!payloadStr) {
-										logger.warn("Missing payload in message");
-										continue;
-									}
-
-									const parsed = JSON.parse(payloadStr);
-
+								if (Array.isArray(parsed)) {
 									if (parsed[0] === "ping") {
 										logger.success("Heartbeat received successfully");
 										this.lastPingTimes.set(room, Date.now());
@@ -293,22 +257,28 @@ export class ServerSocket<IncomingEvents, OutgoingEvents> {
 									} else {
 										logger.debug("WebSocket not open, skipping message");
 									}
-								} catch (err) {
-									logger.debug("Failed to parse message payload", err);
+								} else {
+									logger.warn("Invalid message payload (expected [event, data])");
 								}
+							} catch (err) {
+								logger.debug("Failed to process message payload", err);
 							}
-						}
-					}
+						},
+						{
+							signal: controller.signal,
+							onOpen: () => resolve(),
+							onError: (err) => reject(err),
+						},
+					);
 				} catch (err) {
-					// If an error occurs anywhere within the async operations, reject the promise
 					reject(err);
 				}
-			})(); // Call the IIFE immediately
+			})();
 		});
 	}
 
 	/**
-	 * Unsubscribes from a room's Redis pub/sub stream
+	 * Unsubscribes from a room's Pub/Sub adapter stream
 	 * @param room - Room name to unsubscribe from
 	 */
 	private async unsubscribe(room: string) {
