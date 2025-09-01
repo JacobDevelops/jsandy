@@ -8,3 +8,4 @@ export * from "./client";
 export * from "./dynamic";
 export * from "./schemas";
 export * from "./openapi";
+export * from "./sockets";

@@ -4,7 +4,7 @@ import type { StatusCode } from "hono/utils/http-status";
 import type superjson from "superjson";
 import type { z } from "zod";
 import type { ProcedureDescription } from "./procedure";
-import type { IO, ServerSocket } from "./sockets";
+import type { IO, ServerSocket, PubSubAdapter } from "./sockets";
 
 /**
  * Represents the type returned by superjson.parse for a given type T
@@ -28,6 +28,11 @@ export type SuperJSONTypedResponse<
 export interface RouterConfig {
 	/** Optional name identifier for the router */
 	name?: string;
+	/**
+	 * Provide a Pub/Sub adapter for WebSocket routes.
+	 * Called for each WebSocket request; return a provider-agnostic adapter.
+	 */
+	getPubSubAdapter?: (c: Context) => PubSubAdapter;
 }
 
 /**

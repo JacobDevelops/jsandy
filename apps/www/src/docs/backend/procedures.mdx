@@ -245,6 +245,6 @@ export const postRouter = j.router({
 })
 ```
 
-WebSocket procedures are serverless, with no additional infrastructure management. To make this possible, JSandy uses Upstash Redis as its real-time engine and expects WebSocket procedures to be deployed to Cloudflare Workers.
+WebSocket procedures are serverless, with no additional infrastructure management. Real-time messaging uses a pluggable Pub/Sub adapter—choose your provider (e.g., Upstash Redis, native Redis, Kafka, NATS, or Cloudflare Pub/Sub). JSandy's WebSockets are designed to run on Cloudflare Workers.
 
 [&rarr; JSandy WebSocket Docs](/docs/backend/websockets)
