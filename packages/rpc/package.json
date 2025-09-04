@@ -1,6 +1,6 @@
 {
 	"name": "@jsandy/rpc",
-	"version": "2.0.0",
+	"version": "2.1.0",
 	"publishConfig": {
 		"access": "public"
 	},
@@ -39,7 +39,7 @@
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20250601.0",
-		"@jsandy/builder": "1.0.1",
+		"@jsandy/builder": "1.0.2",
 		"@jsandy/typescript-config": "workspace:*",
 		"@types/bun": "^1.2.15",
 		"@types/node": "^22.15.29",

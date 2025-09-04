@@ -1,5 +1,13 @@
 # create-jsandy-app
 
+## 1.1.3
+
+### Patch Changes
+
+- db285ec: bump deps
+- 537fc8e: convert `wrangler.jsonc` to `wrangler.toml`
+- 3c56aa2: Loosen restrictions on createClient baseUrl param
+
 ## 1.1.2
 
 ### Patch Changes
