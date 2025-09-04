@@ -34,10 +34,10 @@ describe("IO", () => {
 
 	describe("constructor", () => {
 		it("should initialize with adapter", () => {
-			// biome-ignore lint/complexity/useLiteralKeys: <explanation>
+		// biome-ignore lint/complexity/useLiteralKeys: This is a private property
 			expect(io["adapter"]).toBeDefined();
 
-			// biome-ignore lint/complexity/useLiteralKeys: <explanation>
+			// biome-ignore lint/complexity/useLiteralKeys: This is a private property
 			expect(io["targetRoom"]).toBeNull();
 		});
 	});
@@ -78,7 +78,7 @@ describe("IO", () => {
 			mockAdapter.publish.mockResolvedValue(undefined);
 
 			await io.to("room1").emit("testEvent", { data: "test" });
-			// biome-ignore lint/complexity/useLiteralKeys: <explanation>
+			// biome-ignore lint/complexity/useLiteralKeys: This is a private property
 			expect(io["targetRoom"]).toBeNull();
 
 			// Next emit without .to() should not target any room

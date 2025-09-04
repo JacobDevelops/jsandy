@@ -236,11 +236,10 @@ export const createClient = <T extends Router<any>>(
 	if (
 		baseUrl !== "" &&
 		!baseUrl.startsWith("http://") &&
-		!baseUrl.startsWith("https://") &&
-		!baseUrl.startsWith("/")
+		!baseUrl.startsWith("https://")
 	) {
 		throw new Error(
-			"baseUrl must be absolute (http/https) or relative (/path)",
+			`baseUrl must be absolute (http/https): ${baseUrl}`,
 		);
 	}
 
