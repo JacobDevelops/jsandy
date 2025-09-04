@@ -106,17 +106,23 @@ export class UpstashRestPubSub implements PubSubAdapter {
 		// If an external signal is passed, forward aborts to our local controller.
 		if (signal) {
 			if (signal.aborted) controller.abort();
-			else signal.addEventListener("abort", () => controller.abort(), { once: true });
+			else
+				signal.addEventListener("abort", () => controller.abort(), {
+					once: true,
+				});
 		}
 
 		try {
-			const stream = await fetch(`${this.url}/subscribe/${encodeURIComponent(topic)}`, {
-				headers: {
-					Authorization: `Bearer ${this.token}`,
-					accept: "text/event-stream",
+			const stream = await fetch(
+				`${this.url}/subscribe/${encodeURIComponent(topic)}`,
+				{
+					headers: {
+						Authorization: `Bearer ${this.token}`,
+						accept: "text/event-stream",
+					},
+					signal: controller.signal,
 				},
-				signal: controller.signal,
-			});
+			);
 
 			// The subscription is considered "open" once we get a body reader
 			const reader = stream.body?.getReader();
