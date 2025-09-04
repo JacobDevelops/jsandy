@@ -1,5 +1,11 @@
 # @jsandy/rpc
 
+## 2.1.1
+
+### Patch Changes
+
+- 0aa9fe1: revert and fix baseUrl for client
+
 ## 2.1.0
 
 ### Minor Changes
