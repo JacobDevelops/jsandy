@@ -1,5 +1,16 @@
 # @jsandy/rpc
 
+## 2.1.0
+
+### Minor Changes
+
+- 0db8c13: Remove dependance on upstash
+
+### Patch Changes
+
+- db285ec: bump deps
+- 3c56aa2: Loosen restrictions on createClient baseUrl param
+
 ## 2.0.0
 
 ### Major Changes

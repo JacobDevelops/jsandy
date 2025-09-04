@@ -1,5 +1,11 @@
 # @jsandy/builder
 
+## 1.0.2
+
+### Patch Changes
+
+- db285ec: bump deps
+
 ## 1.0.1
 
 ### Patch Changes
