@@ -72,7 +72,7 @@ describe("Client", () => {
 				createClient({
 					baseUrl: "invalid-url",
 				});
-			}).toThrow("baseUrl must start with http:// or https://");
+			}).toThrow("baseUrl must be absolute (http/https) or relative (/path)");
 		});
 
 		it("should work with empty base URL", () => {

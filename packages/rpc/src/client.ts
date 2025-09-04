@@ -233,8 +233,15 @@ export const createClient = <T extends Router<any>>(
 	} = options ?? ({} as ClientConfig);
 
 	// Validate base URL format
-	if (baseUrl !== "" && !baseUrl.startsWith("http")) {
-		throw new Error("baseUrl must start with http:// or https://");
+	if (
+		baseUrl !== "" &&
+		!baseUrl.startsWith("http://") &&
+		!baseUrl.startsWith("https://") &&
+		!baseUrl.startsWith("/")
+	) {
+		throw new Error(
+			"baseUrl must be absolute (http/https) or relative (/path)",
+		);
 	}
 
 	/**

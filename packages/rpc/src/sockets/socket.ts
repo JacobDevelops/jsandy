@@ -66,13 +66,8 @@ export class ServerSocket<IncomingEvents, OutgoingEvents> {
 	 * @param opts - Configuration options including Pub/Sub adapter and schemas
 	 */
 	constructor(ws: WebSocket, opts: ServerSocketOptions) {
-		const {
-			incomingSchema,
-			outgoingSchema,
-			adapter,
-			redisUrl,
-			redisToken,
-		} = opts;
+		const { incomingSchema, outgoingSchema, adapter, redisUrl, redisToken } =
+			opts;
 
 		// Prefer provided adapter; otherwise, fallback to Upstash REST adapter for backward compatibility
 		if (adapter) {
@@ -258,7 +253,9 @@ export class ServerSocket<IncomingEvents, OutgoingEvents> {
 										logger.debug("WebSocket not open, skipping message");
 									}
 								} else {
-									logger.warn("Invalid message payload (expected [event, data])");
+									logger.warn(
+										"Invalid message payload (expected [event, data])",
+									);
 								}
 							} catch (err) {
 								logger.debug("Failed to process message payload", err);
