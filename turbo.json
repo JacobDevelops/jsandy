@@ -14,8 +14,18 @@
 		},
 		"cf:build": {
 			"dependsOn": ["^cf:build", "build:packages"],
-			"inputs": ["$TURBO_DEFAULT$", ".env*"],
-			"outputs": [".next/**", "!.next/cache/**", "dist/**"]
+			"inputs": [
+				"$TURBO_DEFAULT$",
+				".env*",
+				"next.config.*",
+				"wrangler.*",
+				"wrangler/**",
+				"tailwind.config.*",
+				"postcss.config.*",
+				"tsconfig*.json",
+				"package.json"
+			],
+			"outputs": [".open-next/**", ".next/**", "!.next/cache/**", "dist/**"]
 		},
 		"check-types": {
 			"dependsOn": ["^check-types"]
