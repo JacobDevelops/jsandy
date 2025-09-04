@@ -16,7 +16,11 @@
 			"default": "./dist/index.js"
 		}
 	},
-	"files": ["dist", "README.md", "CHANGELOG.md"],
+	"files": [
+		"dist",
+		"README.md",
+		"CHANGELOG.md"
+	],
 	"scripts": {
 		"build": "bun build.ts",
 		"clean": "rm -rf dist",

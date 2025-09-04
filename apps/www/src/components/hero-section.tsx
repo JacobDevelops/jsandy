@@ -117,7 +117,11 @@ function FeatureCard({
 	title,
 	description,
 	icon,
-}: { title: string; description: string; icon: React.ReactNode }) {
+}: {
+	title: string;
+	description: string;
+	icon: React.ReactNode;
+}) {
 	return (
 		<div
 			className="glass rounded-2xl p-6 text-center animate-slide-up"

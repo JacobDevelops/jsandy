@@ -13,7 +13,9 @@ type GithubResponse = {
 
 export const fetchStargazers = async ({
 	GITHUB_TOKEN,
-}: { GITHUB_TOKEN: string }): Promise<GithubResponse> => {
+}: {
+	GITHUB_TOKEN: string;
+}): Promise<GithubResponse> => {
 	if (!GITHUB_TOKEN) {
 		throw new Error(
 			"GitHub token is required but was not provided. Set the GITHUB_TOKEN environment variable.",

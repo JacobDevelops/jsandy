@@ -5,7 +5,7 @@ import { Procedure } from "../procedure";
 import { Router } from "../router";
 
 // Mock WebSocketPair for testing
-// @ts-ignore
+// @ts-expect-error
 global.WebSocketPair = class {
 	constructor() {
 		const client = {
