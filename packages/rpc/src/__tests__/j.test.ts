@@ -1,10 +1,10 @@
 import {
-	type Mock,
 	afterEach,
 	beforeEach,
 	describe,
 	expect,
 	it,
+	type Mock,
 	mock,
 	spyOn,
 } from "bun:test";
@@ -243,6 +243,167 @@ describe("JSandy Framework", () => {
 
 			expect(protectedProcedure.type).toBe("get");
 			expect(protectedProcedure.middlewares).toHaveLength(2); // SuperJSON + auth
+		});
+	});
+
+	describe("Error bubbling with mergeRouters", () => {
+		// Helper to build a fresh app + merged router for each test
+		async function makeMergedRouter() {
+			const { router, procedure, mergeRouters } = jsandy.init();
+			const { Hono } = await import("hono");
+
+			const userRouter = router({
+				getUser: procedure.get(() => {
+					throw new HTTPException(404, { message: "User not found" });
+				}),
+				createUser: procedure.post(() => {
+					throw new Error("Database connection failed");
+				}),
+			});
+
+			const postRouter = router({
+				getPost: procedure.get(() => {
+					throw new HTTPException(403, { message: "Access denied to post" });
+				}),
+			});
+
+			const app = new Hono();
+			return mergeRouters(app, { users: userRouter, posts: postRouter });
+		}
+
+		it("bubbles 404 from users.getUser to main router onError", async () => {
+			const mergedRouter = await makeMergedRouter();
+
+			const mainErrorHandler = mock((err: any) => {
+				return new Response(
+					JSON.stringify({ error: err.message, source: "main-router" }),
+					{
+						status: err.status || 500,
+						headers: { "Content-Type": "application/json" },
+					},
+				);
+			});
+
+			mergedRouter.onError(mainErrorHandler);
+
+			const res = await mergedRouter.fetch(
+				new Request("http://localhost/api/users/getUser"),
+			);
+
+			expect(mainErrorHandler).toHaveBeenCalledTimes(1);
+			expect(res.status).toBe(404);
+
+			const body = await res.json();
+			expect((body as any).error).toBe("User not found");
+			expect((body as any).source).toBe("main-router");
+		});
+
+		it("bubbles 403 from posts.getPost to main router onError", async () => {
+			const mergedRouter = await makeMergedRouter();
+
+			const mainErrorHandler = mock((err: any) => {
+				return new Response(
+					JSON.stringify({ error: err.message, source: "main-router" }),
+					{
+						status: err.status || 500,
+						headers: { "Content-Type": "application/json" },
+					},
+				);
+			});
+
+			mergedRouter.onError(mainErrorHandler);
+
+			const res = await mergedRouter.fetch(
+				new Request("http://localhost/api/posts/getPost"),
+			);
+
+			expect(mainErrorHandler).toHaveBeenCalledTimes(1);
+			expect(res.status).toBe(403);
+
+			const body = await res.json();
+			expect((body as any).error).toBe("Access denied to post");
+			expect((body as any).source).toBe("main-router");
+		});
+
+		it("bubbles generic Error from users.createUser to main router onError", async () => {
+			const mergedRouter = await makeMergedRouter();
+
+			const mainErrorHandler = mock((err: any) => {
+				return new Response(
+					JSON.stringify({ error: err.message, type: err.constructor.name }),
+					{
+						status: err.status || 500,
+						headers: { "Content-Type": "application/json" },
+					},
+				);
+			});
+
+			mergedRouter.onError(mainErrorHandler);
+
+			const res = await mergedRouter.fetch(
+				new Request("http://localhost/api/users/createUser", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ name: "Test User" }),
+				}),
+			);
+
+			expect(mainErrorHandler).toHaveBeenCalledTimes(1);
+			expect(res.status).toBe(500);
+
+			const body = await res.json();
+			expect((body as any).error).toBe("Database connection failed");
+			expect((body as any).type).toBe("HTTPException");
+		});
+
+		it("should maintain error handler hierarchy in nested merged routers", async () => {
+			const { router, procedure, mergeRouters } = jsandy.init();
+			const { Hono } = await import("hono");
+
+			const topLevelErrorHandler = mock((err) => {
+				return new Response(
+					JSON.stringify({
+						error: err.message,
+						level: "top",
+					}),
+					{
+						status: err.status || 500,
+						headers: { "Content-Type": "application/json" },
+					},
+				);
+			});
+
+			// Create nested routers
+			const leafRouter = router({
+				throwError: procedure.get(() => {
+					throw new HTTPException(418, { message: "I'm a teapot" });
+				}),
+			});
+
+			const middleApp = new Hono();
+			const middleRouter = mergeRouters(middleApp, {
+				leaf: leafRouter,
+			});
+
+			const topApp = new Hono();
+			const topRouter = mergeRouters(topApp, {
+				middle: middleRouter,
+			});
+
+			topRouter.onError(topLevelErrorHandler);
+
+			// Test error bubbling through nested structure
+			const nestedErrorReq = new Request(
+				"http://localhost/api/middle/api/leaf/throwError",
+			);
+			const nestedErrorRes = await topRouter.fetch(nestedErrorReq);
+
+			expect(topLevelErrorHandler).toHaveBeenCalledTimes(1);
+			expect(nestedErrorRes.status).toBe(418);
+
+			const nestedErrorBody = await nestedErrorRes.json();
+			expect((nestedErrorBody as any).error).toBe("I'm a teapot");
+			expect((nestedErrorBody as any).level).toBe("top");
 		});
 	});
 });

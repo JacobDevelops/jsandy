@@ -2,7 +2,7 @@ import { type Context, Hono, type Next } from "hono";
 import { env } from "hono/adapter";
 import { HTTPException } from "hono/http-exception";
 import type { Env, ErrorHandler, MiddlewareHandler } from "hono/types";
-import type { StatusCode } from "hono/utils/http-status";
+import type { ContentfulStatusCode, StatusCode } from "hono/utils/http-status";
 import { ZodObject, z } from "zod";
 import type { JSONSchema } from "zod/v4/core";
 import { bodyParsingMiddleware, queryParsingMiddleware } from "./middleware";
@@ -274,6 +274,11 @@ export class Router<
 
 		this.onError = (handler: ErrorHandler<E>) => {
 			this._errorHandler = handler;
+			const parentOnError = Object.getPrototypeOf(
+				Object.getPrototypeOf(this),
+			).onError;
+			parentOnError?.call(this, handler);
+
 			return this;
 		};
 
@@ -338,13 +343,76 @@ export class Router<
 				newUrl.pathname = rewrittenPath;
 
 				const newRequest = new Request(newUrl, c.req.raw);
+
 				const response = await subRouter.fetch(newRequest, c.env);
+
+				// If the sub-router returned an error status, we need to convert it back to an exception
+				// so the merged router's error handler can catch it
+				if (response.status >= 400) {
+					let errorMessage = "Sub-router error";
+
+					try {
+						const body = await response.clone().text();
+
+						if (body) {
+							try {
+								const parsed = JSON.parse(body);
+								errorMessage =
+									parsed.message || parsed.error || parsed.detail || body;
+							} catch {
+								// Fallback to raw text if not JSON
+								errorMessage = body;
+							}
+						} else {
+							errorMessage = `HTTP ${response.status}`;
+						}
+					} catch {
+						// If we can't even read the body
+						errorMessage = response.statusText || `HTTP ${response.status}`;
+					}
+
+					throw new HTTPException(response.status as any, {
+						message: errorMessage,
+					});
+				}
 
 				return response;
 			}
 
 			return next();
 		});
+	}
+
+	private async callHandlerSafely<T>(
+		handler: (...args: any[]) => Promise<T> | T,
+		...args: any[]
+	): Promise<T> {
+		try {
+			return await handler(...args);
+		} catch (error) {
+			// If it's already an HTTPException, just re-throw it
+			if (error instanceof HTTPException) {
+				throw error;
+			}
+
+			if (
+				error &&
+				typeof error === "object" &&
+				"status" in error &&
+				typeof error.status === "number"
+			) {
+				throw new HTTPException(error.status as ContentfulStatusCode, {
+					message:
+						error instanceof Error ? error.message : "Internal server error",
+				});
+			}
+
+			// Convert generic errors to HTTPExceptions with original message
+			throw new HTTPException(500, {
+				message:
+					error instanceof Error ? error.message : "Internal server error",
+			});
+		}
 	}
 
 	/**
@@ -471,7 +539,7 @@ export class Router<
 
 						// Parse and validate input (errors caught at app-level with .onError)
 						const input = operation.schema?.parse(queryInput);
-						const result = await operation.handler({
+						const result = await this.callHandlerSafely(operation.handler, {
 							c: c as ContextWithSuperJSON<E>,
 							ctx,
 							input,
@@ -486,7 +554,7 @@ export class Router<
 					const typedC = c as Context<E & { Variables: InternalContext }>;
 					const ctx = typedC.get("__middleware_output") || {};
 
-					const result = await operation.handler({
+					const result = await this.callHandlerSafely(operation.handler, {
 						c: c as ContextWithSuperJSON<E>,
 						ctx,
 						input: undefined,
@@ -514,7 +582,7 @@ export class Router<
 						// caught at app-level with .onError
 						const input = operation.schema?.parse(bodyInput);
 
-						const result = await operation.handler({
+						const result = await this.callHandlerSafely(operation.handler, {
 							c: c as ContextWithSuperJSON<E>,
 							ctx,
 							input,
@@ -529,7 +597,7 @@ export class Router<
 					const typedC = c as Context<E & { Variables: InternalContext }>;
 					const ctx = typedC.get("__middleware_output") || {};
 
-					const result = await operation.handler({
+					const result = await this.callHandlerSafely(operation.handler, {
 						c: c as ContextWithSuperJSON<E>,
 						ctx,
 						input: undefined,
@@ -584,7 +652,7 @@ export class Router<
 
 					const io = new IO(adapter);
 
-					const handler = await operation.handler({
+					const handler = await this.callHandlerSafely(operation.handler, {
 						io,
 						c: c as ContextWithSuperJSON<E>,
 						ctx,
