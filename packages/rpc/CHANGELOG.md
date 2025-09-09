@@ -1,5 +1,12 @@
 # @jsandy/rpc
 
+## 2.1.2
+
+### Patch Changes
+
+- 84ceb84: Fixed typing issues of client method inputs
+- 208a21e: Fix up error handling for nested subrouters
+
 ## 2.1.1
 
 ### Patch Changes
