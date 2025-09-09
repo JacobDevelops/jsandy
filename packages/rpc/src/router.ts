@@ -2,7 +2,7 @@ import { type Context, Hono, type Next } from "hono";
 import { env } from "hono/adapter";
 import { HTTPException } from "hono/http-exception";
 import type { Env, ErrorHandler, MiddlewareHandler } from "hono/types";
-import type { StatusCode } from "hono/utils/http-status";
+import type { ContentfulStatusCode, StatusCode } from "hono/utils/http-status";
 import { ZodObject, z } from "zod";
 import type { JSONSchema } from "zod/v4/core";
 import { bodyParsingMiddleware, queryParsingMiddleware } from "./middleware";
@@ -393,6 +393,18 @@ export class Router<
 			// If it's already an HTTPException, just re-throw it
 			if (error instanceof HTTPException) {
 				throw error;
+			}
+
+			if (
+				error &&
+				typeof error === "object" &&
+				"status" in error &&
+				typeof error.status === "number"
+			) {
+				throw new HTTPException(error.status as ContentfulStatusCode, {
+					message:
+						error instanceof Error ? error.message : "Internal server error",
+				});
 			}
 
 			// Convert generic errors to HTTPExceptions with original message
