@@ -98,6 +98,8 @@ describe("Client", () => {
 			});
 
 			await client.combined.health.$get();
+			// This should not throw a type error now
+			await client.combined.getUsers.$get();
 
 			// Verify credentials were set to "include" by default
 			expect(mockFetch).toHaveBeenCalledWith(

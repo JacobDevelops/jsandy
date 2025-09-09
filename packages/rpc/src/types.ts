@@ -4,7 +4,7 @@ import type { StatusCode } from "hono/utils/http-status";
 import type superjson from "superjson";
 import type { z } from "zod";
 import type { ProcedureDescription } from "./procedure";
-import type { IO, ServerSocket, PubSubAdapter } from "./sockets";
+import type { IO, PubSubAdapter, ServerSocket } from "./sockets";
 
 /**
  * Represents the type returned by superjson.parse for a given type T
@@ -278,12 +278,37 @@ export type OperationType<
 	| PostOperation<I, O, E>
 	| WebSocketOperation<I, O, E>;
 
+// Keys that are required ({} is NOT assignable to Pick<T, K>)
+type RequiredKeys<T> = {
+	[K in keyof T]-?: {} extends Pick<T, K> ? never : K;
+}[keyof T];
+
+// True if T is an object with no required keys (including `{}`)
+type AllOptionalObject<T> = T extends object
+	? RequiredKeys<T> extends never
+		? true
+		: false
+	: false;
+
+// Collapse all-optional object inputs to `void | T` (so arg can be omitted)
+type CollapseOptionalObject<T> = AllOptionalObject<T> extends true
+	? void | T
+	: T;
+
 /**
  * Infers the input type from various operation types
  * @template T - The operation type to infer input from
  */
 export type InferInput<T> = T extends OperationType<infer I, any>
-	? InferZodType<I, I>
+	? CollapseOptionalObject<InferZodInput<I, I>>
+	: void;
+
+/**
+ * Infers the output type from various operation types
+ * @template T - The operation type to infer output from
+ */
+export type InferOutput<T> = T extends OperationType<any, infer O>
+	? InferZodType<O, O>
 	: void;
 
 /**
@@ -301,8 +326,14 @@ export type RouterRecord = Record<
 	| Record<string, unknown>
 >;
 
+export type InferZodInput<S, T = void> = S extends void
+	? T
+	: S extends z.ZodTypeAny
+		? z.input<S>
+		: T;
+
 export type InferZodType<S, T = void> = S extends void
 	? T
-	: S extends z.ZodType<any>
-		? z.infer<S>
+	: S extends z.ZodTypeAny
+		? z.output<S>
 		: T;
