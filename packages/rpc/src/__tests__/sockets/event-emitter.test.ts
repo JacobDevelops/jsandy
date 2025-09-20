@@ -29,10 +29,17 @@ describe("EventEmitter", () => {
 			timestamp: z.number(),
 		});
 
-		emitter = new EventEmitter(mockWebSocket as any, {
-			incomingSchema,
-			outgoingSchema,
-		});
+		emitter = new EventEmitter(
+			mockWebSocket as any,
+			{
+				incomingSchema,
+				outgoingSchema,
+			},
+			{
+				logger: console,
+				onValidationError: "warn", // updated behavior: warn (not "error")
+			},
+		);
 
 		mock.restore();
 	});
@@ -74,10 +81,17 @@ describe("EventEmitter", () => {
 		it("should return false when WebSocket is not open", () => {
 			mockWebSocket.readyState = MockWebSocket.CLOSED;
 
+			const warnSpy = spyOn(console, "warn").mockImplementation(() => {});
 			const result = emitter.emit("test", { message: "test", timestamp: 123 });
 
 			expect(result).toBe(false);
 			expect(mockWebSocket.send).not.toHaveBeenCalled();
+			expect(warnSpy).toHaveBeenCalledWith(
+				"WebSocket not OPEN; message dropped",
+				expect.objectContaining({ event: "test" }),
+			);
+
+			warnSpy.mockRestore();
 		});
 
 		it("should validate outgoing data against schema", () => {
@@ -86,12 +100,17 @@ describe("EventEmitter", () => {
 				// missing timestamp
 			};
 
-			const consoleSpy = spyOn(console, "error").mockImplementation(() => {});
+			const warnSpy = spyOn(console, "warn").mockImplementation(() => {});
 			const result = emitter.emit("test", invalidData);
 
 			expect(result).toBe(false);
 			expect(mockWebSocket.send).not.toHaveBeenCalled();
-			consoleSpy.mockRestore();
+			expect(warnSpy).toHaveBeenCalledWith(
+				expect.stringContaining("Schema validation failed"),
+				expect.objectContaining({ direction: "outgoing", event: "test" }),
+			);
+
+			warnSpy.mockRestore();
 		});
 
 		it("should work without outgoing schema", () => {
@@ -107,13 +126,21 @@ describe("EventEmitter", () => {
 		});
 
 		it("should handle schema validation errors gracefully", () => {
-			const consoleSpy = spyOn(console, "error").mockImplementation(() => {});
+			// updated: with "warn" behavior, no throw; returns false + warn log
+			const warnSpy = spyOn(console, "warn").mockImplementation(() => {});
 
-			const result = emitter.emit("test", "invalid data");
+			const ok = emitter.emit("test", "invalid data");
 
-			expect(result).toBe(false);
-			expect(consoleSpy).toHaveBeenCalled();
-			consoleSpy.mockRestore();
+			expect(ok).toBe(false);
+			expect(warnSpy).toHaveBeenCalledWith(
+				expect.stringContaining("Schema validation failed"),
+				expect.objectContaining({
+					direction: "outgoing",
+					event: "test",
+				}),
+			);
+
+			warnSpy.mockRestore();
 		});
 	});
 
@@ -139,13 +166,17 @@ describe("EventEmitter", () => {
 		});
 
 		it("should handle missing callback", () => {
-			const consoleSpy = spyOn(console, "error").mockImplementation(() => {});
+			const errorSpy = spyOn(console, "error").mockImplementation(() => {});
 
 			emitter.on("test", undefined as any);
 
 			expect(emitter.eventHandlers.get("test")).toBeUndefined();
-			expect(consoleSpy).toHaveBeenCalled();
-			consoleSpy.mockRestore();
+			expect(errorSpy).toHaveBeenCalledWith(
+				"No callback provided for event handler",
+				expect.objectContaining({ event: "test" }),
+			);
+
+			errorSpy.mockRestore();
 		});
 	});
 
@@ -213,14 +244,18 @@ describe("EventEmitter", () => {
 				payload: "test",
 			};
 
-			const consoleSpy = spyOn(console, "error").mockImplementation(() => {});
+			const warnSpy = spyOn(console, "warn").mockImplementation(() => {});
 
 			emitter.on("test", handler);
 			emitter.handleEvent("test", invalidData);
 
 			expect(handler).not.toHaveBeenCalled();
-			expect(consoleSpy).toHaveBeenCalled();
-			consoleSpy.mockRestore();
+			expect(warnSpy).toHaveBeenCalledWith(
+				expect.stringContaining("Schema validation failed"),
+				expect.objectContaining({ direction: "incoming", event: "test" }),
+			);
+
+			warnSpy.mockRestore();
 		});
 
 		it("should work without incoming schema", () => {
@@ -237,16 +272,16 @@ describe("EventEmitter", () => {
 		});
 
 		it("should warn when no handlers are registered", () => {
-			const consoleSpy = spyOn(console, "warn").mockImplementation(() => {});
+			const warnSpy = spyOn(console, "warn").mockImplementation(() => {});
 
 			emitter.handleEvent("unregistered", { data: "test" });
 
-			expect(consoleSpy).toHaveBeenCalledWith(
-				expect.stringContaining(
-					'No handlers registered for event "unregistered"',
-				),
+			expect(warnSpy).toHaveBeenCalledWith(
+				"No handlers registered for event",
+				expect.objectContaining({ event: "unregistered" }),
 			);
-			consoleSpy.mockRestore();
+
+			warnSpy.mockRestore();
 		});
 
 		it("should handle errors in event handlers", () => {
@@ -255,19 +290,29 @@ describe("EventEmitter", () => {
 			});
 			const goodHandler = mock();
 
-			const consoleSpy = spyOn(console, "error").mockImplementation(() => {});
+			const errorSpy = spyOn(console, "error").mockImplementation(() => {});
 
 			emitter.on("test", errorHandler);
 			emitter.on("test", goodHandler);
 
 			expect(() => {
 				emitter.handleEvent("test", { type: "test", payload: "data" });
-			}).toThrow("One or more handlers failed");
+			}).toThrow(
+				'One or more handlers failed for "test". See logs for details.',
+			);
 
 			expect(errorHandler).toHaveBeenCalled();
 			expect(goodHandler).toHaveBeenCalled();
-			expect(consoleSpy).toHaveBeenCalled();
-			consoleSpy.mockRestore();
+			expect(errorSpy).toHaveBeenCalledWith(
+				"Handler error",
+				expect.objectContaining({
+					event: "test",
+					index: expect.any(Number),
+					count: expect.any(Number),
+					error: "Handler error",
+				}),
+			);
+			errorSpy.mockRestore();
 		});
 
 		it("should call all handlers even if some fail", () => {
@@ -279,7 +324,7 @@ describe("EventEmitter", () => {
 				throw new Error("Error 3");
 			});
 
-			const consoleSpy = spyOn(console, "error").mockImplementation(() => {});
+			const errorSpy = spyOn(console, "error").mockImplementation(() => {});
 
 			emitter.on("test", handler1);
 			emitter.on("test", handler2);
@@ -292,13 +337,13 @@ describe("EventEmitter", () => {
 			expect(handler1).toHaveBeenCalled();
 			expect(handler2).toHaveBeenCalled();
 			expect(handler3).toHaveBeenCalled();
-			consoleSpy.mockRestore();
+			errorSpy.mockRestore();
 		});
 	});
 
 	describe("schema validation error handling", () => {
 		it("should handle ZodError for outgoing data", () => {
-			const consoleSpy = spyOn(console, "error").mockImplementation(() => {});
+			const warnSpy = spyOn(console, "warn").mockImplementation(() => {});
 
 			const invalidData = {
 				message: 123, // should be string
@@ -307,15 +352,19 @@ describe("EventEmitter", () => {
 
 			emitter.emit("test", invalidData);
 
-			expect(consoleSpy).toHaveBeenCalledWith(
-				expect.stringContaining('Invalid outgoing event data for "test"'),
-				expect.any(Object),
+			expect(warnSpy).toHaveBeenCalledWith(
+				expect.stringContaining("Schema validation failed"),
+				expect.objectContaining({
+					direction: "outgoing",
+					event: "test",
+				}),
 			);
-			consoleSpy.mockRestore();
+
+			warnSpy.mockRestore();
 		});
 
 		it("should handle ZodError for incoming data", () => {
-			const consoleSpy = spyOn(console, "error").mockImplementation(() => {});
+			const warnSpy = spyOn(console, "warn").mockImplementation(() => {});
 
 			const invalidData = {
 				type: 123, // should be string
@@ -324,36 +373,42 @@ describe("EventEmitter", () => {
 			emitter.on("test", mock());
 			emitter.handleEvent("test", invalidData);
 
-			expect(consoleSpy).toHaveBeenCalledWith(
-				expect.stringContaining('Invalid incoming event data for "test"'),
-				expect.any(Object),
+			expect(warnSpy).toHaveBeenCalledWith(
+				expect.stringContaining("Schema validation failed"),
+				expect.objectContaining({
+					direction: "incoming",
+					event: "test",
+				}),
 			);
-			consoleSpy.mockRestore();
+
+			warnSpy.mockRestore();
 		});
 
-		it("should handle non-ZodError validation errors", () => {
-			// Create a schema that throws a non-ZodError
+		it("should handle non-ZodError validation errors (throw mode)", () => {
 			const mockSchema = {
 				parse: mock(() => {
 					throw new Error("Custom validation error");
 				}),
 			};
 
-			const emitterWithMockSchema = new EventEmitter(mockWebSocket as any, {
-				incomingSchema: mockSchema as any,
-				outgoingSchema: undefined,
-			});
-
-			const consoleSpy = spyOn(console, "error").mockImplementation(() => {});
-
-			emitterWithMockSchema.on("test", mock());
-			emitterWithMockSchema.handleEvent("test", { data: "test" });
-
-			expect(consoleSpy).toHaveBeenCalledWith(
-				expect.stringContaining('Error validating incoming event "test"'),
-				expect.any(Error),
+			const emitterWithMockSchema = new EventEmitter(
+				mockWebSocket as any,
+				{
+					incomingSchema: mockSchema as any,
+					outgoingSchema: undefined,
+				},
+				{
+					logger: console,
+					onValidationError: "throw",
+				},
 			);
-			consoleSpy.mockRestore();
+
+			// No need to spy on console for this assertion; it throws
+			emitterWithMockSchema.on("test", mock());
+
+			expect(() =>
+				emitterWithMockSchema.handleEvent("test", { data: "test" }),
+			).toThrow("Custom validation error");
 		});
 	});
 
