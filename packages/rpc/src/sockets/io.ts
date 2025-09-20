@@ -1,5 +1,27 @@
-import { logger } from "./logger";
-import { UpstashRestPubSub, type PubSubAdapter } from "./pubsub";
+import { type PubSubAdapter, UpstashRestPubSub } from "@jsandy/rpc/adapters";
+import type { Logger } from "./event-emitter"; // reuse the tiny Logger interface you added there
+
+// ---------- defaults ----------
+const NullLogger: Logger = {
+	debug() {},
+	info() {},
+	warn() {},
+	error() {},
+};
+type RedactFn = (data: unknown) => unknown;
+const defaultRedact: RedactFn = () => "[payload omitted]";
+
+export interface IOOptions {
+	/** Inject your own logger (pino/winston/console adapter) */
+	logger?: Logger;
+	/** Redact/shape payloads before logging (default: omit) */
+	redact?: RedactFn;
+	/**
+	 * Channel used when no specific room is targeted. If omitted,
+	 * calling `emit(...)` without `.to(room)` will log a warning and skip publish.
+	 */
+	broadcastChannel?: string | null;
+}
 
 /**
  * IO class for managing WebSocket communications through a generic Pub/Sub adapter
@@ -38,6 +60,13 @@ export class IO<_IncomingEvents, OutgoingEvents> {
 	/** Pluggable Pub/Sub adapter for message transport */
 	private adapter: PubSubAdapter;
 
+	/** Logging & redaction */
+	private logger: Logger;
+	private redact: RedactFn;
+
+	/** Optional broadcast channel */
+	private broadcastChannel: string | null;
+
 	/**
 	 * Creates a new IO instance for WebSocket communication management
 	 *
@@ -49,13 +78,27 @@ export class IO<_IncomingEvents, OutgoingEvents> {
 	 * const io = new IO(pubsubAdapter)
 	 * ```
 	 */
-	constructor(adapter: PubSubAdapter);
-	constructor(redisUrl: string, redisToken: string);
-	constructor(adapterOrUrl: PubSubAdapter | string, token?: string) {
+	constructor(adapter: PubSubAdapter, opts?: IOOptions);
+	constructor(redisUrl: string, redisToken: string, opts?: IOOptions);
+	constructor(
+		adapterOrUrl: PubSubAdapter | string,
+		tokenOrOpts?: string | IOOptions,
+		maybeOpts?: IOOptions,
+	) {
 		if (typeof adapterOrUrl === "string") {
-			this.adapter = new UpstashRestPubSub(adapterOrUrl, token ?? "");
+			const url = adapterOrUrl;
+			const token = typeof tokenOrOpts === "string" ? tokenOrOpts : "";
+			this.adapter = new UpstashRestPubSub(url, token);
+			const opts = typeof tokenOrOpts === "object" ? tokenOrOpts : maybeOpts;
+			this.logger = opts?.logger ?? NullLogger;
+			this.redact = opts?.redact ?? defaultRedact;
+			this.broadcastChannel = opts?.broadcastChannel ?? null; // here
 		} else {
 			this.adapter = adapterOrUrl;
+			const opts = typeof tokenOrOpts === "object" ? tokenOrOpts : maybeOpts;
+			this.logger = opts?.logger ?? NullLogger;
+			this.redact = opts?.redact ?? defaultRedact;
+			this.broadcastChannel = opts?.broadcastChannel ?? null;
 		}
 	}
 
@@ -92,23 +135,41 @@ export class IO<_IncomingEvents, OutgoingEvents> {
 	 * Note: The target room is automatically reset after each emission to prevent
 	 * accidental reuse. Use `.to(room)` before each `.emit()` call when targeting rooms.
 	 */
-	async emit<K extends keyof OutgoingEvents>(
+	async emit<K extends Extract<keyof OutgoingEvents, string>>(
 		event: K,
 		data: OutgoingEvents[K],
-	) {
-		// Publish if a target room is specified
-		if (this.targetRoom) {
-			await this.adapter.publish(this.targetRoom, [event, data]);
+	): Promise<void> {
+		const dest = this.targetRoom ?? this.broadcastChannel ?? null;
+
+		if (!dest) {
+			this.logger.warn(
+				"emit() called without .to(room) and no broadcastChannel set; skipping publish",
+				{
+					event,
+				},
+			);
+			this.targetRoom = null; // always cleanup
+			return;
 		}
 
-		// Log the emission for debugging and monitoring
-		logger.info(`IO emitted to room "${this.targetRoom}":`, {
-			event,
-			data,
-		});
-
-		// Reset target room after emitting to prevent accidental reuse
-		this.targetRoom = null;
+		try {
+			await this.adapter.publish(dest, [event, data]);
+			this.logger.info("IO publish", {
+				room: this.targetRoom ? this.targetRoom : "(broadcast)",
+				event,
+				data: this.redact(data),
+			});
+		} catch (e) {
+			this.logger.error("IO publish failed", {
+				room: this.targetRoom ? this.targetRoom : "(broadcast)",
+				event,
+				error: e instanceof Error ? e.message : String(e),
+			});
+			// Intentionally don't rethrow; caller can decide if they need a strict variant
+		} finally {
+			// Reset target room after emitting to prevent accidental reuse
+			this.targetRoom = null;
+		}
 	}
 
 	/**

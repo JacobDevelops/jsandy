@@ -1,5 +1,4 @@
 import { ZodError, type ZodType } from "zod";
-import { logger } from "./logger";
 
 /**
  * Schema type that can be either a ZodObject for validation or void for no validation
@@ -14,6 +13,33 @@ interface SchemaConfig {
 	incomingSchema: Schema;
 	/** Schema for validating outgoing messages to clients */
 	outgoingSchema: Schema;
+}
+
+export interface Logger {
+	debug(msg: string, meta?: unknown): void;
+	info(msg: string, meta?: unknown): void;
+	warn(msg: string, meta?: unknown): void;
+	error(msg: string, meta?: unknown): void;
+}
+
+const NullLogger: Logger = {
+	debug() {},
+	info() {},
+	warn() {},
+	error() {},
+};
+
+type ValidationBehavior = "silent" | "warn" | "throw";
+
+interface EmitterOptions {
+	/** Inject your own logger (pino, consola, winston, console adapter, etc.) */
+	logger?: Logger;
+	/** Redact/shape data before logging (default: drop payloads) */
+	redact?: (data: unknown) => unknown;
+	/** How to react when validation fails (default: 'warn') */
+	onValidationError?: ValidationBehavior;
+	/** Throttle identical warnings (ms). Default 5000ms */
+	throttleMs?: number;
 }
 
 /**
@@ -41,6 +67,12 @@ export class EventEmitter {
 	/** Zod schema for validating outgoing messages */
 	outgoingSchema: Schema;
 
+	private logger: Logger;
+	private redact: (data: unknown) => unknown;
+	private onValidationError: ValidationBehavior;
+	private throttleMs: number;
+	private lastWarn = new Map<string, number>();
+
 	/**
 	 * Creates a new EventEmitter instance with WebSocket and schema configuration
 	 *
@@ -48,6 +80,7 @@ export class EventEmitter {
 	 * @param schemas - Schema configuration for message validation
 	 * @param schemas.incomingSchema - Schema for validating incoming messages
 	 * @param schemas.outgoingSchema - Schema for validating outgoing messages
+	 * @param opts - Optional configuration options
 	 *
 	 * @example
 	 * ```typescript
@@ -67,12 +100,31 @@ export class EventEmitter {
 	 * });
 	 * ```
 	 */
-	constructor(ws: WebSocket, schemas: SchemaConfig) {
+	constructor(
+		ws: WebSocket,
+		schemas: SchemaConfig,
+		opts: EmitterOptions = {
+			logger: NullLogger,
+		},
+	) {
 		const { incomingSchema, outgoingSchema } = schemas;
 
 		this.ws = ws;
 		this.incomingSchema = incomingSchema;
 		this.outgoingSchema = outgoingSchema;
+
+		this.logger = opts.logger ?? NullLogger;
+		this.redact = opts.redact ?? (() => "[payload omitted]");
+		this.onValidationError = opts.onValidationError ?? "warn";
+		this.throttleMs = opts.throttleMs ?? 5000;
+	}
+
+	private shouldThrottle(key: string) {
+		const now = Date.now();
+		const prev = this.lastWarn.get(key) ?? 0;
+		if (now - prev < this.throttleMs) return true;
+		this.lastWarn.set(key, now);
+		return false;
 	}
 
 	/**
@@ -105,7 +157,9 @@ export class EventEmitter {
 	emit(event: string, data: any): boolean {
 		// Check WebSocket connection state
 		if (this.ws.readyState !== WebSocket.OPEN) {
-			logger.warn("WebSocket is not in OPEN state. Message not sent.");
+			if (!this.shouldThrottle("ws_not_open")) {
+				this.logger.warn("WebSocket not OPEN; message dropped", { event });
+			}
 			return false;
 		}
 
@@ -114,7 +168,7 @@ export class EventEmitter {
 			try {
 				this.outgoingSchema.parse(data);
 			} catch (err) {
-				this.handleSchemaMismatch(event, data, err);
+				this.handleSchemaMismatch("outgoing", event, data, err);
 				return false;
 			}
 		}
@@ -134,17 +188,34 @@ export class EventEmitter {
 	 *
 	 * @private
 	 */
-	handleSchemaMismatch(event: string, data: any, err: any) {
-		if (err instanceof ZodError) {
-			logger.error(`Invalid outgoing event data for "${event}":`, {
-				errors: err.issues
-					.map((e) => `${e.path.join(".")}: ${e.message}`)
-					.join(", "),
-				data: JSON.stringify(data, null, 2),
-			});
-		} else {
-			logger.error(`Error validating outgoing event "${event}":`, err);
+	private handleSchemaMismatch(
+		direction: "incoming" | "outgoing",
+		event: string,
+		data: unknown,
+		err: unknown,
+	) {
+		const meta =
+			err instanceof ZodError
+				? {
+						direction,
+						event,
+						errors: err.issues.map((e) => ({
+							path: e.path.join("."),
+							message: e.message,
+							code: e.code,
+						})),
+						data: this.redact(data),
+					}
+				: { direction, event, error: String(err), data: this.redact(data) };
+
+		if (this.onValidationError === "silent") return;
+		if (this.onValidationError === "throw") {
+			// still log once for context
+			this.logger.error("Schema validation failed", meta);
+			throw err instanceof Error ? err : new Error(String(err));
 		}
+		// default = warn
+		this.logger.warn("Schema validation failed", meta);
 	}
 
 	/**
@@ -172,9 +243,12 @@ export class EventEmitter {
 		const handlers = this.eventHandlers.get(eventName);
 
 		if (!handlers?.length) {
-			logger.warn(
-				`No handlers registered for event "${eventName}". Did you forget to call .on("${eventName}", handler)?`,
-			);
+			const key = `no_handlers_${eventName}`;
+			if (!this.shouldThrottle(key)) {
+				this.logger.warn("No handlers registered for event", {
+					event: eventName,
+				});
+			}
 			return;
 		}
 
@@ -183,16 +257,7 @@ export class EventEmitter {
 			try {
 				validatedData = this.incomingSchema.parse(data);
 			} catch (err) {
-				if (err instanceof ZodError) {
-					logger.error(`Invalid incoming event data for "${eventName}":`, {
-						errors: err.issues
-							.map((e) => `${e.path.join(".")}: ${e.message}`)
-							.join(", "),
-						data: JSON.stringify(data, null, 2),
-					});
-				} else {
-					logger.error(`Error validating incoming event "${eventName}":`, err);
-				}
+				this.handleSchemaMismatch("incoming", eventName, data, err);
 				return;
 			}
 		}
@@ -204,20 +269,21 @@ export class EventEmitter {
 			} catch (err) {
 				hasErrors = true;
 				const error = err instanceof Error ? err : new Error(String(err));
-				logger.error(
-					`Error in handler ${index + 1}/${handlers.length} for event "${eventName}":`,
-					{
-						error: error.message,
-						stack: error.stack,
-						data: JSON.stringify(validatedData, null, 2),
-					},
-				);
+				this.logger.error("Handler error", {
+					event: eventName,
+					index,
+					count: handlers.length,
+					error: error.message,
+					stack: error.stack,
+					data: this.redact(validatedData),
+				});
 			}
 		});
 
 		if (hasErrors) {
+			// Keep the throw to preserve current behavior, but library users can set onValidationError:'silent' if they prefer.
 			throw new Error(
-				`One or more handlers failed for event "${eventName}". Check logs for details.`,
+				`One or more handlers failed for "${eventName}". See logs for details.`,
 			);
 		}
 	}
@@ -281,14 +347,14 @@ export class EventEmitter {
 	 */
 	on(event: string, callback?: (data: any) => any): void {
 		if (!callback) {
-			logger.error(
-				`No callback provided for event handler "${event.toString()}". Ppass a callback to handle this event.`,
-			);
+			if (!this.shouldThrottle(`no_callback_${event}`)) {
+				this.logger.error("No callback provided for event handler", { event });
+			}
 			return;
 		}
 
-		const handlers = this.eventHandlers.get(event as string) || [];
+		const handlers = this.eventHandlers.get(event) ?? [];
 		handlers.push(callback);
-		this.eventHandlers.set(event as string, handlers);
+		this.eventHandlers.set(event, handlers);
 	}
 }

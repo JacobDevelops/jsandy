@@ -6,7 +6,9 @@
 		"declaration": true,
 		"types": ["@cloudflare/workers-types/2023-07-01", "node", "bun"],
 		"paths": {
-			"@/*": ["./src/*"]
+			"@/*": ["./src/*"],
+			"@jsandy/rpc": ["./src/index.ts"],
+			"@jsandy/rpc/adapters": ["./src/sockets/adapters/index.ts"]
 		}
 	},
 	"exclude": ["node_modules", "dist"]

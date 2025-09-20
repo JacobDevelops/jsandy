@@ -1,9 +1,21 @@
+import { type PubSubAdapter, UpstashRestPubSub } from "@jsandy/rpc/adapters";
 import type { ZodSchema } from "zod";
 import { type ZodType, z } from "zod";
-import { EventEmitter } from "./event-emitter";
-import { logger } from "./logger";
-import { UpstashRestPubSub, type PubSubAdapter } from "./pubsub";
+import { EventEmitter, type Logger } from "./event-emitter";
 
+// --------------------- local logger defaults + helpers -----------------------
+const NullLogger: Logger = {
+	debug() {},
+	info() {},
+	warn() {},
+	error() {},
+};
+
+type RedactFn = (data: unknown) => unknown;
+
+const defaultRedact: RedactFn = () => "[payload omitted]";
+
+// ------------------------------- Options -------------------------------------
 /**
  * Configuration options for creating a ServerSocket instance
  */
@@ -18,14 +30,25 @@ interface ServerSocketOptions {
 	redisUrl?: string;
 	/** Backward-compat: Authentication token for Redis connection (Upstash REST) */
 	redisToken?: string;
+
 	/** Zod schema for validating incoming events */
 	incomingSchema: ZodSchema | ZodType;
 	/** Zod schema for validating outgoing events */
 	outgoingSchema: ZodSchema | ZodType;
+
 	/** Heartbeat ping interval in ms (default: 30000) */
 	heartbeatIntervalMs?: number;
 	/** Heartbeat timeout threshold in ms (default: 45000) */
 	heartbeatTimeoutMs?: number;
+
+	/** Inject your own logger; default is no-op */
+	logger?: Logger;
+	/** Redact/shape data before logging (default: drop payloads) */
+	redact?: RedactFn;
+	/** Propagated to EventEmitter validation behavior */
+	onValidationError?: "silent" | "warn" | "throw";
+	/** Throttle identical warnings (ms). Default 5000ms */
+	throttleMs?: number;
 }
 
 /**
@@ -51,14 +74,19 @@ export class ServerSocket<IncomingEvents, OutgoingEvents> {
 
 	// pluggable pub/sub adapter
 	private adapter: PubSubAdapter;
+
+	// logging/redaction
+	private logger: Logger;
+	private redact: RedactFn;
+
+	// heartbeat & monitoring
 	private lastPingTimes: Map<string, number> = new Map();
 	private heartbeatTimers: Map<
 		string,
-		{
-			sender: NodeJS.Timeout;
-			monitor: NodeJS.Timeout;
-		}
+		{ sender: NodeJS.Timeout; monitor: NodeJS.Timeout }
 	> = new Map();
+	private heartbeatIntervalMs: number;
+	private heartbeatTimeoutMs: number;
 
 	/**
 	 * Creates a new ServerSocket instance
@@ -66,8 +94,19 @@ export class ServerSocket<IncomingEvents, OutgoingEvents> {
 	 * @param opts - Configuration options including Pub/Sub adapter and schemas
 	 */
 	constructor(ws: WebSocket, opts: ServerSocketOptions) {
-		const { incomingSchema, outgoingSchema, adapter, redisUrl, redisToken } =
-			opts;
+		const {
+			incomingSchema,
+			outgoingSchema,
+			adapter,
+			redisUrl,
+			redisToken,
+			logger,
+			redact,
+			heartbeatIntervalMs = 30_000,
+			heartbeatTimeoutMs = 45_000,
+			onValidationError,
+			throttleMs,
+		} = opts;
 
 		// Prefer provided adapter; otherwise, fallback to Upstash REST adapter for backward compatibility
 		if (adapter) {
@@ -81,7 +120,21 @@ export class ServerSocket<IncomingEvents, OutgoingEvents> {
 		}
 
 		this.ws = ws;
-		this.emitter = new EventEmitter(ws, { incomingSchema, outgoingSchema });
+		this.logger = logger ?? NullLogger;
+		this.redact = redact ?? defaultRedact;
+		this.heartbeatIntervalMs = heartbeatIntervalMs;
+		this.heartbeatTimeoutMs = heartbeatTimeoutMs;
+
+		this.emitter = new EventEmitter(
+			ws,
+			{ incomingSchema, outgoingSchema },
+			{
+				logger: this.logger,
+				redact: this.redact,
+				onValidationError,
+				throttleMs,
+			},
+		);
 	}
 
 	/**
@@ -118,11 +171,11 @@ export class ServerSocket<IncomingEvents, OutgoingEvents> {
 	 * @param event - Event name to stop listening to
 	 * @param callback - Optional specific callback to remove
 	 */
-	off<K extends keyof IncomingEvents & SystemEvents>(
+	off<K extends keyof (IncomingEvents & SystemEvents)>(
 		event: K,
-		callback?: (data: IncomingEvents[K]) => any,
+		callback?: (data: (IncomingEvents & SystemEvents)[K]) => any,
 	): void {
-		this.emitter.off(event as string, callback);
+		this.emitter.off(event as string, callback as any);
 	}
 
 	/**
@@ -134,7 +187,7 @@ export class ServerSocket<IncomingEvents, OutgoingEvents> {
 		event: K,
 		callback?: (data: IncomingEvents[K]) => any,
 	): void {
-		this.emitter.on(event as string, callback);
+		this.emitter.on(event as string, callback as any);
 	}
 
 	/**
@@ -166,12 +219,13 @@ export class ServerSocket<IncomingEvents, OutgoingEvents> {
 	 */
 	async join(room: string): Promise<void> {
 		this.room = room;
-		logger.info(`Socket trying to join room: "${room}".`);
+		this.logger.info("Joining room", { room });
+
 		await this.subscribe(room)
 			.catch((error) => {
-				logger.error(`Subscription error for room ${room}:`, error);
+				this.logger.error("Subscription error", { room, error: String(error) });
 			})
-			.then(() => logger.success(`Joined room: ${room}`))
+			.then(() => this.logger.info("Joined room", { room }))
 			.then(() => this.createHeartbeat(room));
 	}
 
@@ -185,33 +239,41 @@ export class ServerSocket<IncomingEvents, OutgoingEvents> {
 		if (controller) {
 			controller.abort();
 			this.controllers.delete(room);
-			logger.info(`Left room: ${room}`);
+			this.logger.info("Left room", { room });
 		} else {
-			logger.warn(
-				`Attempted to leave room "${room}" but no active controller found`,
-			);
+			this.logger.warn("Attempted to leave non-active room", { room });
 		}
 	}
 
 	/**
 	 * Creates heartbeat mechanism for monitoring connection health
-	 * Sends ping messages every 30 seconds and monitors for timeouts
+	 * Sends ping messages and monitors for timeouts
 	 * @param room - Room name for the heartbeat context
 	 */
 	private createHeartbeat(room: string) {
 		const heartbeat = {
 			sender: setInterval(async () => {
-				await this.adapter.publish(room, ["ping", null]);
-			}, 30000),
-
-			monitor: setInterval(() => {
-				const lastPingTime = this.lastPingTimes.get(room) ?? 0;
-
-				if (Date.now() - lastPingTime > 45000) {
-					logger.warn("Heartbeat timeout detected");
-					this.unsubscribe(room).then(() => this.subscribe(room));
+				try {
+					await this.adapter.publish(room, ["ping", null]);
+				} catch (e) {
+					this.logger.warn("Heartbeat publish failed", {
+						room,
+						error: e instanceof Error ? e.message : String(e),
+					});
 				}
-			}, 5000),
+			}, this.heartbeatIntervalMs),
+
+			monitor: setInterval(
+				() => {
+					const lastPingTime = this.lastPingTimes.get(room) ?? 0;
+
+					if (Date.now() - lastPingTime > this.heartbeatTimeoutMs) {
+						this.logger.warn("Heartbeat timeout; resubscribing", { room });
+						this.unsubscribe(room).then(() => this.subscribe(room));
+					}
+				},
+				Math.max(2_000, Math.floor(this.heartbeatIntervalMs / 6)),
+			),
 		};
 
 		this.heartbeatTimers.set(room, heartbeat);
@@ -223,7 +285,6 @@ export class ServerSocket<IncomingEvents, OutgoingEvents> {
 	 * @param room - Room name to subscribe to
 	 */
 	private async subscribe(room: string): Promise<void> {
-		// Return a new Promise that resolves once the subscription opens
 		return new Promise<void>((resolve, reject) => {
 			(async () => {
 				try {
@@ -237,28 +298,37 @@ export class ServerSocket<IncomingEvents, OutgoingEvents> {
 						room,
 						(payload: unknown) => {
 							try {
-								logger.info("Received message:", payload as any);
-
 								const parsed = payload as any;
 
 								if (Array.isArray(parsed)) {
 									if (parsed[0] === "ping") {
-										logger.success("Heartbeat received successfully");
 										this.lastPingTimes.set(room, Date.now());
+										this.logger.debug("Heartbeat received", { room });
+										return;
 									}
 
 									if (this.ws.readyState === WebSocket.OPEN) {
 										this.ws.send(JSON.stringify(parsed));
 									} else {
-										logger.debug("WebSocket not open, skipping message");
+										this.logger.debug("WebSocket not open; dropping message", {
+											room,
+											event: parsed[0],
+										});
 									}
 								} else {
-									logger.warn(
+									this.logger.warn(
 										"Invalid message payload (expected [event, data])",
+										{
+											room,
+											payload: this.redact(payload),
+										},
 									);
 								}
 							} catch (err) {
-								logger.debug("Failed to process message payload", err);
+								this.logger.warn("Failed to process message payload", {
+									room,
+									error: err instanceof Error ? err.message : String(err),
+								});
 							}
 						},
 						{
@@ -283,17 +353,32 @@ export class ServerSocket<IncomingEvents, OutgoingEvents> {
 		if (controller) {
 			controller.abort();
 			this.controllers.delete(room);
-			logger.info(`Unsubscribed from room: ${room}`);
+			this.logger.info("Unsubscribed from room", { room });
 		} else {
-			logger.warn(`No active subscription found for room: ${room}`);
+			this.logger.warn("No active subscription for room", { room });
 		}
 	}
 }
+
+// -----------------------------------------------------------------------------
+// Client Socket
+// -----------------------------------------------------------------------------
 
 /**
  * Type alias for optional Zod schema validation
  */
 type Schema = ZodSchema | ZodType | undefined;
+
+interface ClientReconnectOptions {
+	/** Max reconnection attempts (default 3) */
+	maxAttempts?: number;
+	/** Initial backoff (default 1500ms) */
+	baseDelayMs?: number;
+	/** Maximum backoff (default 8000ms) */
+	maxDelayMs?: number;
+	/** If true, logs a tip when URL looks like a Node dev server port */
+	showBannerOnWrongPort?: boolean;
+}
 
 /**
  * Client-side WebSocket implementation with automatic reconnection and schema validation
@@ -308,9 +393,12 @@ export class ClientSocket<IncomingEvents extends SystemEvents, OutgoingEvents> {
 	private incomingSchema: Schema;
 	private outgoingSchema: Schema;
 
-	private pingTimer?: NodeJS.Timeout;
-	private pongTimer?: NodeJS.Timeout;
 	private reconnectAttempts = 0;
+	private reconnectOpts: Required<ClientReconnectOptions>;
+
+	// logging/redaction passthrough
+	private logger: Logger;
+	private redact: RedactFn;
 
 	isConnected = false;
 
@@ -318,50 +406,54 @@ export class ClientSocket<IncomingEvents extends SystemEvents, OutgoingEvents> {
 	 * Creates a new ClientSocket instance and immediately connects
 	 * @param url - WebSocket server URL to connect to
 	 * @param options - Optional configuration object
-	 * @param options.incomingSchema - Zod schema for validating incoming events
-	 * @param options.outgoingSchema - Zod schema for validating outgoing events
 	 */
 	constructor(
 		url: string | URL,
 		{
 			incomingSchema,
 			outgoingSchema,
-		}: { incomingSchema?: Schema; outgoingSchema?: Schema } = {},
+			logger,
+			redact,
+			onValidationError,
+			throttleMs,
+			reconnect,
+		}: {
+			incomingSchema?: Schema;
+			outgoingSchema?: Schema;
+			logger?: Logger;
+			redact?: RedactFn;
+			onValidationError?: "silent" | "warn" | "throw";
+			throttleMs?: number;
+			reconnect?: ClientReconnectOptions;
+		} = {},
 	) {
 		this.url = url;
 		this.incomingSchema = incomingSchema;
 		this.outgoingSchema = outgoingSchema;
 
-		this.connect();
-	}
+		this.logger = logger ?? NullLogger;
+		this.redact = redact ?? defaultRedact;
 
-	/**
-	 * Cleans up timers and intervals
-	 * Called internally during connection lifecycle management
-	 */
-	cleanup() {
-		if (this.pingTimer) {
-			clearInterval(this.pingTimer);
-			this.pingTimer = undefined;
-		}
+		this.reconnectOpts = {
+			maxAttempts: reconnect?.maxAttempts ?? 3,
+			baseDelayMs: reconnect?.baseDelayMs ?? 1500,
+			maxDelayMs: reconnect?.maxDelayMs ?? 8000,
+			showBannerOnWrongPort: reconnect?.showBannerOnWrongPort ?? true,
+		};
 
-		if (this.pongTimer) {
-			clearTimeout(this.pongTimer);
-			this.pongTimer = undefined;
-		}
+		this.connect({
+			onValidationError,
+			throttleMs,
+		});
 	}
 
 	/**
 	 * Closes the WebSocket connection gracefully
-	 * Cleans up timers and sets connection state to disconnected
 	 */
 	close() {
-		this.cleanup();
-
-		if (this.ws.readyState === WebSocket.OPEN) {
+		if (this.ws?.readyState === WebSocket.OPEN) {
 			this.ws.close(1000, "Client closed connection");
 		}
-
 		this.isConnected = false;
 	}
 
@@ -370,15 +462,30 @@ export class ClientSocket<IncomingEvents extends SystemEvents, OutgoingEvents> {
 	 * Preserves existing event handlers across reconnections
 	 * Implements exponential backoff for failed connections
 	 */
-	connect() {
-		const ws = new WebSocket(this.url);
+	private connect({
+		onValidationError,
+		throttleMs,
+	}: {
+		onValidationError?: "silent" | "warn" | "throw";
+		throttleMs?: number;
+	}) {
+		const ws = new WebSocket(this.url as string);
 
 		const existingHandlers = this.emitter?.eventHandlers;
 
-		this.emitter = new EventEmitter(ws, {
-			incomingSchema: this.incomingSchema,
-			outgoingSchema: this.outgoingSchema,
-		});
+		this.emitter = new EventEmitter(
+			ws,
+			{
+				incomingSchema: this.incomingSchema,
+				outgoingSchema: this.outgoingSchema,
+			},
+			{
+				logger: this.logger,
+				redact: this.redact,
+				onValidationError,
+				throttleMs,
+			},
+		);
 
 		if (existingHandlers) {
 			this.emitter.eventHandlers = new Map(existingHandlers);
@@ -387,64 +494,77 @@ export class ClientSocket<IncomingEvents extends SystemEvents, OutgoingEvents> {
 		this.ws = ws;
 
 		ws.onerror = (err) => {
-			const url = (err.currentTarget as WebSocket)?.url;
+			const urlStr = (err.currentTarget as WebSocket)?.url as
+				| string
+				| undefined;
 
-			if (typeof url === "string") {
-				if (url.includes(":3000")) {
-					console.error(`🚨 Cannot connect to WebSocket server
-
-WebSocket connections require Cloudflare Workers (port 8080).
-Node.js servers (port 3000) do not support WebSocket connections.
-
-To start your Cloudflare Worker locally:
-$ wrangler dev
-
-Fix this issue: https://jsandy.com/docs/getting-started/local-development
-          `);
-				}
+			if (
+				this.reconnectOpts.showBannerOnWrongPort &&
+				typeof urlStr === "string" &&
+				urlStr.includes(":3000")
+			) {
+				this.logger.error(
+					"Cannot connect to WebSocket at a Node dev server port; use your Worker port (e.g., 8787/8080) while developing.",
+					{ url: urlStr },
+				);
 			} else {
-				logger.error("Connection error:", err);
+				this.logger.error("Connection error", {
+					error: (err as any)?.message ?? String(err),
+				});
 			}
 
-			this.emitter.handleEvent("onError", err);
+			this.emitter.handleEvent("onError", err as any as Error);
 		};
 
 		ws.onopen = () => {
-			logger.success("Connected");
+			this.logger.info("WebSocket connected", { url: String(this.url) });
 			this.isConnected = true;
 			this.reconnectAttempts = 0;
-
 			this.emitter.handleEvent("onConnect", undefined);
 		};
 
 		ws.onclose = () => {
-			logger.warn("Connection closed, trying to reconnect...");
+			this.logger.warn("WebSocket closed; attempting reconnect", {
+				attempt: this.reconnectAttempts + 1,
+			});
 			this.isConnected = false;
 
 			this.reconnectAttempts++;
 
-			if (this.reconnectAttempts < 3) {
-				setTimeout(() => this.connect(), 1500);
-			} else {
-				logger.error(
-					"Failed to establish connection after multiple attempts. Check your network connection, or refresh the page to try again.",
+			if (this.reconnectAttempts <= this.reconnectOpts.maxAttempts) {
+				const delay = Math.min(
+					this.reconnectOpts.baseDelayMs * 2 ** (this.reconnectAttempts - 1),
+					this.reconnectOpts.maxDelayMs,
 				);
+				setTimeout(
+					() => this.connect({ onValidationError, throttleMs }),
+					delay,
+				);
+			} else {
+				this.logger.error("Max reconnect attempts reached");
 			}
 		};
 
 		ws.onmessage = (event) => {
-			const data = z.string().parse(event.data);
+			// Expect a JSON-encoded tuple: [eventName, data]
+			const text = z.string().parse(event.data);
 			const eventSchema = z.tuple([z.string(), z.unknown()]);
-
-			const parsedData = JSON.parse(data);
-
-			const parseResult = eventSchema.safeParse(parsedData);
-
-			if (parseResult.success) {
-				const [eventName, eventData] = parseResult.data;
-				this.emitter.handleEvent(eventName, eventData);
-			} else {
-				logger.warn("Unable to parse event:", event.data);
+			try {
+				const parsed = JSON.parse(text);
+				const res = eventSchema.safeParse(parsed);
+				if (res.success) {
+					const [eventName, eventData] = res.data;
+					this.emitter.handleEvent(eventName, eventData);
+				} else {
+					this.logger.warn("Unable to parse event payload", {
+						payload: this.redact(text),
+						issues: res.error.issues.map((i) => i.message),
+					});
+				}
+			} catch {
+				this.logger.warn("Non-JSON message received", {
+					payload: this.redact(text),
+				});
 			}
 		};
 	}
@@ -467,11 +587,11 @@ Fix this issue: https://jsandy.com/docs/getting-started/local-development
 	 * @param event - Event name to stop listening to
 	 * @param callback - Optional specific callback to remove
 	 */
-	off<K extends keyof IncomingEvents & SystemEvents>(
+	off<K extends keyof (IncomingEvents & SystemEvents)>(
 		event: K,
-		callback?: (data: IncomingEvents[K]) => any,
+		callback?: (data: (IncomingEvents & SystemEvents)[K]) => any,
 	): void {
-		this.emitter.off(event as string, callback);
+		this.emitter.off(event as string, callback as any);
 	}
 
 	/**
@@ -483,6 +603,6 @@ Fix this issue: https://jsandy.com/docs/getting-started/local-development
 		event: K,
 		callback?: (data: IncomingEvents[K]) => any,
 	): void {
-		this.emitter.on(event as string, callback);
+		this.emitter.on(event as string, callback as any);
 	}
 }

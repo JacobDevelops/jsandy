@@ -1,3 +1,4 @@
+import { UpstashRestPubSub } from "@jsandy/rpc/adapters";
 import { type Context, Hono, type Next } from "hono";
 import { env } from "hono/adapter";
 import { HTTPException } from "hono/http-exception";
@@ -8,8 +9,7 @@ import type { JSONSchema } from "zod/v4/core";
 import { bodyParsingMiddleware, queryParsingMiddleware } from "./middleware";
 import { toJSONSchemaWithDate } from "./openapi";
 import type { ProcedureDescription } from "./procedure";
-import { IO, ServerSocket, UpstashRestPubSub } from "./sockets";
-import { logger } from "./sockets/logger";
+import { IO, ServerSocket } from "./sockets";
 import type {
 	ContextWithSuperJSON,
 	GetOperation,
@@ -691,7 +691,7 @@ export class Router<
 
 							socket.handleEvent(eventName, eventData);
 						} catch (err) {
-							logger.error("Failed to process message:", err);
+							console.error("Failed to process message:", err);
 						}
 					};
 

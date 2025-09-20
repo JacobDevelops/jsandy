@@ -6,22 +6,29 @@ const mockAdapter = {
 	publish: mock(),
 	subscribe: mock(() => Promise.resolve()),
 };
+
+// Structured logger matching the Logger interface
 const mockLogger = {
-	info: mock(),
-	error: mock(),
 	debug: mock(),
+	info: mock(),
 	warn: mock(),
+	error: mock(),
 	success: mock(),
 	log: mock(),
 };
 
+// Optional: route console.* to mockLogger so any accidental console usage is visible
+// (IO uses the injected logger; EventEmitter tests use console directly)
 global.console = mockLogger as any;
 
 describe("IO", () => {
 	let io: IO<any, any>;
 
 	beforeEach(() => {
-		io = new IO(mockAdapter as any);
+		io = new IO(mockAdapter as any, {
+			logger: mockLogger,
+			// no broadcastChannel => emit() without to() should warn and skip publish
+		});
 		mockAdapter.publish.mockClear();
 		mockLogger.info.mockClear();
 		mockLogger.error.mockClear();
@@ -34,7 +41,7 @@ describe("IO", () => {
 
 	describe("constructor", () => {
 		it("should initialize with adapter", () => {
-		// biome-ignore lint/complexity/useLiteralKeys: This is a private property
+			// biome-ignore lint/complexity/useLiteralKeys: This is a private property
 			expect(io["adapter"]).toBeDefined();
 
 			// biome-ignore lint/complexity/useLiteralKeys: This is a private property
@@ -43,22 +50,26 @@ describe("IO", () => {
 	});
 
 	describe("emit", () => {
-		it("should emit to all clients when no room is targeted", async () => {
-			const consoleSpy = spyOn(console, "log").mockImplementation(() => {});
+		it("should warn and skip when no room is targeted and no broadcastChannel set", async () => {
+			const warnSpy = spyOn(mockLogger, "warn");
 
 			await io.emit("testEvent", { message: "hello" });
 
-			// Should not call adapter when no room is targeted
+			// Should not call adapter when no room/broadcastChannel is set
 			expect(mockAdapter.publish).not.toHaveBeenCalled();
-			expect(consoleSpy).toHaveBeenCalledWith(
-				expect.stringContaining('IO emitted to room "null"'),
-				expect.any(Object),
+			expect(warnSpy).toHaveBeenCalledWith(
+				expect.stringContaining(
+					"emit() called without .to(room) and no broadcastChannel set; skipping publish",
+				),
+				expect.objectContaining({ event: "testEvent" }),
 			);
+
+			warnSpy.mockRestore();
 		});
 
-		it("should emit to specific room when targeted", async () => {
+		it("should emit to specific room when targeted and log info", async () => {
 			mockAdapter.publish.mockResolvedValue(undefined);
-			const consoleSpy = spyOn(console, "log").mockImplementation(() => {});
+			const infoSpy = spyOn(mockLogger, "info");
 
 			await io.to("room1").emit("testEvent", { message: "hello room1" });
 
@@ -67,11 +78,16 @@ describe("IO", () => {
 				{ message: "hello room1" },
 			]);
 
-			expect(consoleSpy).toHaveBeenCalledWith(
-				expect.stringContaining('IO emitted to room "room1"'),
-				expect.any(Object),
+			expect(infoSpy).toHaveBeenCalledWith(
+				"IO publish",
+				expect.objectContaining({
+					room: "room1",
+					event: "testEvent",
+					data: "[payload omitted]",
+				}),
 			);
-			consoleSpy.mockRestore();
+
+			infoSpy.mockRestore();
 		});
 
 		it("should reset target room after emission", async () => {
@@ -81,13 +97,23 @@ describe("IO", () => {
 			// biome-ignore lint/complexity/useLiteralKeys: This is a private property
 			expect(io["targetRoom"]).toBeNull();
 
-			// Next emit without .to() should not target any room
+			// Next emit without .to() should not target any room and should warn/skip
+			const warnSpy = spyOn(mockLogger, "warn");
 			await io.emit("nextEvent", { data: "broadcast" });
+
 			expect(mockAdapter.publish).toHaveBeenCalledTimes(1); // Only the first call
+			expect(warnSpy).toHaveBeenCalledWith(
+				expect.stringContaining(
+					"emit() called without .to(room) and no broadcastChannel set; skipping publish",
+				),
+				expect.objectContaining({ event: "nextEvent" }),
+			);
+			warnSpy.mockRestore();
 		});
 
 		it("should handle different data types", async () => {
 			mockAdapter.publish.mockResolvedValue(undefined);
+			const infoSpy = spyOn(mockLogger, "info");
 
 			const testCases = [
 				{ event: "string", data: "simple string" },
@@ -106,6 +132,18 @@ describe("IO", () => {
 					data,
 				]);
 			}
+
+			// Ensure we logged an info for the last call at least (all will log)
+			expect(infoSpy).toHaveBeenCalledWith(
+				"IO publish",
+				expect.objectContaining({
+					room: "testRoom",
+					event: expect.any(String),
+					data: "[payload omitted]",
+				}),
+			);
+
+			infoSpy.mockRestore();
 		});
 	});
 });
