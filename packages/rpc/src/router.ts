@@ -1,3 +1,4 @@
+import { UpstashRestPubSub } from "@jsandy/rpc/adapters";
 import { type Context, Hono, type Next } from "hono";
 import { env } from "hono/adapter";
 import { HTTPException } from "hono/http-exception";
@@ -8,7 +9,7 @@ import type { JSONSchema } from "zod/v4/core";
 import { bodyParsingMiddleware, queryParsingMiddleware } from "./middleware";
 import { toJSONSchemaWithDate } from "./openapi";
 import type { ProcedureDescription } from "./procedure";
-import { IO, ServerSocket, UpstashRestPubSub } from "./sockets";
+import { IO, ServerSocket } from "./sockets";
 import { logger } from "./sockets/logger";
 import type {
 	ContextWithSuperJSON,
