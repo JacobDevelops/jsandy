@@ -1,10 +1,11 @@
+import type { PubSubAdapter } from "@jsandy/rpc/adapters";
 import type { Context, TypedResponse } from "hono";
 import type { Env, Input } from "hono/types";
 import type { StatusCode } from "hono/utils/http-status";
 import type superjson from "superjson";
 import type { z } from "zod";
 import type { ProcedureDescription } from "./procedure";
-import type { IO, PubSubAdapter, ServerSocket } from "./sockets";
+import type { IO, ServerSocket } from "./sockets";
 
 /**
  * Represents the type returned by superjson.parse for a given type T
