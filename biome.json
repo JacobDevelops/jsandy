@@ -16,7 +16,8 @@
 			"!**/.next",
 			"!**/.content-collections",
 			"!**/*env*",
-			"!**/.open-next"
+			"!**/.open-next",
+			"!**/.source"
 		]
 	},
 	"formatter": {
