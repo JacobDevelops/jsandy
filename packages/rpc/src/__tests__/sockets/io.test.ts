@@ -34,7 +34,7 @@ describe("IO", () => {
 
 	describe("constructor", () => {
 		it("should initialize with adapter", () => {
-		// biome-ignore lint/complexity/useLiteralKeys: This is a private property
+			// biome-ignore lint/complexity/useLiteralKeys: This is a private property
 			expect(io["adapter"]).toBeDefined();
 
 			// biome-ignore lint/complexity/useLiteralKeys: This is a private property

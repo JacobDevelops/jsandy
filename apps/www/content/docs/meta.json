@@ -1,0 +1,4 @@
+{
+	"title": "Documentation",
+	"pages": ["introduction", "getting-started", "backend", "deploy"]
+}
