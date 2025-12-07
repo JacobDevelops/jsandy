@@ -1,0 +1,98 @@
+{
+	"$schema": "./node_modules/nx/schemas/nx-schema.json",
+	"cli": {
+		"packageManager": "bun"
+	},
+	"namedInputs": {
+		"default": ["{projectRoot}/**/*", "sharedGlobals"],
+		"production": [
+			"default",
+			"!{projectRoot}/**/?(*.)+(spec|test).[jt]s?(x)?(.snap)",
+			"!{projectRoot}/tsconfig.spec.json",
+			"!{projectRoot}/jest.config.[jt]s"
+		],
+		"sharedGlobals": ["{workspaceRoot}/biome.json"],
+		"typescript": [
+			"default",
+			"!{projectRoot}/**/?(*.)+(spec|test).[jt]s?(x)?(.snap)",
+			"{workspaceRoot}/tsconfig.json"
+		]
+	},
+	"plugins": [
+		{
+			"plugin": "@nx/next/plugin",
+			"options": {
+				"buildTargetName": "build",
+				"devTargetName": "dev",
+				"serveStaticTargetName": "serve-static",
+				"startTargetName": "start"
+			}
+		}
+	],
+	"targetDefaults": {
+		"build": {
+			"cache": true,
+			"dependsOn": ["^build"],
+			"inputs": ["production", "^production"],
+			"outputs": [
+				"{projectRoot}/.next/**",
+				"!{projectRoot}/.next/cache/**",
+				"{projectRoot}/dist/**"
+			]
+		},
+		"build:cf": {
+			"cache": false,
+			"dependsOn": ["^build"],
+			"inputs": ["production", "^production"],
+			"outputs": [
+				"{projectRoot}/.open-next/**",
+				"{projectRoot}/.next/**",
+				"!{projectRoot}/.next/cache/**"
+			]
+		},
+		"typecheck": {
+			"cache": true,
+			"dependsOn": ["^build"],
+			"inputs": ["typescript", "^production"]
+		},
+		"clean": {
+			"cache": false
+		},
+		"dev": {
+			"cache": false
+		},
+		"deploy": {
+			"cache": false,
+			"dependsOn": ["build:cf"],
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "bunx wrangler deploy",
+				"cwd": "{projectRoot}"
+			}
+		},
+		"lint": {
+			"executor": "@nx/js:biome",
+			"inputs": ["default"],
+			"options": {
+				"command": "check --apply"
+			}
+		},
+		"format": {
+			"executor": "@nx/js:biome",
+			"inputs": ["default"],
+			"options": {
+				"command": "format --write"
+			}
+		},
+		"test": {
+			"cache": true,
+			"dependsOn": ["^build"],
+			"inputs": ["default", "^production"]
+		},
+		"test:coverage": {
+			"cache": true,
+			"dependsOn": ["^build"],
+			"inputs": ["default", "^production"]
+		}
+	}
+}

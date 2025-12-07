@@ -1,5 +1,3 @@
-# Wrangler configuration converted from wrangler.jsonc
-
 name = "jsandy-www"
 main = ".open-next/worker.js"
 compatibility_date = "2025-06-01"
@@ -7,17 +5,29 @@ compatibility_flags = ["nodejs_compat", "global_fetch_strictly_public"]
 account_id = "9095722a1cb3e114ae640b422767d94a"
 
 [assets]
-directory = ".open-next/assets"
 binding = "ASSETS"
+directory = ".open-next/assets"
+
+[limits]
+cpu_ms = 30000
 
 [observability]
 enabled = true
+head_sampling_rate = 1
 
-# Use R2 incremental cache
-# See https://opennext.js.org/cloudflare/caching
+[placement]
+mode = "smart"
+
 [[r2_buckets]]
 binding = "NEXT_INC_CACHE_R2_BUCKET"
-# Create the bucket before deploying
-# You can change the bucket name if you want
-# See https://developers.cloudflare.com/workers/wrangler/commands/#r2-bucket-create
+bucket_name = "jsandy-www"
+
+[env.production]
+name = "jsandy-www"
+
+[env.production.vars]
+SERVICE_NAME = "www"
+
+[[env.production.r2_buckets]]
+binding = "NEXT_INC_CACHE_R2_BUCKET"
 bucket_name = "jsandy-www"

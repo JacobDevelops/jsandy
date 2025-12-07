@@ -30,7 +30,7 @@
 	},
 	"scripts": {
 		"build": "bun build.ts && tsc --emitDeclarationOnly",
-		"check-types": "tsc --noEmit",
+		"typecheck": "tsc --noEmit",
 		"clean": "rm -rf dist",
 		"prebuild": "bun run clean",
 		"test": "bun test",

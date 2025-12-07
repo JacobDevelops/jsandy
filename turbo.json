@@ -27,8 +27,8 @@
 			],
 			"outputs": [".open-next/**", ".next/**", "!.next/cache/**", "dist/**"]
 		},
-		"check-types": {
-			"dependsOn": ["^check-types"]
+		"typecheck": {
+			"dependsOn": ["^typecheck"]
 		},
 		"clean": {
 			"dependsOn": ["^clean"]
