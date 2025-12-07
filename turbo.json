@@ -49,6 +49,10 @@
 		"test:watch": {
 			"dependsOn": ["^test:watch"],
 			"persistent": true
+		},
+		"deploy": {
+			"dependsOn": ["cf:build"],
+			"cache": false
 		}
 	}
 }

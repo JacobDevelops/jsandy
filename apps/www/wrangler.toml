@@ -4,6 +4,7 @@ name = "jsandy-www"
 main = ".open-next/worker.js"
 compatibility_date = "2025-06-01"
 compatibility_flags = ["nodejs_compat", "global_fetch_strictly_public"]
+account_id = "9095722a1cb3e114ae640b422767d94a"
 
 [assets]
 directory = ".open-next/assets"

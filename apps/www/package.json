@@ -7,7 +7,7 @@
 		"cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
 		"check-types": "bun run build && tsc --noEmit",
 		"cf:build": "opennextjs-cloudflare build",
-		"deploy": "bun run cf:build && opennextjs-cloudflare deploy",
+		"deploy": "opennextjs-cloudflare deploy",
 		"dev": "next dev",
 		"start": "next start",
 		"postinstall": "fumadocs-mdx",
