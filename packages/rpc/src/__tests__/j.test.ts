@@ -74,8 +74,8 @@ describe("JSandy Framework", () => {
 
 			const mockNext = mock(async () => ({}));
 			const mockContext = {
-				set: mock(),
 				get: mock(),
+				set: mock(),
 			};
 
 			await adaptedMiddleware({
@@ -96,8 +96,8 @@ describe("JSandy Framework", () => {
 			const adaptedMiddleware = fromHono(honoMiddleware);
 			const mockNext = mock(async () => ({ existing: "data" }));
 			const mockContext = {
-				set: mock(),
 				get: mock(),
+				set: mock(),
 			};
 
 			await adaptedMiddleware({
@@ -149,8 +149,8 @@ describe("JSandy Framework", () => {
 						code: "invalid_type",
 						expected: "string",
 						input: 123,
-						path: ["email"],
 						message: "Expected string, received number",
+						path: ["email"],
 					},
 				]);
 
@@ -162,8 +162,8 @@ describe("JSandy Framework", () => {
 
 			it("should handle errors with status property", () => {
 				const customError = {
-					status: 403,
 					message: "Forbidden",
+					status: 403,
 				};
 
 				const response = defaults.errorHandler(customError as any);
@@ -206,8 +206,8 @@ describe("JSandy Framework", () => {
 			const { router, procedure } = jsandy.init();
 
 			const testRouter = router({
-				health: procedure.get(({ c }) => c.json({ status: "ok" })),
 				create: procedure.post(({ c }) => c.json({ id: "123" })),
+				health: procedure.get(({ c }) => c.json({ status: "ok" })),
 			});
 
 			expect(testRouter).toBeInstanceOf(Router);
@@ -253,11 +253,11 @@ describe("JSandy Framework", () => {
 			const { Hono } = await import("hono");
 
 			const userRouter = router({
-				getUser: procedure.get(() => {
-					throw new HTTPException(404, { message: "User not found" });
-				}),
 				createUser: procedure.post(() => {
 					throw new Error("Database connection failed");
+				}),
+				getUser: procedure.get(() => {
+					throw new HTTPException(404, { message: "User not found" });
 				}),
 			});
 
@@ -268,7 +268,7 @@ describe("JSandy Framework", () => {
 			});
 
 			const app = new Hono();
-			return mergeRouters(app, { users: userRouter, posts: postRouter });
+			return mergeRouters(app, { posts: postRouter, users: userRouter });
 		}
 
 		it("bubbles 404 from users.getUser to main router onError", async () => {
@@ -278,8 +278,8 @@ describe("JSandy Framework", () => {
 				return new Response(
 					JSON.stringify({ error: err.message, source: "main-router" }),
 					{
-						status: err.status || 500,
 						headers: { "Content-Type": "application/json" },
+						status: err.status || 500,
 					},
 				);
 			});
@@ -305,8 +305,8 @@ describe("JSandy Framework", () => {
 				return new Response(
 					JSON.stringify({ error: err.message, source: "main-router" }),
 					{
-						status: err.status || 500,
 						headers: { "Content-Type": "application/json" },
+						status: err.status || 500,
 					},
 				);
 			});
@@ -332,8 +332,8 @@ describe("JSandy Framework", () => {
 				return new Response(
 					JSON.stringify({ error: err.message, type: err.constructor.name }),
 					{
-						status: err.status || 500,
 						headers: { "Content-Type": "application/json" },
+						status: err.status || 500,
 					},
 				);
 			});
@@ -342,9 +342,9 @@ describe("JSandy Framework", () => {
 
 			const res = await mergedRouter.fetch(
 				new Request("http://localhost/api/users/createUser", {
-					method: "POST",
-					headers: { "Content-Type": "application/json" },
 					body: JSON.stringify({ name: "Test User" }),
+					headers: { "Content-Type": "application/json" },
+					method: "POST",
 				}),
 			);
 
@@ -367,8 +367,8 @@ describe("JSandy Framework", () => {
 						level: "top",
 					}),
 					{
-						status: err.status || 500,
 						headers: { "Content-Type": "application/json" },
+						status: err.status || 500,
 					},
 				);
 			});

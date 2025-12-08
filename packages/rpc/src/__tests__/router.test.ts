@@ -9,19 +9,19 @@ import { Router } from "../router";
 global.WebSocketPair = class {
 	constructor() {
 		const client = {
-			readyState: WebSocket.OPEN,
 			close: mock(),
+			readyState: WebSocket.OPEN,
 			send: mock(),
 		} as any;
 		const server = {
-			readyState: WebSocket.OPEN,
 			accept: mock(),
 			close: mock(),
-			send: mock(),
-			onopen: null,
 			onclose: null,
 			onerror: null,
 			onmessage: null,
+			onopen: null,
+			readyState: WebSocket.OPEN,
+			send: mock(),
 		} as any;
 		// biome-ignore lint/correctness/noConstructorReturn: a workaround for the test
 		return [client, server];
@@ -49,10 +49,10 @@ describe("Router", () => {
 
 		it("should create router with procedures", () => {
 			const procedures = {
-				health: procedure.get(({ c }) => c.json({ status: "ok" })),
 				getUser: procedure
 					.input(z.object({ id: z.string() }))
 					.get(({ input, c }) => c.json({ id: input.id })),
+				health: procedure.get(({ c }) => c.json({ status: "ok" })),
 			};
 
 			const testRouter = new Router(procedures);
@@ -64,8 +64,8 @@ describe("Router", () => {
 		it("should handle nested procedures", () => {
 			const procedures = {
 				users: {
-					get: procedure.get(({ c }) => c.json({ users: [] })),
 					create: procedure.post(({ c }) => c.json({ id: "123" })),
+					get: procedure.get(({ c }) => c.json({ users: [] })),
 				},
 			};
 

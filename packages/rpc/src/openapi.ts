@@ -1,5 +1,5 @@
 import type z from "zod";
-import { type ZodType, toJSONSchema } from "zod";
+import { toJSONSchema, type ZodType } from "zod";
 import type { JSONSchema } from "zod/v4/core";
 import type { ProcedureDescription } from "./procedure";
 import type { Router } from "./router";
@@ -80,18 +80,18 @@ export async function generateOpenAPISpec(
 	config: OpenAPIConfig,
 ): Promise<OpenAPISpec> {
 	const spec: OpenAPISpec = {
-		openapi: "3.0.0",
-		info: {
-			title: config.title,
-			version: config.version,
-			description: config.description,
-		},
-		servers: config.servers,
-		paths: {},
 		components: {
 			schemas: {},
 			securitySchemes: config.securitySchemes,
 		},
+		info: {
+			description: config.description,
+			title: config.title,
+			version: config.version,
+		},
+		openapi: "3.0.0",
+		paths: {},
+		servers: config.servers,
 		tags: [],
 	};
 
@@ -210,22 +210,22 @@ function createOperationSpec(
 	schemas: Map<string, any>,
 ): OpenAPISpec["paths"][string] {
 	const operation: OpenAPISpec["paths"][string] = {
-		summary:
-			description?.summary || `${procedure.type.toUpperCase()} operation`,
+		deprecated: description?.deprecated || false,
 		description: description?.description || "",
 		operationId: description?.operationId,
-		deprecated: description?.deprecated || false,
-		tags: description?.tags || [],
 		responses: {
 			200: {
-				description: "Successful response",
 				content: {
 					"application/json": {
 						schema: { type: "object" },
 					},
 				},
+				description: "Successful response",
 			},
 		},
+		summary:
+			description?.summary || `${procedure.type.toUpperCase()} operation`,
+		tags: description?.tags || [],
 	};
 
 	// Add tags to the global tag set
@@ -245,12 +245,12 @@ function createOperationSpec(
 		} else if (procedure.type === "post") {
 			// For POST requests, use schema as request body
 			operation.requestBody = {
-				required: true,
 				content: {
 					"application/json": {
 						schema: inputSchema,
 					},
 				},
+				required: true,
 			};
 		}
 	}
@@ -273,33 +273,33 @@ function createOperationSpec(
 
 	// Add error responses
 	operation.responses[400] = {
-		description: "Bad Request",
 		content: {
 			"application/json": {
 				schema: {
-					type: "object",
 					properties: {
 						error: { type: "string" },
 						message: { type: "string" },
 					},
+					type: "object",
 				},
 			},
 		},
+		description: "Bad Request",
 	};
 
 	operation.responses[500] = {
-		description: "Internal Server Error",
 		content: {
 			"application/json": {
 				schema: {
-					type: "object",
 					properties: {
 						error: { type: "string" },
 						message: { type: "string" },
 					},
+					type: "object",
 				},
 			},
 		},
+		description: "Internal Server Error",
 	};
 
 	return operation;
@@ -467,14 +467,14 @@ function createQueryParameters(
 
 	return Object.entries(schema.properties || {}).map(
 		([name, propSchema]: [string, any]) => ({
-			name,
+			description: propSchema.description,
 			in: "query",
+			name,
 			required:
 				Array.isArray(schema.required) &&
 				schema.required.includes(name) &&
 				!propSchema.default,
 			schema: propSchema,
-			description: propSchema.description,
 		}),
 	);
 }
@@ -607,7 +607,6 @@ export function toJSONSchemaWithDate<T extends ZodType>(
 ) {
 	return toJSONSchema(schema, {
 		...options,
-		unrepresentable: "any", // Allow unrepresentable types to be processed
 		override: (ctx) => {
 			// Check if this is a date type
 			const def = ctx.zodSchema._zod?.def;
@@ -618,5 +617,6 @@ export function toJSONSchemaWithDate<T extends ZodType>(
 				delete ctx.jsonSchema.additionalProperties; // Clean up any unwanted properties
 			}
 		},
+		unrepresentable: "any", // Allow unrepresentable types to be processed
 	});
 }

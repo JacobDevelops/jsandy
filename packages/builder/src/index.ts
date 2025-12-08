@@ -10,15 +10,15 @@ export async function build(path: string, external?: string[]) {
 	const dist = join("dist", normalizedPath.split("/").slice(1, -1).join("/"));
 
 	const esbuildConfig: SameShape<BuildOptions, BuildOptions> = {
-		entryPoints: [file],
-		packages: "external",
-		external,
-		bundle: true,
-		sourcemap: true,
-		format: "cjs",
-		target: "es2022",
-		outdir: dist,
 		assetNames: "assets/[name]-[hash]",
+		bundle: true,
+		entryPoints: [file],
+		external,
+		format: "cjs",
+		outdir: dist,
+		packages: "external",
+		sourcemap: true,
+		target: "es2022",
 	};
 
 	await esbuild.build(esbuildConfig);
@@ -32,12 +32,12 @@ export async function build(path: string, external?: string[]) {
 	console.info(`Built ${path}/dist/index.mjs`);
 
 	await tsup.build({
-		entry: [file],
-		format: ["cjs", "esm"],
 		dts: { only: true },
+		entry: [file],
+		external,
+		format: ["cjs", "esm"],
 		outDir: dist,
 		silent: true,
-		external,
 	});
 	console.info(`Built ${path}/dist/index.d.ts`);
 }

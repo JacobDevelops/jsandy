@@ -171,7 +171,7 @@ describe("Procedure", () => {
 		});
 
 		it("should create POST operation with input schema", () => {
-			const schema = z.object({ name: z.string(), email: z.string() });
+			const schema = z.object({ email: z.string(), name: z.string() });
 			const handler = mock(({ input, c }) => c.json({ id: "123", ...input }));
 
 			const operation = procedure.input(schema).post(handler);
@@ -282,8 +282,8 @@ describe("Procedure", () => {
 	describe("Type inference", () => {
 		it("should infer correct input types", () => {
 			const schema = z.object({
-				name: z.string(),
 				age: z.number().optional(),
+				name: z.string(),
 			});
 
 			// This should compile without TypeScript errors

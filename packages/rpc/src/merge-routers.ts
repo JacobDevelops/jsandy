@@ -75,11 +75,11 @@ export function mergeRouters<
 
 	// Initialize metadata structure for sub-router management
 	mergedRouter._metadata = {
-		subRouters: {},
 		config: {},
+		operations: {},
 		procedures: {},
 		registeredPaths: [],
-		operations: {},
+		subRouters: {},
 	};
 
 	// Process each router in the collection

@@ -15,10 +15,6 @@ const posts: Post[] = [
 ];
 
 export const postRouter = j.router({
-	recent: publicProcedure.query(({ c }) => {
-		return c.superjson(posts.at(-1) ?? null);
-	}),
-
 	create: publicProcedure
 		.input(z.object({ name: z.string().min(1) }))
 		.mutation(({ c, input }) => {
@@ -31,4 +27,7 @@ export const postRouter = j.router({
 
 			return c.superjson(post);
 		}),
+	recent: publicProcedure.query(({ c }) => {
+		return c.superjson(posts.at(-1) ?? null);
+	}),
 });

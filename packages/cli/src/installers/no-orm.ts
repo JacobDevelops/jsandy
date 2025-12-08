@@ -1,8 +1,7 @@
-import fs from "fs-extra";
 import path from "node:path";
-
-import type { Installer } from "./index";
+import fs from "fs-extra";
 import { PKG_ROOT } from "@/constants";
+import type { Installer } from "./index";
 
 export const noOrmInstaller: Installer = ({ projectDir }) => {
 	const extrasDir = path.join(PKG_ROOT, "template/extras");

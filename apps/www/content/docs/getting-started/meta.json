@@ -1,4 +1,4 @@
 {
-	"title": "Getting Started",
-	"pages": ["first-steps", "local-development", "environment-variables"]
+	"pages": ["first-steps", "local-development", "environment-variables"],
+	"title": "Getting Started"
 }

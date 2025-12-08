@@ -1,11 +1,11 @@
 {
-	"name": "@jsandy/typescript-config",
-	"version": "1.0.0",
 	"license": "MIT",
+	"name": "@jsandy/typescript-config",
+	"peerDependencies": {
+		"typescript": "*"
+	},
 	"publishConfig": {
 		"access": "public"
 	},
-	"peerDependencies": {
-		"typescript": "*"
-	}
+	"version": "1.0.0"
 }

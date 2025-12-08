@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 
-import fs from "fs-extra";
 import path from "node:path";
+import fs from "fs-extra";
 import { runCli } from "./cli/index";
+import { installDependencies } from "./helpers/install-deps";
 import { scaffoldProject } from "./helpers/scaffold-project";
 import { buildInstallerMap } from "./installers/index";
 import { logger } from "./utils/logger";
-import { installDependencies } from "./helpers/install-deps";
 
 const main = async () => {
 	const results = await runCli();
@@ -23,8 +23,8 @@ const main = async () => {
 	const projectDir = await scaffoldProject({
 		databaseProvider: provider ?? "neon",
 		installers,
-		projectName,
 		linter: linter ?? "none",
+		projectName,
 		setupVSCode,
 	});
 

@@ -7,12 +7,12 @@ const mockAdapter = {
 	subscribe: mock(() => Promise.resolve()),
 };
 const mockLogger = {
-	info: mock(),
-	error: mock(),
 	debug: mock(),
-	warn: mock(),
-	success: mock(),
+	error: mock(),
+	info: mock(),
 	log: mock(),
+	success: mock(),
+	warn: mock(),
 };
 
 global.console = mockLogger as any;
@@ -90,12 +90,12 @@ describe("IO", () => {
 			mockAdapter.publish.mockResolvedValue(undefined);
 
 			const testCases = [
-				{ event: "string", data: "simple string" },
-				{ event: "number", data: 42 },
-				{ event: "object", data: { nested: { value: true } } },
-				{ event: "array", data: [1, 2, 3] },
-				{ event: "null", data: null },
-				{ event: "boolean", data: false },
+				{ data: "simple string", event: "string" },
+				{ data: 42, event: "number" },
+				{ data: { nested: { value: true } }, event: "object" },
+				{ data: [1, 2, 3], event: "array" },
+				{ data: null, event: "null" },
+				{ data: false, event: "boolean" },
 			];
 
 			for (const { event, data } of testCases) {

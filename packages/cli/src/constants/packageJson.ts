@@ -1,21 +1,13 @@
-import { dependencyVersionMap } from "@/installers/dep-version-map";
 import type { PackageJson } from "type-fest";
+import { dependencyVersionMap } from "@/installers/dep-version-map";
 
 export const BASE_PACKAGE_JSON: PackageJson = {
-	name: "jsandy-app",
-	version: "0.0.0",
-	private: true,
-	scripts: {
-		dev: "next dev",
-		build: "next build",
-		start: "next start",
-	},
 	dependencies: {
+		"@jsandy/rpc": dependencyVersionMap["@jsandy/rpc"],
 		"@tailwindcss/postcss": dependencyVersionMap["@tailwindcss/postcss"],
 		"@tanstack/react-query": dependencyVersionMap["@tanstack/react-query"],
 		clsx: dependencyVersionMap.clsx,
 		hono: dependencyVersionMap.hono,
-		"@jsandy/rpc": dependencyVersionMap["@jsandy/rpc"],
 		next: dependencyVersionMap.next,
 		react: dependencyVersionMap.react,
 		"react-dom": dependencyVersionMap["react-dom"],
@@ -31,4 +23,12 @@ export const BASE_PACKAGE_JSON: PackageJson = {
 		typescript: dependencyVersionMap.typescript,
 		wrangler: dependencyVersionMap.wrangler,
 	},
+	name: "jsandy-app",
+	private: true,
+	scripts: {
+		build: "next build",
+		dev: "next dev",
+		start: "next start",
+	},
+	version: "0.0.0",
 };

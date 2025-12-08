@@ -3,9 +3,9 @@ import * as p from "@clack/prompts";
 import chalk from "chalk";
 import fs from "fs-extra";
 import ora, { type Ora } from "ora";
+import { BASE_PACKAGE_JSON, GITIGNORE_CONTENTS, PKG_ROOT } from "@/constants";
 import type { InstallerOptions } from "@/installers/index";
 import { logger } from "@/utils/logger";
-import { BASE_PACKAGE_JSON, GITIGNORE_CONTENTS, PKG_ROOT } from "@/constants";
 
 // This bootstraps the base Next.js application
 export const installBaseTemplate = async ({
@@ -81,6 +81,7 @@ const handleDirectoryConflict = async (
 		} else {
 			spinner.stopAndPersist();
 			const overwriteDir = await p.select({
+				initialValue: "abort",
 				message: `${chalk.redBright.bold("Warning:")} ${chalk.cyan.bold(
 					projectName,
 				)} already exists and isn't empty. How would you like to proceed?`,
@@ -98,7 +99,6 @@ const handleDirectoryConflict = async (
 						value: "overwrite",
 					},
 				],
-				initialValue: "abort",
 			});
 			if (overwriteDir === "abort") {
 				spinner.fail("Aborting installation...");
@@ -111,8 +111,8 @@ const handleDirectoryConflict = async (
 					: "overwrite conflicting files";
 
 			const confirmOverwriteDir = await p.confirm({
-				message: `Are you sure you want to ${overwriteAction}?`,
 				initialValue: false,
+				message: `Are you sure you want to ${overwriteAction}?`,
 			});
 
 			if (!confirmOverwriteDir) {
@@ -125,9 +125,9 @@ const handleDirectoryConflict = async (
 					`Emptying ${chalk.cyan.bold(projectName)} and creating JSandy app..\n`,
 				);
 				await fs.emptyDir(projectDir);
-				return { shouldContinue: true, directoryCleared: true };
+				return { directoryCleared: true, shouldContinue: true };
 			}
 		}
 	}
-	return { shouldContinue: true, directoryCleared: false };
+	return { directoryCleared: false, shouldContinue: true };
 };

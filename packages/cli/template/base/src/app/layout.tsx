@@ -4,9 +4,9 @@ import { Providers } from "@/components/providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
-	title: "JSandy App",
 	description: "Created using JSandy",
 	icons: [{ rel: "icon", url: "/favicon.ico" }],
+	title: "JSandy App",
 };
 
 export default function RootLayout({

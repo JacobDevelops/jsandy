@@ -1,0 +1,20 @@
+{
+	"compileOnSave": false,
+	"compilerOptions": {
+		"baseUrl": ".",
+		"declaration": false,
+		"emitDecoratorMetadata": true,
+		"experimentalDecorators": true,
+		"importHelpers": true,
+		"lib": ["es2020", "dom", "dom.iterable"],
+		"module": "esnext",
+		"moduleResolution": "node",
+		"noPropertyAccessFromIndexSignature": false,
+		"rootDir": ".",
+		"skipDefaultLibCheck": true,
+		"skipLibCheck": true,
+		"sourceMap": true,
+		"target": "es2024"
+	},
+	"exclude": ["node_modules", "tmp"]
+}

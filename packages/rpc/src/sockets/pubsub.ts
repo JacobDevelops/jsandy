@@ -79,12 +79,12 @@ export class UpstashRestPubSub implements PubSubAdapter {
 
 	async publish(topic: string, payload: unknown): Promise<void> {
 		await fetch(`${this.url}/publish/${encodeURIComponent(topic)}`, {
-			method: "POST",
+			body: JSON.stringify(payload),
 			headers: {
 				Authorization: `Bearer ${this.token}`,
 				"Content-Type": "application/json",
 			},
-			body: JSON.stringify(payload),
+			method: "POST",
 		});
 	}
 

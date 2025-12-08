@@ -14,9 +14,9 @@ describe("Schema Utilities", () => {
 			const userSchemaBuilder = createSchema<User>();
 			const userSchema = userSchemaBuilder(
 				z.object({
-					name: z.string(),
 					age: z.number(),
 					email: z.string(),
+					name: z.string(),
 				}),
 			);
 
@@ -36,17 +36,17 @@ describe("Schema Utilities", () => {
 			const productSchema = productSchemaBuilder(
 				z.object({
 					id: z.string(),
+					inStock: z.boolean(),
 					name: z.string(),
 					price: z.number(),
-					inStock: z.boolean(),
 				}),
 			);
 
 			const validProduct = {
 				id: "123",
+				inStock: true,
 				name: "Test Product",
 				price: 29.99,
-				inStock: true,
 			};
 
 			const result = productSchema.parse(validProduct);
@@ -85,17 +85,17 @@ describe("Schema Utilities", () => {
 			const profileSchemaBuilder = createSchema<UserProfile>();
 			const profileSchema = profileSchemaBuilder(
 				z.object({
-					username: z.string(),
-					bio: z.string().optional(),
 					avatar: z.string().optional(),
+					bio: z.string().optional(),
+					username: z.string(),
 				}),
 			);
 
 			const minimalProfile = { username: "testuser" };
 			const fullProfile = {
-				username: "testuser",
-				bio: "Hello world",
 				avatar: "avatar.jpg",
+				bio: "Hello world",
+				username: "testuser",
 			};
 
 			expect(profileSchema.parse(minimalProfile)).toEqual(minimalProfile);
@@ -117,22 +117,22 @@ describe("Schema Utilities", () => {
 			const contactSchemaBuilder = createSchema<Contact>();
 			const contactSchema = contactSchemaBuilder(
 				z.object({
-					name: z.string(),
 					address: z.object({
-						street: z.string(),
 						city: z.string(),
+						street: z.string(),
 						zipCode: z.string(),
 					}),
+					name: z.string(),
 				}),
 			);
 
 			const validContact = {
-				name: "John Doe",
 				address: {
-					street: "123 Main St",
 					city: "Anytown",
+					street: "123 Main St",
 					zipCode: "12345",
 				},
+				name: "John Doe",
 			};
 
 			const result = contactSchema.parse(validContact);
@@ -253,8 +253,8 @@ describe("Schema Utilities", () => {
 			// This should compile - exact match
 			const validSchema = schemaBuilder(
 				z.object({
-					requiredField: z.string(),
 					optionalField: z.number().optional(),
+					requiredField: z.string(),
 				}),
 			);
 

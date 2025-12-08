@@ -1,4 +1,25 @@
-// @ts-nocheck -- Will remove when builder is published
-import { build } from "@jsandy/builder";
+import { build, spawn } from "bun";
 
-build("src/index.ts", ["hono", "superjson", "zod"]);
+await build({
+	entrypoints: ["src/index.ts"],
+	external: ["hono", "superjson", "zod"],
+	format: "esm",
+	minify: true,
+	outdir: "dist",
+	target: "node",
+});
+
+// Generate declarations with TypeScript
+spawn(
+	[
+		"bunx",
+		"tsc",
+		"-p",
+		"tsconfig.build.json",
+		"--declaration",
+		"--emitDeclarationOnly",
+	],
+	{
+		stdio: ["inherit", "inherit", "inherit"],
+	},
+);

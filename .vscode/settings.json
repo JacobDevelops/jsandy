@@ -1,20 +1,47 @@
 {
-	"typescript.preferences.quoteStyle": "double",
-	"typescript.preferences.includePackageJsonAutoImports": "on",
-	"typescript.preferences.preferTypeOnlyAutoImports": true,
-	"typescript.suggest.autoImports": true,
-	"typescript.updateImportsOnFileMove.enabled": "always",
-	"editor.formatOnSave": true,
+	"[css]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	},
+	"[javascript]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	},
+	"[json]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	},
+	"[jsonc]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	},
 	"[markdown]": {
 		"editor.defaultFormatter": "DavidAnson.vscode-markdownlint"
 	},
-	"files.eol": "\n",
-	"files.trimTrailingWhitespace": true,
-	"files.insertFinalNewline": true,
+	"[typescript]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	},
+	"[typescriptreact]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	},
+	"cSpell.words": ["jfetch", "subrouters"],
+	"css.validate": false,
+	"editor.codeActionsOnSave": {
+		"source.fixAll.biome": "explicit"
+	},
+	"editor.defaultFormatter": "biomejs.biome",
+	"editor.formatOnSave": true,
 	"emmet.includeLanguages": {
 		"typescript": "html",
 		"typescriptreact": "html"
 	},
+	"files.associations": {
+		"*.sql": "sql",
+		"drizzle.config.*": "typescript"
+	},
+	"files.eol": "\n",
+	"files.insertFinalNewline": true,
+	"files.trimTrailingWhitespace": true,
+	"less.validate": false,
+	"scss.validate": false,
+	"sqltools.connections": [],
+	"sqltools.useNodeRuntime": true,
 	"tailwindCSS.experimental.classRegex": [
 		["cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"],
 		["cx\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"],
@@ -25,36 +52,9 @@
 		"typescript": "html",
 		"typescriptreact": "html"
 	},
-	"css.validate": false,
-	"scss.validate": false,
-	"less.validate": false,
-	"editor.defaultFormatter": "biomejs.biome",
-	"editor.codeActionsOnSave": {
-		"source.fixAll.biome": "explicit"
-	},
-	"[json]": {
-		"editor.defaultFormatter": "biomejs.biome"
-	},
-	"[typescriptreact]": {
-		"editor.defaultFormatter": "biomejs.biome"
-	},
-	"[typescript]": {
-		"editor.defaultFormatter": "biomejs.biome"
-	},
-	"[jsonc]": {
-		"editor.defaultFormatter": "biomejs.biome"
-	},
-	"[css]": {
-		"editor.defaultFormatter": "biomejs.biome"
-	},
-	"[javascript]": {
-		"editor.defaultFormatter": "biomejs.biome"
-	},
-	"files.associations": {
-		"*.sql": "sql",
-		"drizzle.config.*": "typescript"
-	},
-	"sqltools.useNodeRuntime": true,
-	"sqltools.connections": [],
-	"cSpell.words": ["jfetch", "subrouters"]
+	"typescript.preferences.includePackageJsonAutoImports": "on",
+	"typescript.preferences.preferTypeOnlyAutoImports": true,
+	"typescript.preferences.quoteStyle": "double",
+	"typescript.suggest.autoImports": true,
+	"typescript.updateImportsOnFileMove.enabled": "always"
 }

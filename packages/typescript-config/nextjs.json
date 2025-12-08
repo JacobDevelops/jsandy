@@ -1,14 +1,14 @@
 {
-	"extends": "./base.json",
 	"compilerOptions": {
-		"lib": ["dom", "dom.iterable", "esnext"],
-		"noEmit": true,
 		"incremental": true,
 		"jsx": "preserve",
+		"lib": ["dom", "dom.iterable", "esnext"],
+		"noEmit": true,
 		"plugins": [
 			{
 				"name": "next"
 			}
 		]
-	}
+	},
+	"extends": "./base.json"
 }

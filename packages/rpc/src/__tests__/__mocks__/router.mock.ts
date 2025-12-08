@@ -3,20 +3,20 @@ import * as procedures from "./procedures.mock";
 
 // Basic user router
 export const userRouter = j.router({
-	health: procedures.health,
-	getUser: procedures.getUser,
-	getProfile: procedures.getProfile,
 	createUser: procedures.createUser,
-	updateUser: procedures.updateUser,
 	deleteUser: procedures.deleteUser,
+	getProfile: procedures.getProfile,
+	getUser: procedures.getUser,
 	getUsers: procedures.getUsers,
+	health: procedures.health,
+	updateUser: procedures.updateUser,
 });
 
 // Admin router with restricted procedures
 export const adminRouter = j.router({
 	adminOnly: procedures.adminOnly,
-	getUsers: procedures.getUsers,
 	deleteUser: procedures.deleteUser,
+	getUsers: procedures.getUsers,
 });
 
 // Chat router for WebSocket functionality
@@ -26,14 +26,14 @@ export const chatRouter = j.router({
 
 // Complete app router combining all routes
 export const combinedRouter = j.router({
-	health: procedures.health,
-	getUser: procedures.getUser,
-	getUsers: procedures.getUsers,
-	createUser: procedures.createUser,
-	profile: procedures.getProfile,
 	admin: procedures.adminOnly,
 	chat: procedures.chat,
+	createUser: procedures.createUser,
 	files: procedures.uploadFile,
+	getUser: procedures.getUser,
+	getUsers: procedures.getUsers,
+	health: procedures.health,
+	profile: procedures.getProfile,
 	testing: procedures.errorExample,
 });
 

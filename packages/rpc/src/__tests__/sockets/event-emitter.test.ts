@@ -21,8 +21,8 @@ describe("EventEmitter", () => {
 	beforeEach(() => {
 		mockWebSocket = new MockWebSocket();
 		incomingSchema = z.object({
-			type: z.string(),
 			payload: z.any(),
+			type: z.string(),
 		});
 		outgoingSchema = z.object({
 			message: z.string(),
@@ -196,8 +196,8 @@ describe("EventEmitter", () => {
 		it("should call registered handlers with valid data", () => {
 			const handler = mock();
 			const validData = {
-				type: "message",
 				payload: "test data",
+				type: "message",
 			};
 
 			emitter.on("test", handler);
@@ -209,8 +209,8 @@ describe("EventEmitter", () => {
 		it("should validate incoming data against schema", () => {
 			const handler = mock();
 			const invalidData = {
-				type: 123, // should be string
 				payload: "test",
+				type: 123, // should be string
 			};
 
 			const consoleSpy = spyOn(console, "error").mockImplementation(() => {});
@@ -261,7 +261,7 @@ describe("EventEmitter", () => {
 			emitter.on("test", goodHandler);
 
 			expect(() => {
-				emitter.handleEvent("test", { type: "test", payload: "data" });
+				emitter.handleEvent("test", { payload: "data", type: "test" });
 			}).toThrow("One or more handlers failed");
 
 			expect(errorHandler).toHaveBeenCalled();
@@ -286,7 +286,7 @@ describe("EventEmitter", () => {
 			emitter.on("test", handler3);
 
 			expect(() => {
-				emitter.handleEvent("test", { type: "test", payload: "data" });
+				emitter.handleEvent("test", { payload: "data", type: "test" });
 			}).toThrow();
 
 			expect(handler1).toHaveBeenCalled();
@@ -361,7 +361,7 @@ describe("EventEmitter", () => {
 		it("should handle empty event names", () => {
 			const handler = mock();
 			emitter.on("", handler);
-			emitter.handleEvent("", { type: "empty", payload: "test" });
+			emitter.handleEvent("", { payload: "test", type: "empty" });
 
 			expect(handler).toHaveBeenCalled();
 		});
@@ -371,7 +371,7 @@ describe("EventEmitter", () => {
 			const eventName = "test:event-with_special.chars";
 
 			emitter.on(eventName, handler);
-			emitter.handleEvent(eventName, { type: "special", payload: "test" });
+			emitter.handleEvent(eventName, { payload: "test", type: "special" });
 
 			expect(handler).toHaveBeenCalled();
 		});

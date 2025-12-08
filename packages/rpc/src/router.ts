@@ -97,36 +97,37 @@ export type RouterSchema<T extends Record<string, any>> = {
  * @template T - The operation type to generate schema for
  * @template E - Environment type, defaults to Env
  */
-export type OperationSchema<T> = T extends WebSocketOperation<any, any>
-	? {
-			$get: {
-				input: InferInput<T>;
-				output: {};
-				incoming: NonNullable<T["incoming"]>;
-				outgoing: NonNullable<T["outgoing"]>;
-				outputFormat: "ws";
-				status: StatusCode;
-			};
-		}
-	: T extends GetOperation<any, any>
+export type OperationSchema<T> =
+	T extends WebSocketOperation<any, any>
 		? {
 				$get: {
 					input: InferInput<T>;
-					output: ReturnType<T["handler"]>;
-					outputFormat: "json";
+					output: {};
+					incoming: NonNullable<T["incoming"]>;
+					outgoing: NonNullable<T["outgoing"]>;
+					outputFormat: "ws";
 					status: StatusCode;
 				};
 			}
-		: T extends PostOperation<any, any>
+		: T extends GetOperation<any, any>
 			? {
-					$post: {
+					$get: {
 						input: InferInput<T>;
 						output: ReturnType<T["handler"]>;
 						outputFormat: "json";
 						status: StatusCode;
 					};
 				}
-			: never;
+			: T extends PostOperation<any, any>
+				? {
+						$post: {
+							input: InferInput<T>;
+							output: ReturnType<T["handler"]>;
+							outputFormat: "json";
+							status: StatusCode;
+						};
+					}
+				: never;
 
 /**
  * Internal context interface for storing middleware outputs and parsed data
@@ -228,11 +229,11 @@ export class Router<
 		super();
 
 		this._metadata = {
-			subRouters: {},
 			config: {},
+			operations: {},
 			procedures: {},
 			registeredPaths: [],
-			operations: {},
+			subRouters: {},
 		};
 
 		// Store original operations for OpenAPI generation
@@ -251,7 +252,6 @@ export class Router<
 			if (procData.type === "ws") {
 				// Handle WebSocket operations
 				this._metadata.procedures[procName] = {
-					type: "ws",
 					schema: {
 						incoming: procData.incoming
 							? toJSONSchemaWithDate(procData.incoming)
@@ -260,14 +260,15 @@ export class Router<
 							? toJSONSchemaWithDate(procData.outgoing)
 							: null,
 					},
+					type: "ws",
 				} satisfies WSProcedureMetadata;
 			} else {
 				// Handle GET/POST operations
 				this._metadata.procedures[procName] = {
-					type: procData.type,
 					schema: procData.schema
 						? toJSONSchemaWithDate(procData.schema)
 						: null,
+					type: procData.type,
 				} satisfies GetPostProcedureMetadata;
 			}
 		}
@@ -466,7 +467,6 @@ export class Router<
 				// Handle WebSocket operation with incoming/outgoing schemas
 				const wsOperation = operation;
 				this._metadata.procedures[path] = {
-					type: "ws",
 					schema: {
 						incoming: wsOperation.incoming
 							? toJSONSchemaWithDate(wsOperation.incoming)
@@ -475,15 +475,16 @@ export class Router<
 							? toJSONSchemaWithDate(wsOperation.outgoing)
 							: null,
 					},
+					type: "ws",
 				} satisfies WSProcedureMetadata;
 			} else {
 				// Handle regular operations with single schema
 				this._metadata.procedures[path] = {
-					type: operation.type, // TypeScript knows this is "get" | "post"
 					schema:
 						operation.schema instanceof ZodObject
 							? toJSONSchemaWithDate(operation.schema)
 							: null,
+					type: operation.type, // TypeScript knows this is "get" | "post"
 				} satisfies GetPostProcedureMetadata;
 			}
 		}
@@ -503,9 +504,9 @@ export class Router<
 					};
 
 					const res = await middleware({
+						c: c as ContextWithSuperJSON<E>,
 						ctx: middlewareOutput,
 						next: nextWrapper,
-						c: c as ContextWithSuperJSON<E>,
 					});
 
 					if (res) {
@@ -653,9 +654,9 @@ export class Router<
 					const io = new IO(adapter);
 
 					const handler = await this.callHandlerSafely(operation.handler, {
-						io,
 						c: c as ContextWithSuperJSON<E>,
 						ctx,
+						io,
 					});
 
 					const socket = new ServerSocket(server, {
@@ -673,7 +674,7 @@ export class Router<
 
 					server.onerror = async (error) => {
 						socket.close();
-						await handler.onError?.({ socket, error });
+						await handler.onError?.({ error, socket });
 					};
 
 					const eventSchema = z.tuple([z.string(), z.unknown()]);

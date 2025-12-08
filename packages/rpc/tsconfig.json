@@ -1,13 +1,23 @@
 {
-	"extends": "@jsandy/typescript-config/base.json",
 	"compilerOptions": {
-		"rootDir": ".",
-		"outDir": "./dist",
+		"baseUrl": ".",
 		"declaration": true,
-		"types": ["@cloudflare/workers-types/2023-07-01", "node", "bun"],
+		"forceConsistentCasingInFileNames": true,
+		"importHelpers": true,
+		"module": "ESNext",
+		"moduleResolution": "Bundler",
+		"noFallthroughCasesInSwitch": true,
+		"noImplicitOverride": true,
+		"noImplicitReturns": true,
+		"outDir": "./dist",
 		"paths": {
-			"@/*": ["./src/*"]
-		}
+			"@/*": ["./src/*"],
+			"@axiaras/schemas/*": ["./src/*"]
+		},
+		"rootDir": "./src",
+		"strict": true,
+		"types": ["@cloudflare/workers-types/2023-07-01", "node", "bun"]
 	},
-	"exclude": ["node_modules", "dist"]
+	"extends": "../../tsconfig.base.json",
+	"include": ["src/**/*.ts"]
 }
