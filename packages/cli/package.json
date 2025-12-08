@@ -1,41 +1,7 @@
 {
-	"name": "create-jsandy-app",
-	"version": "1.1.3",
 	"access": "public",
-	"description": "A CLI tool for scaffolding new jSandy applications with interactive prompts",
-	"license": "MIT",
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/JacobDevelops/jsandy.git",
-		"directory": "packages/cli"
-	},
-	"files": [
-		"dist",
-		"README.md",
-		"CHANGELOG.md",
-		"template"
-	],
-	"engines": {
-		"node": ">=18.0.0"
-	},
-	"main": "dist/index.js",
-	"type": "module",
-	"scripts": {
-		"build": "bun build.ts",
-		"clean": "rm -rf dist",
-		"prebuild": "bun run clean",
-		"start": "node dist/index.js"
-	},
 	"bin": {
 		"create-jsandy-app": "dist/index.js"
-	},
-	"devDependencies": {
-		"@types/fs-extra": "^11.0.4",
-		"@types/node": "^22.15.29",
-		"type-fest": "^4.41.0"
-	},
-	"peerDependencies": {
-		"typescript": "^5.8.3"
 	},
 	"dependencies": {
 		"@clack/prompts": "^0.8.2",
@@ -45,5 +11,39 @@
 		"ora": "^8.2.0",
 		"picocolors": "^1.1.1",
 		"sort-package-json": "^2.15.1"
-	}
+	},
+	"description": "A CLI tool for scaffolding new jSandy applications with interactive prompts",
+	"devDependencies": {
+		"@types/fs-extra": "^11.0.4",
+		"@types/node": "^22.15.29",
+		"type-fest": "^4.41.0"
+	},
+	"engines": {
+		"node": ">=18.0.0"
+	},
+	"files": [
+		"dist",
+		"README.md",
+		"CHANGELOG.md",
+		"template"
+	],
+	"license": "MIT",
+	"main": "dist/index.js",
+	"name": "create-jsandy-app",
+	"peerDependencies": {
+		"typescript": "^5.8.3"
+	},
+	"repository": {
+		"directory": "packages/cli",
+		"type": "git",
+		"url": "git+https://github.com/JacobDevelops/jsandy.git"
+	},
+	"scripts": {
+		"build": "bun build.ts",
+		"clean": "rm -rf dist",
+		"prebuild": "bun run clean",
+		"start": "node dist/index.js"
+	},
+	"type": "module",
+	"version": "1.1.3"
 }

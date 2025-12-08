@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, mock } from "bun:test";
 import { dynamic } from "../dynamic";
-import { Router } from "../router";
 import { Procedure } from "../procedure";
+import { Router } from "../router";
 
 describe("Dynamic Router Loading", () => {
 	let procedure: Procedure;
@@ -167,14 +167,14 @@ describe("Dynamic Router Loading", () => {
 	describe("Error messages", () => {
 		it("should provide helpful error for development", async () => {
 			const mockImport = mock(async () => ({
-				someFunction: () => "not a router",
 				anotherFunction: () => "also not a router",
+				someFunction: () => "not a router",
 			}));
 
 			const dynamicRouter = dynamic(mockImport as any);
 
 			expect(dynamicRouter()).rejects.toThrow(
-				"Error dynamically loading router: Multiple Router exports detected in module (someFunction, anotherFunction). Please export only one Router instance per module.",
+				"Error dynamically loading router: Multiple Router exports detected in module (anotherFunction, someFunction). Please export only one Router instance per module.",
 			);
 		});
 

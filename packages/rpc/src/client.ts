@@ -92,12 +92,8 @@ export type UnwrapRouterSchema<T> = T extends RouterSchema<infer R> ? R : never;
  * Infers the schema type from a Router instance
  * @template T - Router type to infer schema from
  */
-export type InferRouter<T extends Router<any, any>> = T extends Router<
-	infer P,
-	any
->
-	? RouterSchema<P>
-	: never;
+export type InferRouter<T extends Router<any, any>> =
+	T extends Router<infer P, any> ? RouterSchema<P> : never;
 
 /**
  * Generates a complete client interface for a Router or Router factory function
@@ -254,8 +250,8 @@ export const createClient = <T extends Router<any>>(
 
 		const res = await fetch(targetUrl, {
 			...init,
-			credentials,
 			cache: "no-store",
+			credentials,
 		});
 
 		// Convert HTTP errors to exceptions

@@ -73,55 +73,6 @@ class JSandy {
 	init<E extends Env = any>() {
 		return {
 			/**
-			 * Creates a new Router instance with type-safe procedure definitions
-			 * @template T - Record type of procedures and nested routes
-			 * @param procedures - Optional initial procedures to register, defaults to empty object
-			 * @returns New Router instance with the specified procedures
-			 *
-			 * @example
-			 * ```typescript
-			 * const userRouter = router({
-			 *   getUser: procedure.input(getUserSchema).get(getUserHandler),
-			 *   updateUser: procedure.input(updateUserSchema).post(updateUserHandler)
-			 * });
-			 * ```
-			 */
-			router,
-
-			/** Router merging utility for combining multiple routers */
-			mergeRouters,
-
-			/**
-			 * Type-safe middleware function wrapper for enhanced type inference
-			 * Provides better TypeScript support for custom middleware development
-			 *
-			 * @template T - Context type for the middleware, defaults to Record<string, unknown>
-			 * @template R - Return type of the middleware, defaults to void
-			 * @param middleware - Middleware function to wrap with type safety
-			 * @returns The same middleware function with enhanced type information
-			 *
-			 * @example
-			 * ```typescript
-			 * const authMiddleware = middleware(async ({ c, next, ctx }) => {
-			 *   const token = c.req.header('Authorization');
-			 *   if (!token) throw new HTTPException(401);
-			 *
-			 *   const user = await validateToken(token);
-			 *   await next({ user }); // Type-safe context passing
-			 * });
-			 * ```
-			 */
-			middleware: <T = {}, R = void>(
-				middleware: MiddlewareFunction<T, R, E>,
-			): MiddlewareFunction<T, R, E> => middleware,
-
-			/** Hono middleware adapter utility */
-			fromHono,
-
-			/** Pre-configured Procedure instance for building endpoints */
-			procedure: new Procedure<E>(),
-
-			/**
 			 * Default configurations and utilities for common API patterns
 			 */
 			defaults: {
@@ -137,9 +88,9 @@ class JSandy {
 				 */
 				cors: cors({
 					allowHeaders: ["x-is-superjson", "Content-Type"],
+					credentials: true,
 					exposeHeaders: ["x-is-superjson"],
 					origin: (origin) => origin,
-					credentials: true,
 				}),
 
 				/**
@@ -169,8 +120,8 @@ class JSandy {
 					}
 					if (err instanceof ZodError) {
 						const httpError = new HTTPException(422, {
-							message: "Validation error",
 							cause: err,
+							message: "Validation error",
 						});
 
 						return httpError.getResponse();
@@ -179,22 +130,70 @@ class JSandy {
 						const httpError = new HTTPException(
 							err.status as ContentfulStatusCode,
 							{
-								message: err.message || "API Error",
 								cause: err,
+								message: err.message || "API Error",
 							},
 						);
 
 						return httpError.getResponse();
 					}
 					const httpError = new HTTPException(500, {
+						cause: err,
 						message:
 							"An unexpected error occurred. Check server logs for details.",
-						cause: err,
 					});
 
 					return httpError.getResponse();
 				},
 			},
+
+			/** Hono middleware adapter utility */
+			fromHono,
+
+			/** Router merging utility for combining multiple routers */
+			mergeRouters,
+
+			/**
+			 * Type-safe middleware function wrapper for enhanced type inference
+			 * Provides better TypeScript support for custom middleware development
+			 *
+			 * @template T - Context type for the middleware, defaults to Record<string, unknown>
+			 * @template R - Return type of the middleware, defaults to void
+			 * @param middleware - Middleware function to wrap with type safety
+			 * @returns The same middleware function with enhanced type information
+			 *
+			 * @example
+			 * ```typescript
+			 * const authMiddleware = middleware(async ({ c, next, ctx }) => {
+			 *   const token = c.req.header('Authorization');
+			 *   if (!token) throw new HTTPException(401);
+			 *
+			 *   const user = await validateToken(token);
+			 *   await next({ user }); // Type-safe context passing
+			 * });
+			 * ```
+			 */
+			middleware: <T = {}, R = void>(
+				middleware: MiddlewareFunction<T, R, E>,
+			): MiddlewareFunction<T, R, E> => middleware,
+
+			/** Pre-configured Procedure instance for building endpoints */
+			procedure: new Procedure<E>(),
+			/**
+			 * Creates a new Router instance with type-safe procedure definitions
+			 * @template T - Record type of procedures and nested routes
+			 * @param procedures - Optional initial procedures to register, defaults to empty object
+			 * @returns New Router instance with the specified procedures
+			 *
+			 * @example
+			 * ```typescript
+			 * const userRouter = router({
+			 *   getUser: procedure.input(getUserSchema).get(getUserHandler),
+			 *   updateUser: procedure.input(updateUserSchema).post(updateUserHandler)
+			 * });
+			 * ```
+			 */
+			router,
 		};
 	}
 }

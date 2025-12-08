@@ -1,13 +1,13 @@
+import path from "node:path";
+import fs from "fs-extra";
 import { addPackageDependency } from "@/utils/add-package-dep";
 import type { Installer } from "./index";
-import fs from "fs-extra";
-import path from "node:path";
 
 export const biomeInstaller: Installer = ({ projectDir }) => {
 	addPackageDependency({
-		projectDir,
 		dependencies: ["@biomejs/biome"],
 		devDependencies: true,
+		projectDir,
 	});
 
 	fs.writeFileSync(
@@ -18,13 +18,7 @@ export const biomeInstaller: Installer = ({ projectDir }) => {
 
 const BIOME_CONFIG = {
 	$schema: "https://biomejs.dev/schemas/1.9.4/schema.json", // TODO: Consider using dynamic version
-	vcs: {
-		enabled: false,
-		clientKind: "git",
-		useIgnoreFile: true,
-	},
 	files: {
-		ignoreUnknown: false,
 		ignore: [
 			"coverage",
 			"dist",
@@ -35,28 +29,29 @@ const BIOME_CONFIG = {
 			"*env*",
 			".open-next",
 		],
+		ignoreUnknown: false,
 	},
 	formatter: {
 		enabled: true,
 		indentStyle: "tab",
 	},
-	organizeImports: {
-		enabled: true,
-	},
-	linter: {
-		enabled: true,
-		rules: {
-			recommended: true,
-			correctness: {
-				noUnusedVariables: "error",
-				noUnusedImports: "error",
-			},
-		},
-	},
 	javascript: {
 		formatter: {
 			quoteStyle: "double",
 		},
+	},
+	linter: {
+		enabled: true,
+		rules: {
+			correctness: {
+				noUnusedImports: "error",
+				noUnusedVariables: "error",
+			},
+			recommended: true,
+		},
+	},
+	organizeImports: {
+		enabled: true,
 	},
 	overrides: [
 		{
@@ -70,4 +65,9 @@ const BIOME_CONFIG = {
 			},
 		},
 	],
+	vcs: {
+		clientKind: "git",
+		enabled: false,
+		useIgnoreFile: true,
+	},
 };
