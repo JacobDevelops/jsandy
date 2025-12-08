@@ -90,7 +90,7 @@ bun lint
 Check types across all packages:
 
 ```bash
-bun check-types
+bun typecheck
 ```
 
 ## Project Structure

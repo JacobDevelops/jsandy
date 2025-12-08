@@ -15,11 +15,11 @@ node_modules
 # Testing
 coverage
 
-# Turbo
-.turbo
+# Nx
+.nx
 
-# Vercel
-.vercel
+# Cloudflare
+.wrangler
 
 # Build Outputs
 .next/

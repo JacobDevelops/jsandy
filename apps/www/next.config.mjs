@@ -4,6 +4,7 @@ const withMDX = createMDX();
 
 /** @type {import('next').NextConfig} */
 const config = {
+	bundler: "webpack", // OpenNext/Cloudflare doesn't support Turbopack yet
 	reactStrictMode: true,
 	experimental: {
 		// Enable CSS inlining for performance - monitor for any SSR issues

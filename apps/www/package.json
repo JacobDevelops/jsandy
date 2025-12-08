@@ -3,17 +3,17 @@
 	"version": "0.0.0",
 	"private": true,
 	"scripts": {
-		"build": "next build",
+		"build": "next build --webpack",
+		"build:cf": "opennextjs-cloudflare build",
 		"cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
-		"check-types": "bun run build && tsc --noEmit",
-		"cf:build": "opennextjs-cloudflare build",
-		"deploy": "opennextjs-cloudflare deploy",
+		"typecheck": "bun run build && tsc --noEmit",
+		"deploy": "wrangler deploy",
+		"deploy:production": "wrangler deploy --env=production",
 		"dev": "next dev",
 		"start": "next start",
 		"postinstall": "fumadocs-mdx",
-		"preview": "bun run cf:build && opennextjs-cloudflare preview",
-		"format": "biome format --write",
-		"upload": "bun run cf:build && opennextjs-cloudflare upload"
+		"preview": "bun run build:cf && wrangler dev",
+		"format": "biome format --write"
 	},
 	"dependencies": {
 		"@radix-ui/react-slot": "^1.2.3",
@@ -39,6 +39,7 @@
 		"postcss": "^8.5.6",
 		"tailwindcss": "^4.1.16",
 		"tw-animate-css": "^1.4.0",
-		"typescript": "^5.9.3"
+		"typescript": "^5.9.3",
+		"wrangler": "^4.20.0"
 	}
 }

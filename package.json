@@ -2,19 +2,21 @@
 	"name": "jsandy",
 	"private": true,
 	"scripts": {
-		"build": "turbo run build",
-		"build:packages": "turbo run build --filter='./packages/*'",
-		"build:www": "turbo run cf:build --filter=www",
-		"check-types": "turbo run check-types",
-		"clean": "turbo run clean",
-		"deploy": "turbo run deploy",
-		"dev": "turbo run dev",
+		"build": "nx run-many -t build",
+		"build:packages": "nx run-many -t build --projects='packages/*'",
+		"build:www": "nx run www:build:cf",
+		"typecheck": "nx run-many -t typecheck",
+		"clean": "nx run-many -t clean",
+		"deploy": "nx run-many -t deploy",
+		"deploy:www": "nx run www:deploy",
+		"dev": "nx run-many -t dev",
+		"dev:www": "nx run www:dev",
 		"format": "biome format --write .",
 		"lint": "biome lint --write .",
 		"prepare": "husky",
 		"release": "bun run build && changeset publish",
-		"test": "turbo run test",
-		"test:coverage": "turbo run test:coverage",
+		"test": "nx run-many -t test",
+		"test:coverage": "nx run-many -t test:coverage",
 		"test:watch": "bun run --filter=@jsandy/rpc test:watch"
 	},
 	"devDependencies": {
@@ -23,13 +25,15 @@
 		"@commitlint/cli": "^19.8.1",
 		"@commitlint/config-conventional": "^19.8.1",
 		"@commitlint/types": "^19.8.1",
+		"@nx/js": "^21.0.0",
+		"@nx/next": "^21.0.0",
 		"husky": "^9.1.7",
 		"knip": "^5.63.0",
-		"turbo": "^2.5.6"
+		"nx": "^21.0.0"
 	},
 	"workspaces": [
 		"apps/*",
 		"packages/*"
 	],
-	"packageManager": "bun@1.2.14"
+	"packageManager": "bun@1.3.4"
 }

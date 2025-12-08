@@ -29,7 +29,7 @@ Please include a summary of the changes and relevant motivation/context. If this
 Please describe how your changes have been tested:
 
 - [ ] Unit tests pass (`bun test`)
-- [ ] Type checking passes (`bun check-types`)
+- [ ] Type checking passes (`bun typecheck`)
 - [ ] Linting passes (`bun lint`)
 - [ ] Build succeeds (`bun run build`)
 - [ ] Manual testing performed
