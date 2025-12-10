@@ -1,8 +1,8 @@
+import { type PubSubAdapter, UpstashRestPubSub } from "@jsandy/rpc/adapters";
 import type { ZodSchema } from "zod";
 import { type ZodType, z } from "zod";
 import { EventEmitter } from "./event-emitter";
 import { logger } from "./logger";
-import { UpstashRestPubSub, type PubSubAdapter } from "./pubsub";
 
 /**
  * Configuration options for creating a ServerSocket instance

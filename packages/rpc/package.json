@@ -26,6 +26,26 @@
 				"types": "./dist/index.d.ts",
 				"default": "./dist/index.js"
 			}
+		},
+		"./client": {
+			"import": {
+				"types": "./dist/rpc-client/index.d.mts",
+				"default": "./dist/rpc-client/index.mjs"
+			},
+			"require": {
+				"types": "./dist/rpc-client/index.d.ts",
+				"default": "./dist/rpc-client/index.js"
+			}
+		},
+		"./adapters": {
+			"import": {
+				"types": "./dist/sockets/adapters/index.d.mts",
+				"default": "./dist/sockets/adapters/index.mjs"
+			},
+			"require": {
+				"types": "./dist/sockets/adapters/index.d.ts",
+				"default": "./dist/sockets/adapters/index.js"
+			}
 		}
 	},
 	"scripts": {

@@ -1,5 +1,5 @@
+import { type PubSubAdapter, UpstashRestPubSub } from "@jsandy/rpc/adapters";
 import { logger } from "./logger";
-import { UpstashRestPubSub, type PubSubAdapter } from "./pubsub";
 
 /**
  * IO class for managing WebSocket communications through a generic Pub/Sub adapter
