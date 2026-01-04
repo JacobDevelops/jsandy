@@ -118,7 +118,7 @@ export class ServerSocket<IncomingEvents, OutgoingEvents> {
 	 * @param event - Event name to stop listening to
 	 * @param callback - Optional specific callback to remove
 	 */
-	off<K extends keyof IncomingEvents & SystemEvents>(
+	off<K extends keyof IncomingEvents>(
 		event: K,
 		callback?: (data: IncomingEvents[K]) => any,
 	): void {
@@ -467,7 +467,7 @@ Fix this issue: https://jsandy.com/docs/getting-started/local-development
 	 * @param event - Event name to stop listening to
 	 * @param callback - Optional specific callback to remove
 	 */
-	off<K extends keyof IncomingEvents & SystemEvents>(
+	off<K extends keyof IncomingEvents>(
 		event: K,
 		callback?: (data: IncomingEvents[K]) => any,
 	): void {

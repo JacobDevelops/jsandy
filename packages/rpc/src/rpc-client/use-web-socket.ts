@@ -27,26 +27,25 @@ export function useWebSocket<
 
 		const mergedEvents = {
 			...defaultHandlers,
-			...events,
+			...eventsRef.current,
 		};
 
 		const eventNames = Object.keys(mergedEvents) as Array<
-			keyof IncomingEvents & SystemEvents
+			string & keyof (IncomingEvents & SystemEvents)
 		>;
 
-		eventNames.forEach((eventName) => {
+		for (const eventName of eventNames) {
 			const handler = mergedEvents[eventName];
-
 			if (handler) {
-				socket.on(eventName, handler);
+				socket.on(eventName, handler as (data: unknown) => void);
 			}
-		});
+		}
 
 		return () => {
-			eventNames.forEach((eventName) => {
+			for (const eventName of eventNames) {
 				const handler = mergedEvents[eventName];
-				socket.off(eventName, handler);
-			});
+				socket.off(eventName, handler as (data: unknown) => void);
+			}
 		};
-	}, [opts?.enabled]);
+	}, [socket, opts?.enabled]);
 }

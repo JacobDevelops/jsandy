@@ -63,6 +63,7 @@
 		"@jsandy/typescript-config": "workspace:*",
 		"@types/bun": "^1.2.15",
 		"@types/node": "^22.15.29",
+		"@types/react": "^19.2.7",
 		"typescript": "^5.8.3"
 	},
 	"peerDependencies": {
