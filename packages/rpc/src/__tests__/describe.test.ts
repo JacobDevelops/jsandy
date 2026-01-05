@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
+import { z } from "zod";
 import { jsandy } from "@/j";
 import { generateOpenAPISpec } from "@/openapi";
-import { z } from "zod";
 
 const { router, procedure } = jsandy.init();
 
@@ -11,10 +11,10 @@ describe("Procedure .describe() functionality", () => {
 			.input(z.object({ id: z.string() }))
 			.describe({
 				description: "Test endpoint description",
-				summary: "Test endpoint",
-				schema: z.object({ result: z.string() }),
-				tags: ["test"],
 				operationId: "testOperation",
+				schema: z.object({ result: z.string() }),
+				summary: "Test endpoint",
+				tags: ["test"],
 			})
 			.get(({ input, c }) => c.json({ result: `Hello ${input.id}` }));
 
@@ -51,13 +51,13 @@ describe("Procedure .describe() functionality", () => {
 
 	it("should work with POST operations", () => {
 		const postProcedure = procedure
-			.input(z.object({ name: z.string(), email: z.string() }))
+			.input(z.object({ email: z.string(), name: z.string() }))
 			.describe({
 				description: "Create a new resource",
+				schema: z.object({ created: z.boolean(), id: z.string() }),
 				summary: "Create resource",
-				schema: z.object({ id: z.string(), created: z.boolean() }),
 			})
-			.post(({ c }) => c.json({ id: "123", created: true }));
+			.post(({ c }) => c.json({ created: true, id: "123" }));
 
 		expect(postProcedure.type).toBe("post");
 		expect(postProcedure.description?.description).toBe(
@@ -86,6 +86,9 @@ describe("Procedure .describe() functionality", () => {
 
 	it("should store operations in router metadata", () => {
 		const testRouter = router({
+			createTest: procedure
+				.input(z.object({ name: z.string() }))
+				.post(({ c }) => c.json({ created: true })),
 			getTest: procedure
 				.input(z.object({ id: z.string() }))
 				.describe({
@@ -93,9 +96,6 @@ describe("Procedure .describe() functionality", () => {
 					operationId: "getTest",
 				})
 				.get(({ input, c }) => c.json({ id: input.id })),
-			createTest: procedure
-				.input(z.object({ name: z.string() }))
-				.post(({ c }) => c.json({ created: true })),
 		});
 
 		const operations = testRouter.getAllOperations();
@@ -115,46 +115,45 @@ describe("Procedure .describe() functionality", () => {
 describe("OpenAPI generation", () => {
 	it("should generate OpenAPI spec from described procedures", async () => {
 		const documentedRouter = router({
-			getUser: procedure
-				.input(z.object({ id: z.string() }))
-				.describe({
-					description: "Get user by ID",
-					summary: "Get user",
-					schema: z.object({
-						id: z.string(),
-						name: z.string(),
-						email: z.string(),
-					}),
-					tags: ["users"],
-					operationId: "getUser",
-				})
-				.get(({ input, c }) =>
-					c.json({ id: input.id, name: "Test", email: "test@example.com" }),
-				),
-
 			createUser: procedure
 				.input(
 					z.object({
-						name: z.string(),
 						email: z.string(),
+						name: z.string(),
 					}),
 				)
 				.describe({
 					description: "Create a new user",
-					summary: "Create user",
 					schema: z.object({
-						id: z.string(),
 						created: z.boolean(),
+						id: z.string(),
 					}),
+					summary: "Create user",
 					tags: ["users"],
 				})
-				.post(({ c }) => c.json({ id: "123", created: true })),
+				.post(({ c }) => c.json({ created: true, id: "123" })),
+			getUser: procedure
+				.input(z.object({ id: z.string() }))
+				.describe({
+					description: "Get user by ID",
+					operationId: "getUser",
+					schema: z.object({
+						email: z.string(),
+						id: z.string(),
+						name: z.string(),
+					}),
+					summary: "Get user",
+					tags: ["users"],
+				})
+				.get(({ input, c }) =>
+					c.json({ email: "test@example.com", id: input.id, name: "Test" }),
+				),
 		});
 
 		const spec = await generateOpenAPISpec(documentedRouter, {
+			description: "Test API for validation",
 			title: "Test API",
 			version: "1.0.0",
-			description: "Test API for validation",
 		});
 
 		// Verify basic structure
@@ -211,39 +210,39 @@ describe("OpenAPI generation", () => {
 			adminData: procedure
 				.describe({
 					description: "Get admin-only data",
-					summary: "Admin data",
-					tags: ["admin"],
 					openapi: {
-						security: [{ bearerAuth: [] }],
 						responses: {
 							403: {
-								description: "Forbidden - Admin access required",
 								content: {
 									"application/json": {
 										schema: {
-											type: "object",
 											properties: {
 												error: { type: "string" },
 											},
+											type: "object",
 										},
 									},
 								},
+								description: "Forbidden - Admin access required",
 							},
 						},
+						security: [{ bearerAuth: [] }],
 					},
+					summary: "Admin data",
+					tags: ["admin"],
 				})
 				.get(({ c }) => c.json({ adminData: "secret" })),
 		});
 
 		const spec = await generateOpenAPISpec(secureRouter, {
-			title: "Secure API",
-			version: "1.0.0",
 			securitySchemes: {
 				bearerAuth: {
-					type: "http",
 					scheme: "bearer",
+					type: "http",
 				},
 			},
+			title: "Secure API",
+			version: "1.0.0",
 		});
 
 		const adminOp = spec.paths["/adminData"].get;
@@ -259,9 +258,9 @@ describe("OpenAPI generation", () => {
 			search: procedure
 				.input(
 					z.object({
-						query: z.string().min(1),
 						limit: z.number().min(1).max(100).default(10),
 						offset: z.number().min(0).default(0),
+						query: z.string().min(1),
 						sortBy: z.enum(["name", "date", "relevance"]).optional(),
 					}),
 				)
@@ -295,23 +294,23 @@ describe("OpenAPI generation", () => {
 			createPost: procedure
 				.input(
 					z.object({
-						title: z.string().min(1).max(200),
 						content: z.string().min(10),
-						tags: z.array(z.string()).optional(),
 						publishedAt: z.date().optional(),
+						tags: z.array(z.string()).optional(),
+						title: z.string().min(1).max(200),
 					}),
 				)
 				.describe({
 					description: "Create a new blog post",
 					schema: z.object({
+						createdAt: z.date(),
 						id: z.string(),
 						slug: z.string(),
-						createdAt: z.date(),
 					}),
 					tags: ["posts"],
 				})
 				.post(({ c }) =>
-					c.json({ id: "1", slug: "test-post", createdAt: new Date() }),
+					c.json({ createdAt: new Date(), id: "1", slug: "test-post" }),
 				),
 		});
 
@@ -333,65 +332,65 @@ describe("OpenAPI generation", () => {
 		const j = jsandy.init();
 
 		const userRouter = j.router({
-			get: procedure
-				.describe({
-					description: "Get user",
-					tags: ["users"],
-					schema: z.object({
-						id: z.string(),
-						name: z.string(),
-						email: z.string(),
-					}),
-				})
-				.input(z.object({ id: z.string() }))
-				.get(({ c }) => c.json({ user: "data" })),
 			create: procedure
 				.describe({
 					description: "Create user",
-					tags: ["users"],
 					schema: z.object({
-						name: z.string(),
 						email: z.string(),
+						name: z.string(),
 					}),
+					tags: ["users"],
 				})
 				.input(
 					z.object({
-						name: z.string(),
 						email: z.string(),
+						name: z.string(),
 					}),
 				)
 				.post(({ c }) => c.json({ user: "data" })),
+			get: procedure
+				.describe({
+					description: "Get user",
+					schema: z.object({
+						email: z.string(),
+						id: z.string(),
+						name: z.string(),
+					}),
+					tags: ["users"],
+				})
+				.input(z.object({ id: z.string() }))
+				.get(({ c }) => c.json({ user: "data" })),
 		});
 
 		const postRouter = j.router({
-			get: procedure
-				.describe({
-					description: "Get post",
-					tags: ["posts"],
-					schema: z.object({
-						id: z.string(),
-						title: z.string(),
-						content: z.string(),
-					}),
-				})
-				.get(({ c }) => c.json({ post: "data" })),
 			create: procedure
 				.describe({
 					description: "Create post",
-					tags: ["posts"],
 					schema: z.object({
+						content: z.string(),
 						id: z.string(),
 						title: z.string(),
-						content: z.string(),
 					}),
+					tags: ["posts"],
 				})
 				.input(
 					z.object({
-						title: z.string(),
 						content: z.string(),
+						title: z.string(),
 					}),
 				)
 				.post(({ c }) => c.json({ post: "data" })),
+			get: procedure
+				.describe({
+					description: "Get post",
+					schema: z.object({
+						content: z.string(),
+						id: z.string(),
+						title: z.string(),
+					}),
+					tags: ["posts"],
+				})
+				.get(({ c }) => c.json({ post: "data" })),
 		});
 
 		const api = j
@@ -401,8 +400,8 @@ describe("OpenAPI generation", () => {
 			.onError(j.defaults.errorHandler);
 
 		const merged = j.mergeRouters(api, {
-			users: userRouter,
 			posts: postRouter,
+			users: userRouter,
 		});
 
 		const spec = await generateOpenAPISpec(merged, {
@@ -417,10 +416,10 @@ describe("OpenAPI generation", () => {
 				"application/json"
 			].schema.properties,
 		).toEqual({
-			name: {
+			email: {
 				type: "string",
 			},
-			email: {
+			name: {
 				type: "string",
 			},
 		});
@@ -445,7 +444,7 @@ describe("Integration with existing functionality", () => {
 				tags: ["protected"],
 			})
 			.get(({ ctx, input, c }) => {
-				return c.json({ userId: ctx.user.id, requestedId: input.id });
+				return c.json({ requestedId: input.id, userId: ctx.user.id });
 			});
 
 		expect(protectedProcedure.description?.description).toBe(
@@ -475,8 +474,8 @@ describe("Integration with existing functionality", () => {
 
 		const api = router();
 		const merged = jsandy.init().mergeRouters(api, {
-			users: userRouter,
 			posts: postRouter,
+			users: userRouter,
 		});
 
 		expect(merged._metadata.subRouters["/api/users"]).toBeDefined();
@@ -488,15 +487,15 @@ describe("Integration with existing functionality", () => {
 		const typedProcedure = procedure
 			.input(
 				z.object({
-					id: z.string(),
 					count: z.number(),
+					id: z.string(),
 				}),
 			)
 			.describe({
 				description: "Type-safe procedure",
 				schema: z.object({
-					result: z.string(),
 					processedCount: z.number(),
+					result: z.string(),
 				}),
 			})
 			.get(({ input, c }) => {
@@ -505,8 +504,8 @@ describe("Integration with existing functionality", () => {
 				const count: number = input.count;
 
 				return c.json({
-					result: `Processed ${id}`,
 					processedCount: count * 2,
+					result: `Processed ${id}`,
 				});
 			});
 

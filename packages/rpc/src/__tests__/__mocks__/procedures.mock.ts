@@ -3,9 +3,9 @@ import { j } from "./jsandy.mock";
 import { authMiddleware, loggingMiddleware } from "./middleware.mock";
 
 const CreateUserSchema = z.object({
-	name: z.string().min(1),
-	email: z.string().email(),
 	age: z.number().min(0).optional(),
+	email: z.string().email(),
+	name: z.string().min(1),
 });
 
 const GetUserSchema = z.object({
@@ -13,16 +13,16 @@ const GetUserSchema = z.object({
 });
 
 const UpdateUserSchema = z.object({
+	age: z.number().min(0).optional(),
+	email: z.string().email().optional(),
 	id: z.string(),
 	name: z.string().optional(),
-	email: z.string().email().optional(),
-	age: z.number().min(0).optional(),
 });
 
 const ChatMessageSchema = z.object({
 	message: z.string(),
-	userId: z.string(),
 	timestamp: z.number(),
+	userId: z.string(),
 });
 
 const UserJoinedSchema = z.object({
@@ -36,10 +36,10 @@ export const health = j.procedure.query(() => {
 
 export const getUser = j.procedure.input(GetUserSchema).query(({ input }) => {
 	const user = {
+		age: 30,
+		email: "john@example.com",
 		id: input.id,
 		name: "John Doe",
-		email: "john@example.com",
-		age: 30,
 	};
 	return Response.json(user);
 });
@@ -67,8 +67,8 @@ export const updateUser = j.procedure
 	.mutation(({ input, ctx }) => {
 		const updatedUser = {
 			...input,
-			updatedBy: ctx.user.id,
 			updatedAt: Date.now(),
+			updatedBy: ctx.user.id,
 		};
 		return Response.json(updatedUser);
 	});
@@ -81,7 +81,7 @@ export const deleteUser = j.procedure
 		if (input.id === ctx.user.id) {
 			throw new Error("Cannot delete your own account");
 		}
-		return Response.json({ success: true, deletedId: input.id });
+		return Response.json({ deletedId: input.id, success: true });
 	});
 
 // WebSocket procedure
@@ -114,9 +114,9 @@ export const adminOnly = j.procedure
 	)
 	.query(({ ctx }) => {
 		return Response.json({
+			isAdmin: ctx.isAdmin,
 			message: "Admin access granted",
 			user: ctx.user,
-			isAdmin: ctx.isAdmin,
 		});
 	});
 
@@ -124,26 +124,26 @@ export const adminOnly = j.procedure
 export const getUsers = j.procedure
 	.input(
 		z.object({
-			page: z.number().default(1),
 			limit: z.number().default(10),
+			page: z.number().default(1),
 			search: z.string().optional(),
 		}),
 	)
 	.query(({ input }) => {
 		const users = Array.from({ length: input.limit }, (_, i) => ({
+			email: `user${input.page * input.limit + i}@example.com`,
 			id: `user-${(input.page - 1) * input.limit + i}`,
 			name: `User ${input.page * input.limit + i}`,
-			email: `user${input.page * input.limit + i}@example.com`,
 		}));
 
 		return Response.json({
-			users,
 			pagination: {
-				page: input.page,
-				limit: input.limit,
-				total: 100,
 				hasNext: input.page * input.limit < 100,
+				limit: input.limit,
+				page: input.page,
+				total: 100,
 			},
+			users,
 		});
 	});
 
@@ -161,8 +161,6 @@ export const errorExample = j.procedure
 export const uploadFile = j.procedure
 	.input(
 		z.object({
-			filename: z.string(),
-			size: z.number(),
 			contentType: z.enum([
 				"image/jpeg",
 				"image/jpg",
@@ -173,6 +171,8 @@ export const uploadFile = j.procedure
 				"application/pdf",
 				"text/plain",
 			]),
+			filename: z.string(),
+			size: z.number(),
 		}),
 	)
 	.mutation(({ input }) => {

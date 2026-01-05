@@ -1,5 +1,5 @@
-import fs from "fs-extra";
 import path from "node:path";
+import fs from "fs-extra";
 
 import { PKG_ROOT } from "@/constants";
 import { addPackageDependency } from "@/utils/add-package-dep";
@@ -11,9 +11,9 @@ export const postgresInstaller: Installer = ({ projectDir }) => {
 	logger.info("Installing Postgres...");
 
 	addPackageDependency({
-		projectDir,
 		dependencies: ["postgres"],
 		devDependencies: false,
+		projectDir,
 	});
 
 	const configFile = path.join(extrasDir, "config/drizzle-config-postgres.ts");

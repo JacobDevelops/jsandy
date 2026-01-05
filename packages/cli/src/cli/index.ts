@@ -49,8 +49,8 @@ export async function runCli(): Promise<CliResults | undefined> {
 	const orm = await select<"none" | "drizzle">({
 		message: "Which database ORM would you like to use?",
 		options: [
-			{ value: "none", label: "None" },
-			{ value: "drizzle", label: "Drizzle ORM" },
+			{ label: "None", value: "none" },
+			{ label: "Drizzle ORM", value: "drizzle" },
 		],
 	});
 
@@ -67,10 +67,10 @@ export async function runCli(): Promise<CliResults | undefined> {
 		provider = (await select({
 			message: "Which Postgres provider would you like to use?",
 			options: [
-				{ value: "postgres", label: "PostgreSQL" },
-				{ value: "neon", label: "Neon" },
-				{ value: "vercel-postgres", label: "Vercel Postgres" },
-				{ value: "planetscale", label: "PlanetScale" },
+				{ label: "PostgreSQL", value: "postgres" },
+				{ label: "Neon", value: "neon" },
+				{ label: "Vercel Postgres", value: "vercel-postgres" },
+				{ label: "PlanetScale", value: "planetscale" },
 			],
 		})) as CliResults["provider"];
 
@@ -83,9 +83,9 @@ export async function runCli(): Promise<CliResults | undefined> {
 	const linter = await select<"none" | "eslint" | "biome">({
 		message: "Which linter would you like to use?",
 		options: [
-			{ value: "none", label: "None" },
-			{ value: "eslint", label: "ESLint" },
-			{ value: "biome", label: "Biome" },
+			{ label: "None", value: "none" },
+			{ label: "ESLint", value: "eslint" },
+			{ label: "Biome", value: "biome" },
 		],
 	});
 
@@ -98,12 +98,12 @@ export async function runCli(): Promise<CliResults | undefined> {
 		message: "Would you like to set up recommended VS Code workspace settings?",
 		options: [
 			{
-				value: true,
 				label: "Yes - Configure VS Code settings and extensions",
+				value: true,
 			},
 			{
-				value: false,
 				label: "No - Skip VS Code configuration",
+				value: false,
 			},
 		],
 	});
@@ -121,8 +121,8 @@ export async function runCli(): Promise<CliResults | undefined> {
 				pkgManager === "yarn" ? "" : " install"
 			}' for you?`,
 			options: [
-				{ value: true, label: "Yes" },
-				{ value: false, label: "No" },
+				{ label: "Yes", value: true },
+				{ label: "No", value: false },
 			],
 		});
 		if (isCancel(shouldInstall)) {
@@ -133,12 +133,12 @@ export async function runCli(): Promise<CliResults | undefined> {
 	}
 
 	return {
-		projectName: projectName as string,
-		orm,
 		dialect,
-		provider,
 		linter,
-		setupVSCode,
 		noInstall,
+		orm,
+		projectName: projectName as string,
+		provider,
+		setupVSCode,
 	};
 }

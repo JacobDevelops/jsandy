@@ -1,6 +1,5 @@
 {
 	"$schema": "https://turbo.build/schema.json",
-	"ui": "tui",
 	"tasks": {
 		"build": {
 			"dependsOn": ["^build"],
@@ -27,11 +26,12 @@
 			],
 			"outputs": [".open-next/**", ".next/**", "!.next/cache/**", "dist/**"]
 		},
-		"typecheck": {
-			"dependsOn": ["^typecheck"]
-		},
 		"clean": {
 			"dependsOn": ["^clean"]
+		},
+		"deploy": {
+			"cache": false,
+			"dependsOn": ["cf:build"]
 		},
 		"dev": {
 			"dependsOn": ["^dev"],
@@ -50,9 +50,9 @@
 			"dependsOn": ["^test:watch"],
 			"persistent": true
 		},
-		"deploy": {
-			"dependsOn": ["cf:build"],
-			"cache": false
+		"typecheck": {
+			"dependsOn": ["^typecheck"]
 		}
-	}
+	},
+	"ui": "tui"
 }

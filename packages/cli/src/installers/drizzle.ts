@@ -18,14 +18,14 @@ export const drizzleInstaller: Installer = ({
 		devDependencies.push("eslint-plugin-drizzle");
 	}
 	addPackageDependency({
-		projectDir,
 		dependencies: devDependencies,
 		devDependencies: true,
+		projectDir,
 	});
 	addPackageDependency({
-		projectDir,
 		dependencies: ["drizzle-orm"],
 		devDependencies: false,
+		projectDir,
 	});
 
 	const extrasDir = path.join(PKG_ROOT, "template/extras");
@@ -45,10 +45,10 @@ export const drizzleInstaller: Installer = ({
 	const packageJsonContent = fs.readJSONSync(packageJsonPath) as PackageJson;
 	packageJsonContent.scripts = {
 		...packageJsonContent.scripts,
-		"db:push": "drizzle-kit push",
-		"db:studio": "drizzle-kit studio",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "drizzle-kit migrate",
+		"db:push": "drizzle-kit push",
+		"db:studio": "drizzle-kit studio",
 	};
 	if (!fs.existsSync(routerSrc)) {
 		// Verify source files exist

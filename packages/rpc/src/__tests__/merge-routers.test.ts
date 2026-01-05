@@ -9,26 +9,26 @@ const j = jsandy.init();
 const procedure = j.procedure;
 
 const userRouter = j.router({
+	createUser: procedure
+		.input(z.object({ email: z.string(), name: z.string() }))
+		.post(({ input, c }) => c.json({ id: "123", ...input })),
 	getUser: procedure
 		.input(z.object({ id: z.string() }))
 		.get(({ input, c }) => c.json({ id: input.id, name: "Test User" })),
-	createUser: procedure
-		.input(z.object({ name: z.string(), email: z.string() }))
-		.post(({ input, c }) => c.json({ id: "123", ...input })),
 });
 
 const postRouter = j.router({
-	getPosts: procedure.get(({ c }) => c.json({ posts: [] })),
 	createPost: procedure
-		.input(z.object({ title: z.string(), content: z.string() }))
+		.input(z.object({ content: z.string(), title: z.string() }))
 		.post(({ input, c }) => c.json({ id: "456", ...input })),
+	getPosts: procedure.get(({ c }) => c.json({ posts: [] })),
 });
 
 const adminRouter = j.router({
-	getStats: procedure.get(({ c }) => c.json({ users: 100, posts: 50 })),
 	deleteUser: procedure
 		.input(z.object({ id: z.string() }))
 		.post(({ input, c }) => c.json({ deleted: input.id })),
+	getStats: procedure.get(({ c }) => c.json({ posts: 50, users: 100 })),
 });
 
 const createApi = () =>
@@ -48,8 +48,8 @@ describe("Router Merging", () => {
 	describe("mergeRouters", () => {
 		it("should merge static routers", () => {
 			const merged = mergeRouters(api, {
-				users: userRouter,
 				posts: postRouter,
+				users: userRouter,
 			});
 
 			expect(merged).toBeInstanceOf(Router);
@@ -62,8 +62,8 @@ describe("Router Merging", () => {
 			const postRouterFactory = mock(async () => postRouter);
 
 			const merged = mergeRouters(api, {
-				users: userRouterFactory,
 				posts: postRouterFactory,
+				users: userRouterFactory,
 			});
 
 			expect(merged).toBeInstanceOf(Router);
@@ -75,9 +75,9 @@ describe("Router Merging", () => {
 			const dynamicAdminRouter = mock(async () => adminRouter);
 
 			const merged = mergeRouters(api, {
-				users: userRouter, // static
-				posts: postRouter, // static
 				admin: dynamicAdminRouter, // dynamic
+				posts: postRouter, // static
+				users: userRouter, // static
 			});
 
 			expect(merged._metadata.subRouters["/api/users"]).toBe(userRouter);
@@ -99,8 +99,8 @@ describe("Router Merging", () => {
 
 		it("should initialize metadata structure", () => {
 			const merged = mergeRouters(api, {
-				users: userRouter,
 				posts: postRouter,
+				users: userRouter,
 			});
 
 			expect(merged._metadata).toBeDefined();
@@ -202,8 +202,8 @@ describe("Router Merging", () => {
 	describe("Type inference", () => {
 		it("should infer schemas from static routers", () => {
 			const merged = mergeRouters(api, {
-				users: userRouter,
 				posts: postRouter,
+				users: userRouter,
 			});
 
 			// Type inference is tested at compile time
@@ -216,8 +216,8 @@ describe("Router Merging", () => {
 			const dynamicPosts = mock(async () => postRouter);
 
 			const merged = mergeRouters(api, {
-				users: dynamicUsers,
 				posts: dynamicPosts,
+				users: dynamicUsers,
 			});
 
 			// Type checking happens at compile time
@@ -228,8 +228,8 @@ describe("Router Merging", () => {
 			const dynamicAdmin = mock(async () => adminRouter);
 
 			const merged = mergeRouters(api, {
-				users: userRouter, // static
 				admin: dynamicAdmin, // dynamic
+				users: userRouter, // static
 			});
 
 			expect(merged).toBeInstanceOf(Router);
@@ -265,8 +265,8 @@ describe("Router Merging", () => {
 	describe("Path handling", () => {
 		it("should use correct API prefix", () => {
 			const merged = mergeRouters(api, {
-				users: userRouter,
 				posts: postRouter,
+				users: userRouter,
 			});
 
 			expect(merged._metadata.subRouters["/api/users"]).toBeDefined();
@@ -275,8 +275,8 @@ describe("Router Merging", () => {
 
 		it("should handle special characters in router names", () => {
 			const merged = mergeRouters(api, {
-				"user-management": userRouter,
 				post_service: postRouter,
+				"user-management": userRouter,
 			});
 
 			expect(merged._metadata.subRouters["/api/user-management"]).toBeDefined();

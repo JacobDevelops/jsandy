@@ -24,24 +24,24 @@ export const scaffoldProject = async ({
 	const pkgManager = getUserPkgManager();
 
 	await installBaseTemplate({
-		projectDir,
-		pkgManager,
-		noInstall: false,
-		installers,
-		projectName,
 		databaseProvider,
+		installers,
 		linter,
+		noInstall: false,
+		pkgManager,
+		projectDir,
+		projectName,
 		setupVSCode,
 	});
 
 	installPackages({
-		projectDir,
-		pkgManager,
-		noInstall: false,
-		installers,
-		projectName,
 		databaseProvider,
+		installers,
 		linter,
+		noInstall: false,
+		pkgManager,
+		projectDir,
+		projectName,
 		setupVSCode,
 	});
 

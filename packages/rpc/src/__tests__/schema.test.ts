@@ -78,9 +78,9 @@ describe("Schema", () => {
 		it("should handle multiple subrouters", async () => {
 			const api = j.router().basePath("/api");
 			const appRouter = j.mergeRouters(api, {
-				users: userRouter,
 				admin: adminRouter,
 				chat: chatRouter,
+				users: userRouter,
 			});
 
 			// Test all subrouters are accessible

@@ -66,13 +66,8 @@ export type ContextWithSuperJSON<
  * Infers the output type from a middleware function
  * @template T - The middleware function type to infer from
  */
-export type InferMiddlewareOutput<T> = T extends MiddlewareFunction<
-	any,
-	infer R,
-	any
->
-	? R
-	: unknown;
+export type InferMiddlewareOutput<T> =
+	T extends MiddlewareFunction<any, infer R, any> ? R : unknown;
 
 /**
  * Function type for middleware operations with context chaining
@@ -186,15 +181,16 @@ export type ResponseType<Output> =
  * Utility type to unwrap response types from promises and typed responses
  * @template T - The response type to unwrap
  */
-type UnwrapResponse<T> = Awaited<T> extends TypedResponse<infer U>
-	? U
-	: Awaited<T> extends SuperJSONTypedResponse<infer U>
+type UnwrapResponse<T> =
+	Awaited<T> extends TypedResponse<infer U>
 		? U
-		: Awaited<T> extends Response
-			? any
-			: Awaited<T> extends void
-				? void
-				: T;
+		: Awaited<T> extends SuperJSONTypedResponse<infer U>
+			? U
+			: Awaited<T> extends Response
+				? any
+				: Awaited<T> extends void
+					? void
+					: T;
 
 /**
  * Operation definition for GET HTTP endpoints
@@ -292,25 +288,24 @@ type AllOptionalObject<T> = T extends object
 	: false;
 
 // Collapse all-optional object inputs to `void | T` (so arg can be omitted)
-type CollapseOptionalObject<T> = AllOptionalObject<T> extends true
-	? void | T
-	: T;
+type CollapseOptionalObject<T> =
+	AllOptionalObject<T> extends true ? void | T : T;
 
 /**
  * Infers the input type from various operation types
  * @template T - The operation type to infer input from
  */
-export type InferInput<T> = T extends OperationType<infer I, any>
-	? CollapseOptionalObject<InferZodInput<I, I>>
-	: void;
+export type InferInput<T> =
+	T extends OperationType<infer I, any>
+		? CollapseOptionalObject<InferZodInput<I, I>>
+		: void;
 
 /**
  * Infers the output type from various operation types
  * @template T - The operation type to infer output from
  */
-export type InferOutput<T> = T extends OperationType<any, infer O>
-	? InferZodType<O, O>
-	: void;
+export type InferOutput<T> =
+	T extends OperationType<any, infer O> ? InferZodType<O, O> : void;
 
 /**
  * Utility type that allows a value to be either synchronous or wrapped in a Promise
