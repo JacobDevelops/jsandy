@@ -20,13 +20,13 @@
 	},
 	"plugins": [
 		{
-			"plugin": "@nx/next/plugin",
 			"options": {
 				"buildTargetName": "build",
 				"devTargetName": "dev",
 				"serveStaticTargetName": "serve-static",
 				"startTargetName": "start"
-			}
+			},
+			"plugin": "@nx/next/plugin"
 		}
 	],
 	"targetDefaults": {
@@ -50,15 +50,7 @@
 				"!{projectRoot}/.next/cache/**"
 			]
 		},
-		"typecheck": {
-			"cache": true,
-			"dependsOn": ["^build"],
-			"inputs": ["typescript", "^production"]
-		},
 		"clean": {
-			"cache": false
-		},
-		"dev": {
 			"cache": false
 		},
 		"deploy": {
@@ -70,18 +62,21 @@
 				"cwd": "{projectRoot}"
 			}
 		},
-		"lint": {
-			"executor": "@nx/js:biome",
-			"inputs": ["default"],
-			"options": {
-				"command": "check --apply"
-			}
+		"dev": {
+			"cache": false
 		},
 		"format": {
 			"executor": "@nx/js:biome",
 			"inputs": ["default"],
 			"options": {
 				"command": "format --write"
+			}
+		},
+		"lint": {
+			"executor": "@nx/js:biome",
+			"inputs": ["default"],
+			"options": {
+				"command": "check --apply"
 			}
 		},
 		"test": {
@@ -93,6 +88,11 @@
 			"cache": true,
 			"dependsOn": ["^build"],
 			"inputs": ["default", "^production"]
+		},
+		"typecheck": {
+			"cache": true,
+			"dependsOn": ["^build"],
+			"inputs": ["typescript", "^production"]
 		}
 	}
 }

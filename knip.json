@@ -1,71 +1,9 @@
 {
 	"$schema": "https://unpkg.com/knip@5/schema.json",
-	"workspaces": {
-		".": {
-			"entry": ["turbo.json"],
-			"project": ["**/*.{ts,tsx,js,jsx,json,md}"],
-			"ignore": [
-				"**/node_modules/**",
-				"**/dist/**",
-				"**/build/**",
-				"**/.next/**",
-				"**/.turbo/**",
-				"**/.content-collections/**",
-				"**/.open-next/**",
-				"**/.wrangler/**",
-				"**/coverage/**"
-			]
-		},
-		"apps/www": {
-			"entry": [
-				"src/app/**/{page,layout,loading,error,not-found,global-error,route,template,default}.{ts,tsx,js,jsx}",
-				"src/app/**/opengraph-image.{ts,tsx,js,jsx}",
-				"src/app/**/icon.{ts,tsx,js,jsx}",
-				"src/app/**/apple-icon.{ts,tsx,js,jsx}",
-				"src/app/**/twitter-image.{ts,tsx,js,jsx}",
-				"src/app/**/favicon.{ts,tsx,js,jsx}",
-				"src/app/**/sitemap.{ts,tsx,js,jsx}",
-				"src/app/**/robots.{ts,tsx,js,jsx}",
-				"src/app/**/manifest.{ts,tsx,js,jsx}",
-				"src/middleware.{ts,tsx,js,jsx}",
-				"src/instrumentation.{ts,tsx,js,jsx}",
-				"next.config.{ts,tsx,js,jsx,mjs}",
-				"tailwind.config.{ts,tsx,js,jsx}",
-				"postcss.config.{ts,tsx,js,jsx,mjs}",
-				"content-collections.ts"
-			],
-			"project": ["src/**/*.{ts,tsx,js,jsx}", "*.{ts,tsx,js,jsx,json}"],
-			"ignore": [
-				"node_modules/**",
-				".next/**",
-				".turbo/**",
-				".content-collections/**",
-				".open-next/**",
-				"dist/**",
-				"build/**",
-				"coverage/**"
-			]
-		},
-		"packages/rpc": {
-			"entry": ["src/index.ts", "src/**/*.test.ts"],
-			"project": ["src/**/*.{ts,tsx}", "*.{ts,js,json}"],
-			"ignore": ["node_modules/**", "dist/**", "coverage/**"]
-		},
-		"packages/cli": {
-			"entry": ["src/index.ts"],
-			"project": ["src/**/*.{ts,tsx}", "*.{ts,js,json}"],
-			"ignore": ["node_modules/**", "dist/**", "src/template/**"]
-		},
-		"packages/builder": {
-			"entry": ["src/index.ts"],
-			"project": ["src/**/*.{ts,tsx}", "*.{ts,js,json}"],
-			"ignore": ["node_modules/**", "dist/**"]
-		},
-		"packages/typescript-config": {
-			"entry": [],
-			"project": ["*.json"],
-			"ignore": ["node_modules/**"]
-		}
+	"compilerOptions": {
+		"allowSyntheticDefaultImports": true,
+		"esModuleInterop": true,
+		"skipLibCheck": true
 	},
 	"ignore": [
 		"**/node_modules/**",
@@ -99,9 +37,71 @@
 		"**/pnpm-lock.yaml"
 	],
 	"ignoreDependencies": ["@commitlint/*"],
-	"compilerOptions": {
-		"skipLibCheck": true,
-		"allowSyntheticDefaultImports": true,
-		"esModuleInterop": true
+	"workspaces": {
+		".": {
+			"entry": ["turbo.json"],
+			"ignore": [
+				"**/node_modules/**",
+				"**/dist/**",
+				"**/build/**",
+				"**/.next/**",
+				"**/.turbo/**",
+				"**/.content-collections/**",
+				"**/.open-next/**",
+				"**/.wrangler/**",
+				"**/coverage/**"
+			],
+			"project": ["**/*.{ts,tsx,js,jsx,json,md}"]
+		},
+		"apps/www": {
+			"entry": [
+				"src/app/**/{page,layout,loading,error,not-found,global-error,route,template,default}.{ts,tsx,js,jsx}",
+				"src/app/**/opengraph-image.{ts,tsx,js,jsx}",
+				"src/app/**/icon.{ts,tsx,js,jsx}",
+				"src/app/**/apple-icon.{ts,tsx,js,jsx}",
+				"src/app/**/twitter-image.{ts,tsx,js,jsx}",
+				"src/app/**/favicon.{ts,tsx,js,jsx}",
+				"src/app/**/sitemap.{ts,tsx,js,jsx}",
+				"src/app/**/robots.{ts,tsx,js,jsx}",
+				"src/app/**/manifest.{ts,tsx,js,jsx}",
+				"src/middleware.{ts,tsx,js,jsx}",
+				"src/instrumentation.{ts,tsx,js,jsx}",
+				"next.config.{ts,tsx,js,jsx,mjs}",
+				"tailwind.config.{ts,tsx,js,jsx}",
+				"postcss.config.{ts,tsx,js,jsx,mjs}",
+				"content-collections.ts"
+			],
+			"ignore": [
+				"node_modules/**",
+				".next/**",
+				".turbo/**",
+				".content-collections/**",
+				".open-next/**",
+				"dist/**",
+				"build/**",
+				"coverage/**"
+			],
+			"project": ["src/**/*.{ts,tsx,js,jsx}", "*.{ts,tsx,js,jsx,json}"]
+		},
+		"packages/builder": {
+			"entry": ["src/index.ts"],
+			"ignore": ["node_modules/**", "dist/**"],
+			"project": ["src/**/*.{ts,tsx}", "*.{ts,js,json}"]
+		},
+		"packages/cli": {
+			"entry": ["src/index.ts"],
+			"ignore": ["node_modules/**", "dist/**", "src/template/**"],
+			"project": ["src/**/*.{ts,tsx}", "*.{ts,js,json}"]
+		},
+		"packages/rpc": {
+			"entry": ["src/index.ts", "src/**/*.test.ts"],
+			"ignore": ["node_modules/**", "dist/**", "coverage/**"],
+			"project": ["src/**/*.{ts,tsx}", "*.{ts,js,json}"]
+		},
+		"packages/typescript-config": {
+			"entry": [],
+			"ignore": ["node_modules/**"],
+			"project": ["*.json"]
+		}
 	}
 }

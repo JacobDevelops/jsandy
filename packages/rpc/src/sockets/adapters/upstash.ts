@@ -1,24 +1,23 @@
 import type { PubSubAdapter, SubscribeOptions } from "./adapter";
 
 const logger = {
-	info(message: string, ...args: unknown[]) {
-		console.log(`[Socket] ℹ️ ${message}`, ...args);
+	debug(message: string, ...args: unknown[]) {
+		console.log(`[Socket] 🔍 ${message}`, ...args);
 	},
 
 	error(message: string, error?: Error | unknown) {
 		console.error(`[Socket] ❌ ${message}`, error || "");
 	},
-
-	debug(message: string, ...args: unknown[]) {
-		console.log(`[Socket] 🔍 ${message}`, ...args);
-	},
-
-	warn(message: string, ...args: unknown[]) {
-		console.warn(`[Socket] ⚠️ ${message}`, ...args);
+	info(message: string, ...args: unknown[]) {
+		console.log(`[Socket] ℹ️ ${message}`, ...args);
 	},
 
 	success(message: string, ...args: unknown[]) {
 		console.log(`[Socket] ✅ ${message}`, ...args);
+	},
+
+	warn(message: string, ...args: unknown[]) {
+		console.warn(`[Socket] ⚠️ ${message}`, ...args);
 	},
 };
 
@@ -49,12 +48,12 @@ export class UpstashRestPubSub implements PubSubAdapter {
 
 	async publish(topic: string, payload: unknown): Promise<void> {
 		await fetch(`${this.url}/publish/${encodeURIComponent(topic)}`, {
-			method: "POST",
+			body: JSON.stringify(payload),
 			headers: {
 				Authorization: `Bearer ${this.token}`,
 				"Content-Type": "application/json",
 			},
-			body: JSON.stringify(payload),
+			method: "POST",
 		});
 	}
 

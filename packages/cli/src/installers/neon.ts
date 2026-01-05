@@ -1,5 +1,5 @@
-import fs from "fs-extra";
 import path from "node:path";
+import fs from "fs-extra";
 
 import { PKG_ROOT } from "@/constants";
 import { addPackageDependency } from "@/utils/add-package-dep";
@@ -9,9 +9,9 @@ export const neonInstaller: Installer = ({ projectDir }) => {
 	const extrasDir = path.join(PKG_ROOT, "template/extras");
 
 	addPackageDependency({
-		projectDir,
 		dependencies: ["@neondatabase/serverless"],
 		devDependencies: false,
+		projectDir,
 	});
 
 	const configFile = path.join(extrasDir, "config/drizzle-config-neon.ts");

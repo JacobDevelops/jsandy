@@ -1,8 +1,6 @@
 {
 	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
 	"extends": ["config:base"],
-	"schedule": ["on the first day of the month"],
-	"prConcurrentLimit": 50,
 	"labels": ["Updates"],
 	"packageRules": [
 		{
@@ -14,5 +12,7 @@
 			],
 			"reviewers": ["THEjacob1000"]
 		}
-	]
+	],
+	"prConcurrentLimit": 50,
+	"schedule": ["on the first day of the month"]
 }

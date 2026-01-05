@@ -85,11 +85,11 @@ describe("Client", () => {
 
 		it("should use default credentials", async () => {
 			const mockResponse = {
+				headers: new Headers(),
+				json: mock(async () => ({ status: "ok" })),
 				ok: true,
 				status: 200,
 				text: mock(async () => '{"status":"ok"}'),
-				json: mock(async () => ({ status: "ok" })),
-				headers: new Headers(),
 			};
 			mockFetch.mockResolvedValue(mockResponse);
 
@@ -112,11 +112,11 @@ describe("Client", () => {
 
 		it("should accept custom credentials", async () => {
 			const mockResponse = {
+				headers: new Headers(),
+				json: mock(async () => ({ status: "ok" })),
 				ok: true,
 				status: 200,
 				text: mock(async () => '{"status":"ok"}'),
-				json: mock(async () => ({ status: "ok" })),
-				headers: new Headers(),
 			};
 			mockFetch.mockResolvedValue(mockResponse);
 
@@ -140,11 +140,11 @@ describe("Client", () => {
 	describe("HTTP requests", () => {
 		it("should make GET request", async () => {
 			const mockResponse = {
+				headers: new Headers(),
+				json: mock(async () => ({ status: "ok" })),
 				ok: true,
 				status: 200,
 				text: mock(async () => '{"status":"ok"}'),
-				json: mock(async () => ({ status: "ok" })),
-				headers: new Headers(),
 			};
 			mockFetch.mockResolvedValue(mockResponse);
 
@@ -159,19 +159,19 @@ describe("Client", () => {
 			expect(mockFetch).toHaveBeenCalledWith(
 				"https://api.example.com/combined/health",
 				expect.objectContaining({
-					credentials: "include",
 					cache: "no-store",
+					credentials: "include",
 				}),
 			);
 		});
 
 		it("should make POST request", async () => {
 			const mockResponse = {
+				headers: new Headers(),
+				json: mock(async () => ({ id: "123", name: "Test" })),
 				ok: true,
 				status: 201,
 				text: mock(async () => '{"id":"123","name":"Test"}'),
-				json: mock(async () => ({ id: "123", name: "Test" })),
-				headers: new Headers(),
 			};
 			mockFetch.mockResolvedValue(mockResponse);
 
@@ -179,7 +179,7 @@ describe("Client", () => {
 				baseUrl: "https://api.example.com",
 			});
 
-			const testData = { name: "Test User", email: "test@example.com" };
+			const testData = { email: "test@example.com", name: "Test User" };
 			const result = await client.combined.createUser.$post(testData);
 			const jsonResult = await result.json();
 
@@ -187,8 +187,8 @@ describe("Client", () => {
 			expect(mockFetch).toHaveBeenCalledWith(
 				"https://api.example.com/combined/createUser",
 				expect.objectContaining({
-					credentials: "include",
 					cache: "no-store",
+					credentials: "include",
 					// Verify POST request structure
 				}),
 			);
@@ -201,10 +201,10 @@ describe("Client", () => {
 
 		it("should handle HTTP errors", async () => {
 			const mockResponse = {
+				headers: new Headers(),
 				ok: false,
 				status: 404,
 				text: mock(async () => "Not Found"),
-				headers: new Headers(),
 			};
 			mockFetch.mockResolvedValue(mockResponse);
 
@@ -220,11 +220,11 @@ describe("Client", () => {
 
 		it("should serialize query parameters with SuperJSON", async () => {
 			const mockResponse = {
+				headers: new Headers(),
+				json: mock(async () => ({ data: "test" })),
 				ok: true,
 				status: 200,
 				text: mock(async () => '{"data":"test"}'),
-				json: mock(async () => ({ data: "test" })),
-				headers: new Headers(),
 			};
 			mockFetch.mockResolvedValue(mockResponse);
 
@@ -235,8 +235,8 @@ describe("Client", () => {
 			// Test with complex data that requires SuperJSON
 			const testData = {
 				date: new Date("2023-01-01"),
-				set: new Set([1, 2, 3]),
 				id: "test-id",
+				set: new Set([1, 2, 3]),
 			};
 
 			await client.combined.getUser.$get(testData);
@@ -255,8 +255,8 @@ describe("Client", () => {
 			);
 			expect(queryParams).toEqual({
 				date: new Date("2023-01-01"),
-				set: new Set([1, 2, 3]),
 				id: "test-id",
+				set: new Set([1, 2, 3]),
 			});
 
 			// Verify SuperJSON serialization worked
@@ -268,11 +268,11 @@ describe("Client", () => {
 
 		it("should serialize request body with SuperJSON", async () => {
 			const mockResponse = {
+				headers: new Headers(),
+				json: mock(async () => ({ id: "123" })),
 				ok: true,
 				status: 201,
 				text: mock(async () => '{"id":"123"}'),
-				json: mock(async () => ({ id: "123" })),
-				headers: new Headers(),
 			};
 			mockFetch.mockResolvedValue(mockResponse);
 
@@ -282,10 +282,10 @@ describe("Client", () => {
 
 			// Test with complex data that requires SuperJSON
 			const testData = {
-				name: "Test",
 				createdAt: new Date("2023-01-01"),
-				metadata: new Map([["key", "value"]]),
 				email: "test@example.com",
+				metadata: new Map([["key", "value"]]),
+				name: "Test",
 			};
 
 			await client.combined.createUser.$post(testData);
@@ -314,11 +314,11 @@ describe("Client", () => {
 			const serialized = superjson.stringify(testData);
 
 			const mockResponse = {
+				headers: new Headers({ "x-is-superjson": "true" }),
+				json: mock(),
 				ok: true,
 				status: 200,
 				text: mock(async () => serialized),
-				json: mock(),
-				headers: new Headers({ "x-is-superjson": "true" }),
 			};
 			mockFetch.mockResolvedValue(mockResponse);
 
@@ -334,15 +334,15 @@ describe("Client", () => {
 		});
 
 		it("should parse regular JSON responses", async () => {
-			const testData = { message: "hello", count: 42 };
+			const testData = { count: 42, message: "hello" };
 			const serialized = JSON.stringify(testData);
 
 			const mockResponse = {
+				headers: new Headers(),
+				json: mock(),
 				ok: true,
 				status: 200,
 				text: mock(async () => serialized),
-				json: mock(),
-				headers: new Headers(),
 			};
 			mockFetch.mockResolvedValue(mockResponse);
 
@@ -361,11 +361,11 @@ describe("Client", () => {
 			const consoleSpy = spyOn(console, "error").mockImplementation(() => {});
 
 			const mockResponse = {
+				headers: new Headers(),
+				json: mock(),
 				ok: true,
 				status: 200,
 				text: mock(async () => "invalid json"),
-				json: mock(),
-				headers: new Headers(),
 			};
 			mockFetch.mockResolvedValue(mockResponse);
 
@@ -433,12 +433,12 @@ describe("Client", () => {
 				baseUrl: "https://api.example.com",
 			});
 
-			const queryParams = { page: "1", limit: "10" };
+			const queryParams = { limit: "10", page: "1" };
 			const url = client.combined.getUsers.$url({ query: queryParams });
 
 			expect(url).toBeInstanceOf(URL);
 			expect(url.toString()).toBe(
-				"https://api.example.com/combined/getUsers?page=1&limit=10",
+				"https://api.example.com/combined/getUsers?limit=10&page=1",
 			);
 		});
 
@@ -447,7 +447,7 @@ describe("Client", () => {
 				baseUrl: "https://api.example.com",
 			});
 
-			const queryParams = { page: "1", limit: null, offset: undefined };
+			const queryParams = { limit: null, offset: undefined, page: "1" };
 			const url = client.combined.getUsers.$url({ query: queryParams });
 
 			expect(url).toBeInstanceOf(URL);
@@ -487,11 +487,11 @@ describe("Client", () => {
 	describe("Proxy behavior", () => {
 		it("should handle deep nesting", async () => {
 			const mockResponse = {
+				headers: new Headers(),
+				json: mock(async () => ({ data: "test" })),
 				ok: true,
 				status: 200,
 				text: mock(async () => '{"data":"test"}'),
-				json: mock(async () => ({ data: "test" })),
-				headers: new Headers(),
 			};
 			mockFetch.mockResolvedValue(mockResponse);
 
@@ -540,11 +540,11 @@ describe("Client", () => {
 	describe("Configuration", () => {
 		it("should remove baseUrl from input if already included", async () => {
 			const mockResponse = {
+				headers: new Headers(),
+				json: mock(async () => ({ status: "ok" })),
 				ok: true,
 				status: 200,
 				text: mock(async () => '{"status":"ok"}'),
-				json: mock(async () => ({ status: "ok" })),
-				headers: new Headers(),
 			};
 			mockFetch.mockResolvedValue(mockResponse);
 
@@ -563,11 +563,11 @@ describe("Client", () => {
 
 		it("should handle cache control", async () => {
 			const mockResponse = {
+				headers: new Headers(),
+				json: mock(async () => ({ status: "ok" })),
 				ok: true,
 				status: 200,
 				text: mock(async () => '{"status":"ok"}'),
-				json: mock(async () => ({ status: "ok" })),
-				headers: new Headers(),
 			};
 			mockFetch.mockResolvedValue(mockResponse);
 
@@ -588,11 +588,11 @@ describe("Client", () => {
 
 		it("should handle custom fetch options", async () => {
 			const customFetch = mock(async () => ({
+				headers: new Headers(),
+				json: async () => ({ status: "ok" }),
 				ok: true,
 				status: 200,
 				text: async () => '{"status":"ok"}',
-				json: async () => ({ status: "ok" }),
-				headers: new Headers(),
 			}));
 
 			const client = createClient<MockAppRouter>({

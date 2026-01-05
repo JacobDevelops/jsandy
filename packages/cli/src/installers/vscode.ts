@@ -26,29 +26,26 @@ export const vscodeInstaller: Installer = ({
 
 function createVSCodeSettings(linter: string, orm: string) {
 	const baseSettings = {
-		// TypeScript settings
-		"typescript.preferences.quoteStyle": "double",
-		"typescript.preferences.includePackageJsonAutoImports": "on",
-		"typescript.preferences.preferTypeOnlyAutoImports": true,
-		"typescript.suggest.autoImports": true,
-		"typescript.updateImportsOnFileMove.enabled": "always",
-
-		// Editor settings
-		"editor.formatOnSave": true,
 		"[markdown]": {
 			"editor.defaultFormatter": "DavidAnson.vscode-markdownlint",
 		},
+		"css.validate": false,
 
-		// File settings
-		"files.eol": "\n",
-		"files.trimTrailingWhitespace": true,
-		"files.insertFinalNewline": true,
+		// Editor settings
+		"editor.formatOnSave": true,
 
 		// Next.js specific
 		"emmet.includeLanguages": {
 			typescript: "html",
 			typescriptreact: "html",
 		},
+
+		// File settings
+		"files.eol": "\n",
+		"files.insertFinalNewline": true,
+		"files.trimTrailingWhitespace": true,
+		"less.validate": false,
+		"scss.validate": false,
 
 		// Tailwind CSS
 		"tailwindCSS.experimental.classRegex": [
@@ -61,14 +58,21 @@ function createVSCodeSettings(linter: string, orm: string) {
 			typescript: "html",
 			typescriptreact: "html",
 		},
-		"css.validate": false,
-		"scss.validate": false,
-		"less.validate": false,
+		"typescript.preferences.includePackageJsonAutoImports": "on",
+		"typescript.preferences.preferTypeOnlyAutoImports": true,
+		// TypeScript settings
+		"typescript.preferences.quoteStyle": "double",
+		"typescript.suggest.autoImports": true,
+		"typescript.updateImportsOnFileMove.enabled": "always",
 	};
 
 	// Linter-specific settings
 	if (linter === "eslint") {
 		Object.assign(baseSettings, {
+			"editor.codeActionsOnSave": {
+				"source.fixAll.eslint": "explicit",
+				"source.organizeImports": "explicit",
+			},
 			"editor.defaultFormatter": "esbenp.prettier-vscode",
 			"eslint.validate": [
 				"javascript",
@@ -76,36 +80,32 @@ function createVSCodeSettings(linter: string, orm: string) {
 				"typescript",
 				"typescriptreact",
 			],
-			"editor.codeActionsOnSave": {
-				"source.fixAll.eslint": "explicit",
-				"source.organizeImports": "explicit",
-			},
 		});
 	} else if (linter === "biome") {
 		Object.assign(baseSettings, {
-			"editor.defaultFormatter": "biomejs.biome",
-			"editor.codeActionsOnSave": {
-				"quickfix.biome": "explicit",
-				"source.organizeImports.biome": "explicit",
-			},
-			"[json]": {
-				"editor.defaultFormatter": "biomejs.biome",
-			},
-			"[typescriptreact]": {
-				"editor.defaultFormatter": "biomejs.biome",
-			},
-			"[typescript]": {
-				"editor.defaultFormatter": "biomejs.biome",
-			},
-			"[jsonc]": {
-				"editor.defaultFormatter": "biomejs.biome",
-			},
 			"[css]": {
 				"editor.defaultFormatter": "biomejs.biome",
 			},
 			"[javascript]": {
 				"editor.defaultFormatter": "biomejs.biome",
 			},
+			"[json]": {
+				"editor.defaultFormatter": "biomejs.biome",
+			},
+			"[jsonc]": {
+				"editor.defaultFormatter": "biomejs.biome",
+			},
+			"[typescript]": {
+				"editor.defaultFormatter": "biomejs.biome",
+			},
+			"[typescriptreact]": {
+				"editor.defaultFormatter": "biomejs.biome",
+			},
+			"editor.codeActionsOnSave": {
+				"quickfix.biome": "explicit",
+				"source.organizeImports.biome": "explicit",
+			},
+			"editor.defaultFormatter": "biomejs.biome",
 		});
 	} else {
 		// No linter - just use Prettier
@@ -122,9 +122,9 @@ function createVSCodeSettings(linter: string, orm: string) {
 				"*.sql": "sql",
 				"drizzle.config.*": "typescript",
 			},
+			"sqltools.connections": [],
 			// SQL formatting (if using SQL tools extension)
 			"sqltools.useNodeRuntime": true,
-			"sqltools.connections": [],
 		});
 	}
 

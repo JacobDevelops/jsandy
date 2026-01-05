@@ -1,61 +1,6 @@
 {
-	"name": "@jsandy/rpc",
-	"version": "2.1.2",
-	"publishConfig": {
-		"access": "public"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/JacobDevelops/jsandy.git",
-		"directory": "packages/rpc"
-	},
-	"main": "dist/index.js",
-	"types": "dist/index.d.ts",
-	"files": [
-		"dist",
-		"README.md",
-		"CHANGELOG.md"
-	],
-	"exports": {
-		".": {
-			"import": {
-				"types": "./dist/index.d.mts",
-				"default": "./dist/index.mjs"
-			},
-			"require": {
-				"types": "./dist/index.d.ts",
-				"default": "./dist/index.js"
-			}
-		},
-		"./client": {
-			"import": {
-				"types": "./dist/rpc-client/index.d.mts",
-				"default": "./dist/rpc-client/index.mjs"
-			},
-			"require": {
-				"types": "./dist/rpc-client/index.d.ts",
-				"default": "./dist/rpc-client/index.js"
-			}
-		},
-		"./adapters": {
-			"import": {
-				"types": "./dist/sockets/adapters/index.d.mts",
-				"default": "./dist/sockets/adapters/index.mjs"
-			},
-			"require": {
-				"types": "./dist/sockets/adapters/index.d.ts",
-				"default": "./dist/sockets/adapters/index.js"
-			}
-		}
-	},
-	"scripts": {
-		"build": "bun build.ts && tsc --emitDeclarationOnly",
-		"typecheck": "tsc --noEmit",
-		"clean": "rm -rf dist",
-		"prebuild": "bun run clean",
-		"test": "bun test",
-		"test:watch": "bun test --watch",
-		"test:coverage": "bun test --coverage"
+	"dependencies": {
+		"superjson": "^2.2.2"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20250601.0",
@@ -66,11 +11,66 @@
 		"@types/react": "^19.2.7",
 		"typescript": "^5.8.3"
 	},
+	"exports": {
+		".": {
+			"import": {
+				"default": "./dist/index.mjs",
+				"types": "./dist/index.d.mts"
+			},
+			"require": {
+				"default": "./dist/index.js",
+				"types": "./dist/index.d.ts"
+			}
+		},
+		"./adapters": {
+			"import": {
+				"default": "./dist/sockets/adapters/index.mjs",
+				"types": "./dist/sockets/adapters/index.d.mts"
+			},
+			"require": {
+				"default": "./dist/sockets/adapters/index.js",
+				"types": "./dist/sockets/adapters/index.d.ts"
+			}
+		},
+		"./client": {
+			"import": {
+				"default": "./dist/rpc-client/index.mjs",
+				"types": "./dist/rpc-client/index.d.mts"
+			},
+			"require": {
+				"default": "./dist/rpc-client/index.js",
+				"types": "./dist/rpc-client/index.d.ts"
+			}
+		}
+	},
+	"files": [
+		"dist",
+		"README.md",
+		"CHANGELOG.md"
+	],
+	"main": "dist/index.js",
+	"name": "@jsandy/rpc",
 	"peerDependencies": {
 		"hono": "^4.7.11",
 		"zod": "^4.0.5"
 	},
-	"dependencies": {
-		"superjson": "^2.2.2"
-	}
+	"publishConfig": {
+		"access": "public"
+	},
+	"repository": {
+		"directory": "packages/rpc",
+		"type": "git",
+		"url": "git+https://github.com/JacobDevelops/jsandy.git"
+	},
+	"scripts": {
+		"build": "bun build.ts && tsc --emitDeclarationOnly",
+		"clean": "rm -rf dist",
+		"prebuild": "bun run clean",
+		"test": "bun test",
+		"test:coverage": "bun test --coverage",
+		"test:watch": "bun test --watch",
+		"typecheck": "tsc --noEmit"
+	},
+	"types": "dist/index.d.ts",
+	"version": "2.1.2"
 }

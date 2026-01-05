@@ -1,15 +1,15 @@
 {
-	"extends": "@jsandy/typescript-config/base.json",
 	"compilerOptions": {
-		"rootDir": ".",
-		"outDir": "./dist",
 		"declaration": true,
-		"types": ["@cloudflare/workers-types/2023-07-01", "node", "bun"],
+		"outDir": "./dist",
 		"paths": {
 			"@/*": ["./src/*"],
 			"@jsandy/rpc": ["./src/index.ts"],
 			"@jsandy/rpc/adapters": ["./src/sockets/adapters/index.ts"]
-		}
+		},
+		"rootDir": ".",
+		"types": ["@cloudflare/workers-types/2023-07-01", "node", "bun"]
 	},
-	"exclude": ["node_modules", "dist"]
+	"exclude": ["node_modules", "dist"],
+	"extends": "@jsandy/typescript-config/base.json"
 }

@@ -1,8 +1,8 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { ArrowRight, Code, Zap, Globe } from "lucide-react";
+import { ArrowRight, Code, Globe, Zap } from "lucide-react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 const DECORATIVE_CLIP_PATH =
 	"polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)";
@@ -12,8 +12,8 @@ export function HeroSection() {
 		<div className="relative isolate px-6 pt-14 lg:px-8">
 			{/* Background gradient */}
 			<div
-				className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80"
 				aria-hidden="true"
+				className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80"
 			>
 				<div
 					className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-sand-400 to-sand-600 opacity-20 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"
@@ -29,10 +29,10 @@ export function HeroSection() {
 						<div className="relative rounded-full px-3 py-1 text-sm leading-6 text-muted-foreground ring-1 ring-border hover:ring-sand-500/20 transition-all duration-300">
 							Built on top of Hono for maximum performance.{" "}
 							<Link
-								href="/docs"
 								className="font-semibold text-sand-600 dark:text-sand-400"
+								href="/docs"
 							>
-								<span className="absolute inset-0" aria-hidden="true" />
+								<span aria-hidden="true" className="absolute inset-0" />
 								Read the docs <span aria-hidden="true">&rarr;</span>
 							</Link>
 						</div>
@@ -61,15 +61,15 @@ export function HeroSection() {
 					>
 						<Button
 							asChild
-							size="lg"
 							className="bg-sand-600 hover:bg-sand-700 dark:bg-sand-500 dark:hover:bg-sand-600"
+							size="lg"
 						>
 							<Link href="/docs">
 								Get Started
 								<ArrowRight className="ml-2 h-4 w-4" />
 							</Link>
 						</Button>
-						<Button variant="outline" size="lg" asChild>
+						<Button asChild size="lg" variant="outline">
 							<Link href="/examples">View Examples</Link>
 						</Button>
 					</div>
@@ -78,29 +78,29 @@ export function HeroSection() {
 				{/* Feature cards */}
 				<div className="mt-24 grid grid-cols-1 gap-8 sm:grid-cols-3">
 					<FeatureCard
-						title="Lightning Fast"
 						description="Built on Hono's blazing-fast runtime for optimal performance"
 						icon={<Zap className="h-6 w-6 text-sand-600 dark:text-sand-400" />}
+						title="Lightning Fast"
 					/>
 					<FeatureCard
-						title="Type Safe"
 						description="Full TypeScript support with end-to-end type safety"
 						icon={<Code className="h-6 w-6 text-sand-600 dark:text-sand-400" />}
+						title="Type Safe"
 					/>
 					<FeatureCard
-						title="WebSocket Ready"
 						description="Integrated WebSocket support through Cloudflare"
 						icon={
 							<Globe className="h-6 w-6 text-sand-600 dark:text-sand-400" />
 						}
+						title="WebSocket Ready"
 					/>
 				</div>
 			</div>
 
 			{/* Bottom gradient */}
 			<div
-				className="absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]"
 				aria-hidden="true"
+				className="absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]"
 			>
 				<div
 					className="relative left-[calc(50%+3rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 bg-gradient-to-tr from-sand-400 to-sand-600 opacity-20 sm:left-[calc(50%+36rem)] sm:w-[72.1875rem]"

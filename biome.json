@@ -1,9 +1,39 @@
 {
-	"$schema": "https://biomejs.dev/schemas/2.2.2/schema.json",
-	"vcs": {
-		"enabled": false,
-		"clientKind": "git",
-		"useIgnoreFile": true
+	"$schema": "https://biomejs.dev/schemas/2.3.11/schema.json",
+	"assist": {
+		"actions": {
+			"source": {
+				"organizeImports": "on",
+				"useSortedAttributes": "on",
+				"useSortedKeys": "on",
+				"useSortedProperties": "on"
+			}
+		},
+		"enabled": true,
+		"includes": [
+			"**/*.js",
+			"**/*.jsx",
+			"**/*.ts",
+			"**/*.tsx",
+			"**/*.d.ts",
+			"**/*.json",
+			"**/*.jsonc",
+			"!**/.open-next/**",
+			"!**/.nx/cache/**",
+			"!**/.nx/workspace-data/**",
+			"!**/coverage/**",
+			"!**/dist/**",
+			"!**/build/**",
+			"!**/.next/**",
+			"!**/node_modules/**",
+			"!**/bun.lock",
+			"!**/worker-configuration.d.ts"
+		]
+	},
+	"css": {
+		"parser": {
+			"tailwindDirectives": true
+		}
 	},
 	"files": {
 		"ignoreUnknown": false,
@@ -26,31 +56,30 @@
 		"enabled": true,
 		"indentStyle": "tab"
 	},
-	"assist": { "actions": { "source": { "organizeImports": "on" } } },
-	"linter": {
-		"enabled": true,
-		"rules": {
-			"recommended": true,
-			"correctness": {
-				"noUnusedVariables": "error",
-				"noUnusedImports": "error",
-				"useUniqueElementIds": "off",
-				"noNestedComponentDefinitions": "off"
-			},
-			"suspicious": {
-				"noUnknownAtRules": "off"
-			},
-			"complexity": {
-				"useLiteralKeys": {
-					"level": "warn",
-					"fix": "safe"
-				}
-			}
-		}
-	},
 	"javascript": {
 		"formatter": {
 			"quoteStyle": "double"
+		}
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"complexity": {
+				"useLiteralKeys": {
+					"fix": "safe",
+					"level": "warn"
+				}
+			},
+			"correctness": {
+				"noNestedComponentDefinitions": "off",
+				"noUnusedImports": "error",
+				"noUnusedVariables": "error",
+				"useUniqueElementIds": "off"
+			},
+			"recommended": true,
+			"suspicious": {
+				"noUnknownAtRules": "off"
+			}
 		}
 	},
 	"overrides": [
@@ -78,5 +107,10 @@
 				}
 			}
 		}
-	]
+	],
+	"vcs": {
+		"clientKind": "git",
+		"enabled": false,
+		"useIgnoreFile": true
+	}
 }

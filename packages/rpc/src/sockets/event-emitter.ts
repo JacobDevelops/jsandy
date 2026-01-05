@@ -137,10 +137,10 @@ export class EventEmitter {
 	handleSchemaMismatch(event: string, data: any, err: any) {
 		if (err instanceof ZodError) {
 			logger.error(`Invalid outgoing event data for "${event}":`, {
+				data: JSON.stringify(data, null, 2),
 				errors: err.issues
 					.map((e) => `${e.path.join(".")}: ${e.message}`)
 					.join(", "),
-				data: JSON.stringify(data, null, 2),
 			});
 		} else {
 			logger.error(`Error validating outgoing event "${event}":`, err);
@@ -185,10 +185,10 @@ export class EventEmitter {
 			} catch (err) {
 				if (err instanceof ZodError) {
 					logger.error(`Invalid incoming event data for "${eventName}":`, {
+						data: JSON.stringify(data, null, 2),
 						errors: err.issues
 							.map((e) => `${e.path.join(".")}: ${e.message}`)
 							.join(", "),
-						data: JSON.stringify(data, null, 2),
 					});
 				} else {
 					logger.error(`Error validating incoming event "${eventName}":`, err);
@@ -207,9 +207,9 @@ export class EventEmitter {
 				logger.error(
 					`Error in handler ${index + 1}/${handlers.length} for event "${eventName}":`,
 					{
+						data: JSON.stringify(validatedData, null, 2),
 						error: error.message,
 						stack: error.stack,
-						data: JSON.stringify(validatedData, null, 2),
 					},
 				);
 			}

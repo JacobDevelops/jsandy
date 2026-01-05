@@ -1,15 +1,15 @@
+import type { Linter } from "@/cli";
 import type { PackageManager } from "@/utils/get-user-pkg-manager";
+import { biomeInstaller } from "./biome";
 import { drizzleInstaller } from "./drizzle";
+import { eslintInstaller } from "./eslint";
 import { neonInstaller } from "./neon";
+import { noLinterInstaller } from "./no-linter";
 import { noOrmInstaller } from "./no-orm";
+import { planetscaleInstaller } from "./planetscale";
 import { postgresInstaller } from "./postgres";
 import { vercelPostgresInstaller } from "./vercel-postgres";
-import { planetscaleInstaller } from "./planetscale";
 import { vscodeInstaller } from "./vscode"; // New import
-import type { Linter } from "@/cli";
-import { eslintInstaller } from "./eslint";
-import { biomeInstaller } from "./biome";
-import { noLinterInstaller } from "./no-linter";
 
 // Turning this into a const allows the list to be iterated over for programmatically creating prompt options
 // Should increase extensibility in the future
@@ -71,52 +71,52 @@ export const buildInstallerMap = (
 	selectedLinter?: Linter,
 	setupVSCode?: boolean,
 ): InstallerMap => ({
-	orm: {
-		none: {
-			inUse: selectedOrm === "none",
-			installer: noOrmInstaller,
-		},
-		drizzle: {
-			inUse: selectedOrm === "drizzle",
-			installer: drizzleInstaller,
-		},
-	},
-	provider: {
-		postgres: {
-			inUse: selectedProvider === "postgres",
-			installer: postgresInstaller,
-		},
-		neon: {
-			inUse: selectedProvider === "neon",
-			installer: neonInstaller,
-		},
-		"vercel-postgres": {
-			inUse: selectedProvider === "vercel-postgres",
-			installer: vercelPostgresInstaller,
-		},
-		planetscale: {
-			inUse: selectedProvider === "planetscale",
-			installer: planetscaleInstaller,
+	ide: {
+		vscode: {
+			installer: vscodeInstaller,
+			inUse: setupVSCode === true,
 		},
 	},
 	linter: {
-		none: {
-			inUse: selectedLinter === "none",
-			installer: noLinterInstaller,
+		biome: {
+			installer: biomeInstaller,
+			inUse: selectedLinter === "biome",
 		},
 		eslint: {
-			inUse: selectedLinter === "eslint",
 			installer: eslintInstaller,
+			inUse: selectedLinter === "eslint",
 		},
-		biome: {
-			inUse: selectedLinter === "biome",
-			installer: biomeInstaller,
+		none: {
+			installer: noLinterInstaller,
+			inUse: selectedLinter === "none",
 		},
 	},
-	ide: {
-		vscode: {
-			inUse: setupVSCode === true,
-			installer: vscodeInstaller,
+	orm: {
+		drizzle: {
+			installer: drizzleInstaller,
+			inUse: selectedOrm === "drizzle",
+		},
+		none: {
+			installer: noOrmInstaller,
+			inUse: selectedOrm === "none",
+		},
+	},
+	provider: {
+		neon: {
+			installer: neonInstaller,
+			inUse: selectedProvider === "neon",
+		},
+		planetscale: {
+			installer: planetscaleInstaller,
+			inUse: selectedProvider === "planetscale",
+		},
+		postgres: {
+			installer: postgresInstaller,
+			inUse: selectedProvider === "postgres",
+		},
+		"vercel-postgres": {
+			installer: vercelPostgresInstaller,
+			inUse: selectedProvider === "vercel-postgres",
 		},
 	},
 });

@@ -103,8 +103,8 @@ export class IO<_IncomingEvents, OutgoingEvents> {
 
 		// Log the emission for debugging and monitoring
 		logger.info(`IO emitted to room "${this.targetRoom}":`, {
-			event,
 			data,
+			event,
 		});
 
 		// Reset target room after emitting to prevent accidental reuse

@@ -264,11 +264,11 @@ export class Procedure<
 		}) => Return,
 	): GetOperation<InputSchema, ReturnType<typeof handler>, E> {
 		return {
-			type: "get",
-			schema: this.inputSchema as ZodType<InputSchema> | void,
+			description: this.description,
 			handler: handler as any,
 			middlewares: this.middlewares,
-			description: this.description,
+			schema: this.inputSchema as ZodType<InputSchema> | void,
+			type: "get",
 		};
 	}
 
@@ -316,11 +316,11 @@ export class Procedure<
 		}) => Return,
 	): PostOperation<InputSchema, ReturnType<typeof handler>, E> {
 		return {
-			type: "post",
-			schema: this.inputSchema as ZodType<InputSchema> | void,
+			description: this.description,
 			handler: handler as any,
 			middlewares: this.middlewares,
-			description: this.description,
+			schema: this.inputSchema as ZodType<InputSchema> | void,
+			type: "post",
 		};
 	}
 
@@ -370,11 +370,11 @@ export class Procedure<
 		>,
 	): WebSocketOperation<InferZodType<Incoming>, InferZodType<Outgoing>, E> {
 		return {
-			type: "ws",
-			outputFormat: "ws",
+			description: this.description,
 			handler: handler as any,
 			middlewares: this.middlewares,
-			description: this.description,
+			outputFormat: "ws",
+			type: "ws",
 		};
 	}
 }

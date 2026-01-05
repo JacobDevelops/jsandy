@@ -200,10 +200,6 @@ export class ServerSocket<IncomingEvents, OutgoingEvents> {
 	 */
 	private createHeartbeat(room: string) {
 		const heartbeat = {
-			sender: setInterval(async () => {
-				await this.adapter.publish(room, ["ping", null]);
-			}, 30000),
-
 			monitor: setInterval(() => {
 				const lastPingTime = this.lastPingTimes.get(room) ?? 0;
 
@@ -212,6 +208,9 @@ export class ServerSocket<IncomingEvents, OutgoingEvents> {
 					this.unsubscribe(room).then(() => this.subscribe(room));
 				}
 			}, 5000),
+			sender: setInterval(async () => {
+				await this.adapter.publish(room, ["ping", null]);
+			}, 30000),
 		};
 
 		this.heartbeatTimers.set(room, heartbeat);
@@ -262,9 +261,9 @@ export class ServerSocket<IncomingEvents, OutgoingEvents> {
 							}
 						},
 						{
-							signal: controller.signal,
-							onOpen: () => resolve(),
 							onError: (err) => reject(err),
+							onOpen: () => resolve(),
+							signal: controller.signal,
 						},
 					);
 				} catch (err) {
