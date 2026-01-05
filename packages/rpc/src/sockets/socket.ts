@@ -1,8 +1,8 @@
+import { type PubSubAdapter, UpstashRestPubSub } from "@jsandy/rpc/adapters";
 import type { ZodSchema } from "zod";
 import { type ZodType, z } from "zod";
 import { EventEmitter } from "./event-emitter";
 import { logger } from "./logger";
-import { UpstashRestPubSub, type PubSubAdapter } from "./pubsub";
 
 /**
  * Configuration options for creating a ServerSocket instance
@@ -118,7 +118,7 @@ export class ServerSocket<IncomingEvents, OutgoingEvents> {
 	 * @param event - Event name to stop listening to
 	 * @param callback - Optional specific callback to remove
 	 */
-	off<K extends keyof IncomingEvents & SystemEvents>(
+	off<K extends keyof IncomingEvents>(
 		event: K,
 		callback?: (data: IncomingEvents[K]) => any,
 	): void {
@@ -467,7 +467,7 @@ Fix this issue: https://jsandy.com/docs/getting-started/local-development
 	 * @param event - Event name to stop listening to
 	 * @param callback - Optional specific callback to remove
 	 */
-	off<K extends keyof IncomingEvents & SystemEvents>(
+	off<K extends keyof IncomingEvents>(
 		event: K,
 		callback?: (data: IncomingEvents[K]) => any,
 	): void {
