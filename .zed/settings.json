@@ -1,4 +1,11 @@
 {
+	"context_servers": {
+		"zod": {
+			"args": ["-y", "mcp-remote", "https://mcp.inkeep.com/zod/mcp"],
+			"command": "bunx",
+			"source": "custom"
+		}
+	},
 	"languages": {
 		"CSS": {
 			"code_actions_on_format": {
