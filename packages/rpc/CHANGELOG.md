@@ -1,5 +1,13 @@
 # @jsandy/rpc
 
+## 2.2.0
+
+### Minor Changes
+
+- 62cdf98: Added Cloudflare Queue Adapter
+- 62cdf98: Added client and adapter sub-exports
+- 48502a6: Update to allow relative paths for client side api client
+
 ## 2.1.2
 
 ### Patch Changes
