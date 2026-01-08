@@ -73,7 +73,23 @@ describe("Client", () => {
 					baseUrl: "invalid-url",
 				});
 			}).toThrow("baseUrl must be absolute (http/https)");
-		});
+    });
+
+		it("should allow relative URL on client side", () => {
+			// Mock window to simulate browser environment
+			globalThis.window = {} as Window & typeof globalThis;
+
+			try {
+				const client = createClient({
+					baseUrl: "/api",
+				});
+				expect(client).toBeDefined();
+			} finally {
+				// Clean up
+				// @ts-expect-error - cleaning up mock
+				delete globalThis.window;
+			}
+});
 
 		it("should work with empty base URL", () => {
 			const client = createClient({
