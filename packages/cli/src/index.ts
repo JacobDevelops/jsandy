@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 import path from "node:path";
-import fs from "fs-extra";
 import { runCli } from "./cli/index";
 import { installDependencies } from "./helpers/install-deps";
 import { scaffoldProject } from "./helpers/scaffold-project";
@@ -16,7 +15,8 @@ const main = async () => {
 		return;
 	}
 
-	const { projectName, orm, provider, linter, setupVSCode } = results;
+	const { projectName, orm, provider, linter, setupVSCode, monorepoInfo } =
+		results;
 
 	const installers = buildInstallerMap(orm, provider, linter, setupVSCode);
 
@@ -24,18 +24,17 @@ const main = async () => {
 		databaseProvider: provider ?? "neon",
 		installers,
 		linter: linter ?? "none",
+		monorepoInfo,
 		projectName,
 		setupVSCode,
 	});
 
 	try {
 		const pkgJsonPath = path.join(projectDir, "package.json");
-		const pkgJson = fs.readJSONSync(pkgJsonPath);
+		const pkgJson = await Bun.file(pkgJsonPath).json();
 		pkgJson.name = projectName;
 
-		fs.writeJSONSync(pkgJsonPath, pkgJson, {
-			spaces: 2,
-		});
+		await Bun.write(pkgJsonPath, JSON.stringify(pkgJson, null, 2));
 	} catch (error) {
 		logger.error("Failed to update package.json:");
 		throw error;

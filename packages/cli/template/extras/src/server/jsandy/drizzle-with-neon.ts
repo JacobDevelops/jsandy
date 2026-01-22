@@ -4,7 +4,7 @@ import { drizzle } from "drizzle-orm/neon-http";
 import { env } from "hono/adapter";
 
 interface Env {
-	Bindings: { DATABASE_URL: string };
+	Bindings: CloudflareBindings;
 }
 
 export const j = jsandy.init<Env>();

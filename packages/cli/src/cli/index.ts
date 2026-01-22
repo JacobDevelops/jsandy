@@ -1,6 +1,11 @@
+import path from "node:path";
 import { intro, isCancel, outro, select, text } from "@clack/prompts";
 import color from "picocolors";
-import { getUserPkgManager } from "@/utils/get-user-pkg-manager";
+import {
+	detectMonorepo,
+	detectPackageManager,
+	type MonorepoInfo,
+} from "@/utils/monorepo-detection";
 
 export type Linter = "none" | "eslint" | "biome";
 interface CliResults {
@@ -16,6 +21,7 @@ interface CliResults {
 	linter: Linter | undefined;
 	setupVSCode?: boolean; // New option
 	noInstall?: boolean;
+	monorepoInfo?: MonorepoInfo;
 }
 
 export async function runCli(): Promise<CliResults | undefined> {
@@ -44,6 +50,22 @@ export async function runCli(): Promise<CliResults | undefined> {
 	if (isCancel(projectName)) {
 		outro("Setup cancelled.");
 		return undefined;
+	}
+
+	// Detect monorepo setup
+	const projectDir = path.resolve(process.cwd(), projectName as string);
+	const monorepoInfo = await detectMonorepo(projectDir);
+
+	if (monorepoInfo.isMonorepo) {
+		console.log(color.dim(`  Detected monorepo at: ${monorepoInfo.rootPath}`));
+		if (monorepoInfo.packageManager) {
+			console.log(
+				color.dim(`  Package manager: ${monorepoInfo.packageManager}`),
+			);
+		}
+		if (monorepoInfo.linter) {
+			console.log(color.dim(`  Linter: ${monorepoInfo.linter}`));
+		}
 	}
 
 	const orm = await select<"none" | "drizzle">({
@@ -80,42 +102,56 @@ export async function runCli(): Promise<CliResults | undefined> {
 		}
 	}
 
-	const linter = await select<"none" | "eslint" | "biome">({
-		message: "Which linter would you like to use?",
-		options: [
-			{ label: "None", value: "none" },
-			{ label: "ESLint", value: "eslint" },
-			{ label: "Biome", value: "biome" },
-		],
-	});
+	// Skip linter prompt if detected in monorepo
+	let linter: Linter | undefined;
+	if (monorepoInfo.isMonorepo && monorepoInfo.linter) {
+		linter = monorepoInfo.linter;
+		console.log(color.dim(`  Using monorepo linter: ${linter}`));
+	} else {
+		linter = await select<"none" | "eslint" | "biome">({
+			message: "Which linter would you like to use?",
+			options: [
+				{ label: "None", value: "none" },
+				{ label: "ESLint", value: "eslint" },
+				{ label: "Biome", value: "biome" },
+			],
+		});
 
-	if (isCancel(linter)) {
-		outro("Setup cancelled.");
-		return undefined;
+		if (isCancel(linter)) {
+			outro("Setup cancelled.");
+			return undefined;
+		}
 	}
 
-	const setupVSCode = await select({
-		message: "Would you like to set up recommended VS Code workspace settings?",
-		options: [
-			{
-				label: "Yes - Configure VS Code settings and extensions",
-				value: true,
-			},
-			{
-				label: "No - Skip VS Code configuration",
-				value: false,
-			},
-		],
-	});
+	// Skip VSCode settings for monorepos
+	let setupVSCode: boolean | undefined = false;
+	if (!monorepoInfo.isMonorepo) {
+		setupVSCode = await select({
+			message:
+				"Would you like to set up recommended VS Code workspace settings?",
+			options: [
+				{
+					label: "Yes - Configure VS Code settings and extensions",
+					value: true,
+				},
+				{
+					label: "No - Skip VS Code configuration",
+					value: false,
+				},
+			],
+		});
 
-	if (isCancel(setupVSCode)) {
-		outro("Setup cancelled.");
-		return undefined;
+		if (isCancel(setupVSCode)) {
+			outro("Setup cancelled.");
+			return undefined;
+		}
 	}
 
 	let noInstall = noInstallFlag;
 	if (!noInstall) {
-		const pkgManager = getUserPkgManager();
+		// Use monorepo package manager if detected, otherwise detect from lockfiles
+		const pkgManager =
+			monorepoInfo.packageManager || detectPackageManager(process.cwd());
 		const shouldInstall = await select({
 			message: `Should we run '${pkgManager}${
 				pkgManager === "yarn" ? "" : " install"
@@ -135,6 +171,7 @@ export async function runCli(): Promise<CliResults | undefined> {
 	return {
 		dialect,
 		linter,
+		monorepoInfo,
 		noInstall,
 		orm,
 		projectName: projectName as string,

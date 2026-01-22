@@ -1,10 +1,9 @@
 import path from "node:path";
-import fs from "fs-extra";
 import { addPackageDependency } from "@/utils/add-package-dep";
 import type { Installer } from "./index";
 
-export const eslintInstaller: Installer = ({ projectDir }) => {
-	addPackageDependency({
+export const eslintInstaller: Installer = async ({ projectDir }) => {
+	await addPackageDependency({
 		dependencies: [
 			"@antfu/eslint-config",
 			"eslint",
@@ -16,7 +15,7 @@ export const eslintInstaller: Installer = ({ projectDir }) => {
 		projectDir,
 	});
 
-	fs.writeFileSync(
+	await Bun.write(
 		path.join(projectDir, "prettier.config.ts"),
 		`import type { Config } from "prettier";
 import type { PluginOptions } from "prettier-plugin-tailwindcss";
@@ -28,10 +27,21 @@ const config: Config = {
 export default config;`,
 	);
 
-	fs.writeFileSync(
+	await Bun.write(
+		path.join(projectDir, ".prettierignore"),
+		`worker-configuration.d.ts
+.next
+node_modules
+dist
+coverage`,
+	);
+
+	await Bun.write(
 		path.join(projectDir, "eslint.config.ts"),
 		`import antfu from '@antfu/eslint-config'
 
-export default antfu()`,
+export default antfu({
+	ignores: ['worker-configuration.d.ts']
+})`,
 	);
 };

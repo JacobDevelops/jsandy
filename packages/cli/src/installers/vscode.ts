@@ -1,27 +1,29 @@
+import { mkdir } from "node:fs/promises";
 import path from "node:path";
-import fs from "fs-extra";
 import type { Installer } from "./index";
 
-export const vscodeInstaller: Installer = ({
+export const vscodeInstaller: Installer = async ({
 	projectDir,
 	linter,
 	databaseProvider,
 }) => {
 	const dbProvider = databaseProvider !== undefined ? databaseProvider : "none";
 	const vscodeDir = path.join(projectDir, ".vscode");
-	fs.ensureDirSync(vscodeDir);
+	await mkdir(vscodeDir, { recursive: true });
 
 	// Create settings.json
 	const settings = createVSCodeSettings(linter, dbProvider);
-	fs.writeJSONSync(path.join(vscodeDir, "settings.json"), settings, {
-		spaces: 2,
-	});
+	await Bun.write(
+		path.join(vscodeDir, "settings.json"),
+		JSON.stringify(settings, null, 2),
+	);
 
 	// Create extensions.json
 	const extensions = createVSCodeExtensions(linter, dbProvider);
-	fs.writeJSONSync(path.join(vscodeDir, "extensions.json"), extensions, {
-		spaces: 2,
-	});
+	await Bun.write(
+		path.join(vscodeDir, "extensions.json"),
+		JSON.stringify(extensions, null, 2),
+	);
 };
 
 function createVSCodeSettings(linter: string, orm: string) {

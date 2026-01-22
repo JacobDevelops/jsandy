@@ -1,12 +1,12 @@
 import path from "node:path";
-import fs from "fs-extra";
+
 import type { PackageJson } from "type-fest";
 
 import { PKG_ROOT } from "@/constants";
 import type { Installer } from "@/installers/index";
 import { addPackageDependency } from "@/utils/add-package-dep";
 
-export const drizzleInstaller: Installer = ({
+export const drizzleInstaller: Installer = async ({
 	projectDir,
 	databaseProvider,
 	linter,
@@ -17,12 +17,12 @@ export const drizzleInstaller: Installer = ({
 	if (linter === "eslint") {
 		devDependencies.push("eslint-plugin-drizzle");
 	}
-	addPackageDependency({
+	await addPackageDependency({
 		dependencies: devDependencies,
 		devDependencies: true,
 		projectDir,
 	});
-	addPackageDependency({
+	await addPackageDependency({
 		dependencies: ["drizzle-orm"],
 		devDependencies: false,
 		projectDir,
@@ -42,7 +42,9 @@ export const drizzleInstaller: Installer = ({
 	const envDest = path.join(projectDir, ".env");
 	// add db:* scripts to package.json
 	const packageJsonPath = path.join(projectDir, "package.json");
-	const packageJsonContent = fs.readJSONSync(packageJsonPath) as PackageJson;
+	const packageJsonContent = (await Bun.file(
+		packageJsonPath,
+	).json()) as PackageJson;
 	packageJsonContent.scripts = {
 		...packageJsonContent.scripts,
 		"db:generate": "drizzle-kit generate",
@@ -50,28 +52,17 @@ export const drizzleInstaller: Installer = ({
 		"db:push": "drizzle-kit push",
 		"db:studio": "drizzle-kit studio",
 	};
-	if (!fs.existsSync(routerSrc)) {
-		// Verify source files exist
-		throw new Error(`Router template not found: ${routerSrc}`);
-	}
 	const selectedEnvSrc =
 		databaseProvider === "vercel-postgres" ? vercelPostgresEnvSrc : envSrc;
-	if (!fs.existsSync(selectedEnvSrc)) {
-		throw new Error(`Environment template not found: ${selectedEnvSrc}`);
-	}
-	try {
-		fs.copySync(routerSrc, routerDest);
-		fs.copySync(
-			databaseProvider === "vercel-postgres" ? vercelPostgresEnvSrc : envSrc,
-			envDest,
-		);
-	} catch (error) {
-		throw new Error(
-			`Failed to copy Drizzle template files: ${(error as Error).message}`,
-		);
-	}
 
-	fs.writeJSONSync(packageJsonPath, packageJsonContent, {
-		spaces: 2,
-	});
+	await Bun.write(routerDest, Bun.file(routerSrc));
+	await Bun.write(envDest, Bun.file(selectedEnvSrc));
+
+	// Also create .env.example with the same content
+	await Bun.write(
+		path.join(projectDir, ".env.example"),
+		Bun.file(selectedEnvSrc),
+	);
+
+	await Bun.write(packageJsonPath, JSON.stringify(packageJsonContent, null, 2));
 };

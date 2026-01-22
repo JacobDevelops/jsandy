@@ -28,6 +28,8 @@ export const BASE_PACKAGE_JSON: PackageJson = {
 	scripts: {
 		build: "next build",
 		dev: "next dev",
+		"generate-types":
+			"wrangler types --env-interface CloudflareBindings worker-configuration.d.ts",
 		start: "next start",
 	},
 	version: "0.0.0",

@@ -233,7 +233,7 @@ export const createClient = <T extends Router<any>>(
 		!baseUrl.startsWith("http://") &&
 		!baseUrl.startsWith("https://") &&
 		typeof window === "undefined"
-) {
+	) {
 		throw new Error(`baseUrl must be absolute (http/https): ${baseUrl}`);
 	}
 
