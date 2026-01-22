@@ -1,16 +1,15 @@
 import path from "node:path";
-import fs from "fs-extra";
 import { addPackageDependency } from "@/utils/add-package-dep";
 import type { Installer } from "./index";
 
-export const noLinterInstaller: Installer = ({ projectDir }) => {
-	addPackageDependency({
+export const noLinterInstaller: Installer = async ({ projectDir }) => {
+	await addPackageDependency({
 		dependencies: ["prettier", "prettier-plugin-tailwindcss"],
 		devDependencies: true,
 		projectDir,
 	});
 
-	fs.writeFileSync(
+	await Bun.write(
 		path.join(projectDir, "prettier.config.ts"),
 		`import type { Config } from "prettier";
 import type { PluginOptions } from "prettier-plugin-tailwindcss";
@@ -20,5 +19,14 @@ const config: Config = {
 };
 
 export default config;`,
+	);
+
+	await Bun.write(
+		path.join(projectDir, ".prettierignore"),
+		`worker-configuration.d.ts
+.next
+node_modules
+dist
+coverage`,
 	);
 };

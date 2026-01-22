@@ -1,14 +1,14 @@
+import { mkdir } from "node:fs/promises";
 import path from "node:path";
-import fs from "fs-extra";
 
 import { PKG_ROOT } from "@/constants";
 import { addPackageDependency } from "@/utils/add-package-dep";
 import type { Installer } from "./index";
 
-export const vercelPostgresInstaller: Installer = ({ projectDir }) => {
+export const vercelPostgresInstaller: Installer = async ({ projectDir }) => {
 	const extrasDir = path.join(PKG_ROOT, "template/extras");
 
-	addPackageDependency({
+	await addPackageDependency({
 		dependencies: ["@vercel/postgres"],
 		devDependencies: false,
 		projectDir,
@@ -34,17 +34,11 @@ export const vercelPostgresInstaller: Installer = ({ projectDir }) => {
 	);
 	const jsandyDest = path.join(projectDir, "src/server/jsandy.ts");
 
-	fs.ensureDirSync(path.dirname(configDest));
-	fs.ensureDirSync(path.dirname(schemaDest));
-	fs.ensureDirSync(path.dirname(jsandyDest));
+	await mkdir(path.dirname(configDest), { recursive: true });
+	await mkdir(path.dirname(schemaDest), { recursive: true });
+	await mkdir(path.dirname(jsandyDest), { recursive: true });
 
-	try {
-		fs.copySync(configFile, configDest);
-		fs.copySync(schemaSrc, schemaDest);
-		fs.copySync(jsandySrc, jsandyDest);
-	} catch (error) {
-		throw new Error(
-			`Failed to copy Vercel Postgres template files: ${(error as Error).message}`,
-		);
-	}
+	await Bun.write(configDest, Bun.file(configFile));
+	await Bun.write(schemaDest, Bun.file(schemaSrc));
+	await Bun.write(jsandyDest, Bun.file(jsandySrc));
 };

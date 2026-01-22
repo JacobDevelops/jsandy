@@ -1,7 +1,7 @@
+import { existsSync, mkdirSync, readdirSync, rmSync } from "node:fs";
 import path from "node:path";
 import * as p from "@clack/prompts";
 import chalk from "chalk";
-import fs from "fs-extra";
 import ora, { type Ora } from "ora";
 import { BASE_PACKAGE_JSON, GITIGNORE_CONTENTS, PKG_ROOT } from "@/constants";
 import type { InstallerOptions } from "@/installers/index";
@@ -13,6 +13,7 @@ export const installBaseTemplate = async ({
 	projectDir,
 	pkgManager,
 	noInstall,
+	linter,
 }: InstallerOptions) => {
 	const srcDir = path.join(PKG_ROOT, "template/base");
 	if (!noInstall) {
@@ -39,10 +40,6 @@ export const installBaseTemplate = async ({
 
 	spinner.start();
 
-	if (!fs.existsSync(path.join(projectDir, "package.json"))) {
-		await fs.createFile(path.join(projectDir, "package.json"));
-	}
-
 	const packageJson = { ...BASE_PACKAGE_JSON };
 	if (projectName !== ".") {
 		packageJson.name = projectName.includes("/")
@@ -51,9 +48,83 @@ export const installBaseTemplate = async ({
 	}
 
 	try {
-		fs.copySync(srcDir, projectDir);
-		fs.writeJSONSync(path.join(projectDir, "package.json"), BASE_PACKAGE_JSON);
-		fs.writeFileSync(path.join(projectDir, ".gitignore"), GITIGNORE_CONTENTS);
+		// Copy template directory recursively using Bun
+		await copyDirectory(srcDir, projectDir);
+		await Bun.write(
+			path.join(projectDir, "package.json"),
+			JSON.stringify(packageJson, null, 2),
+		);
+		await Bun.write(path.join(projectDir, ".gitignore"), GITIGNORE_CONTENTS);
+
+		// Generate Cloudflare Worker types using wrangler
+		spinner.text = "Generating Cloudflare Worker types...";
+		try {
+			const result = Bun.spawnSync(
+				[
+					"npx",
+					"wrangler",
+					"types",
+					"--env-interface",
+					"CloudflareBindings",
+					"worker-configuration.d.ts",
+				],
+				{
+					cwd: projectDir,
+					stderr: "pipe",
+					stdout: "pipe",
+				},
+			);
+			if (!result.success) {
+				// Type generation is optional - don't fail the installation if it doesn't work
+				logger.warn(
+					"Could not generate Cloudflare Worker types. You may need to run 'wrangler types' manually.",
+				);
+			} else {
+				// Format the generated file with the chosen formatter
+				const workerTypesPath = path.join(
+					projectDir,
+					"worker-configuration.d.ts",
+				);
+				if (existsSync(workerTypesPath)) {
+					try {
+						if (linter === "biome") {
+							// Format with Biome
+							Bun.spawnSync(
+								[
+									"npx",
+									"@biomejs/biome",
+									"format",
+									"--write",
+									"worker-configuration.d.ts",
+								],
+								{
+									cwd: projectDir,
+									stderr: "pipe",
+									stdout: "pipe",
+								},
+							);
+						} else {
+							// Format with Prettier (for eslint or no linter)
+							Bun.spawnSync(
+								["npx", "prettier", "--write", "worker-configuration.d.ts"],
+								{
+									cwd: projectDir,
+									stderr: "pipe",
+									stdout: "pipe",
+								},
+							);
+						}
+					} catch {
+						// Formatting is optional, don't fail if it doesn't work
+					}
+				}
+			}
+		} catch {
+			// Type generation is optional - don't fail the installation if it doesn't work
+			logger.warn(
+				"Could not generate Cloudflare Worker types. You may need to run 'wrangler types' manually.",
+			);
+		}
 	} catch (error) {
 		spinner.fail(`Failed to create project files: ${(error as Error).message}`);
 		throw error;
@@ -72,8 +143,8 @@ const handleDirectoryConflict = async (
 	projectName: string,
 	spinner: Ora,
 ) => {
-	if (fs.existsSync(projectDir)) {
-		if (fs.readdirSync(projectDir).length === 0) {
+	if (existsSync(projectDir)) {
+		if (readdirSync(projectDir).length === 0) {
 			if (projectName !== ".")
 				spinner.info(
 					`${chalk.cyan.bold(projectName)} exists but is empty, continuing...\n`,
@@ -124,10 +195,35 @@ const handleDirectoryConflict = async (
 				spinner.info(
 					`Emptying ${chalk.cyan.bold(projectName)} and creating JSandy app..\n`,
 				);
-				await fs.emptyDir(projectDir);
+				// Empty directory by removing and recreating it
+				rmSync(projectDir, { force: true, recursive: true });
+				mkdirSync(projectDir, { recursive: true });
 				return { directoryCleared: true, shouldContinue: true };
 			}
 		}
 	}
 	return { directoryCleared: false, shouldContinue: true };
 };
+
+// Helper function to recursively copy a directory
+async function copyDirectory(src: string, dest: string): Promise<void> {
+	// Ensure destination directory exists
+	mkdirSync(dest, { recursive: true });
+
+	// Read all items in source directory
+	const items = readdirSync(src, { withFileTypes: true });
+
+	// Copy each item
+	for (const item of items) {
+		const srcPath = path.join(src, item.name);
+		const destPath = path.join(dest, item.name);
+
+		if (item.isDirectory()) {
+			// Recursively copy subdirectories
+			await copyDirectory(srcPath, destPath);
+		} else {
+			// Copy file using Bun
+			await Bun.write(destPath, Bun.file(srcPath));
+		}
+	}
+}

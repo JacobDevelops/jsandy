@@ -7,7 +7,7 @@ import { logger } from "@/utils/logger";
 type InstallPackagesOptions = InstallerOptions;
 
 // This runs the installer for all the packages that the user has selected
-export const installPackages = (options: InstallPackagesOptions) => {
+export const installPackages = async (options: InstallPackagesOptions) => {
 	const { installers } = options;
 	logger.info("Adding boilerplate...");
 
@@ -16,7 +16,7 @@ export const installPackages = (options: InstallPackagesOptions) => {
 		if (pkgOpts.inUse) {
 			const spinner = ora(`Boilerplating ORM: ${name}...`).start();
 			try {
-				pkgOpts.installer(options);
+				await pkgOpts.installer(options);
 				spinner.succeed(
 					`Successfully setup boilerplate for ORM: ${chalk.green.bold(name)}`,
 				);
@@ -33,7 +33,7 @@ export const installPackages = (options: InstallPackagesOptions) => {
 		if (pkgOpts.inUse) {
 			const spinner = ora(`Boilerplating provider: ${name}...`).start();
 			try {
-				pkgOpts.installer(options);
+				await pkgOpts.installer(options);
 				spinner.succeed(
 					`Successfully setup boilerplate for provider: ${chalk.green.bold(name)}`,
 				);
@@ -50,7 +50,7 @@ export const installPackages = (options: InstallPackagesOptions) => {
 		if (pkgOpts.inUse) {
 			const spinner = ora(`Boilerplating linter: ${name}...`).start();
 			try {
-				pkgOpts.installer(options);
+				await pkgOpts.installer(options);
 				spinner.succeed(
 					`Successfully setup boilerplate for linter: ${chalk.green.bold(name)}`,
 				);
@@ -66,7 +66,7 @@ export const installPackages = (options: InstallPackagesOptions) => {
 		if (pkgOpts.inUse) {
 			const spinner = ora(`Setting up IDE: ${name}...`).start();
 			try {
-				pkgOpts.installer(options);
+				await pkgOpts.installer(options);
 				spinner.succeed(
 					`Successfully configured IDE: ${chalk.green.bold(name)}`,
 				);

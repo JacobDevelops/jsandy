@@ -7,14 +7,14 @@
 		"@clack/prompts": "^0.8.2",
 		"chalk": "^5.4.1",
 		"execa": "^9.6.0",
-		"fs-extra": "^11.3.0",
 		"ora": "^8.2.0",
 		"picocolors": "^1.1.1",
 		"sort-package-json": "^2.15.1"
 	},
 	"description": "A CLI tool for scaffolding new jSandy applications with interactive prompts",
 	"devDependencies": {
-		"@types/fs-extra": "^11.0.4",
+		"@jsandy/typescript-config": "workspace:*",
+		"@types/bun": "^1.3.6",
 		"@types/node": "^22.15.29",
 		"type-fest": "^4.41.0"
 	},

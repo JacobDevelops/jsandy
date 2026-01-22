@@ -552,17 +552,22 @@ export class Router<
 				);
 			} else {
 				// GET without schema validation
-				this.get(routePath, ...operationMiddlewares, async (c) => {
-					const typedC = c as Context<E & { Variables: InternalContext }>;
-					const ctx = typedC.get("__middleware_output") || {};
+				this.get(
+					routePath,
+					queryParsingMiddleware,
+					...operationMiddlewares,
+					async (c) => {
+						const typedC = c as Context<E & { Variables: InternalContext }>;
+						const ctx = typedC.get("__middleware_output") || {};
 
-					const result = await this.callHandlerSafely(operation.handler, {
-						c: c as ContextWithSuperJSON<E>,
-						ctx,
-						input: undefined,
-					});
-					return result === undefined ? c.json(undefined) : result;
-				});
+						const result = await this.callHandlerSafely(operation.handler, {
+							c: c as ContextWithSuperJSON<E>,
+							ctx,
+							input: undefined,
+						});
+						return result === undefined ? c.json(undefined) : result;
+					},
+				);
 			}
 		} else if (operation.type === "post") {
 			if (operation.schema) {
@@ -595,17 +600,22 @@ export class Router<
 				);
 			} else {
 				// POST without schema validation
-				this.post(routePath, ...operationMiddlewares, async (c) => {
-					const typedC = c as Context<E & { Variables: InternalContext }>;
-					const ctx = typedC.get("__middleware_output") || {};
+				this.post(
+					routePath,
+					bodyParsingMiddleware,
+					...operationMiddlewares,
+					async (c) => {
+						const typedC = c as Context<E & { Variables: InternalContext }>;
+						const ctx = typedC.get("__middleware_output") || {};
 
-					const result = await this.callHandlerSafely(operation.handler, {
-						c: c as ContextWithSuperJSON<E>,
-						ctx,
-						input: undefined,
-					});
-					return result === undefined ? c.json(undefined) : result;
-				});
+						const result = await this.callHandlerSafely(operation.handler, {
+							c: c as ContextWithSuperJSON<E>,
+							ctx,
+							input: undefined,
+						});
+						return result === undefined ? c.json(undefined) : result;
+					},
+				);
 			}
 		} else if (operation.type === "ws") {
 			this.get(

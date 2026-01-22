@@ -1,5 +1,6 @@
 import type { Linter } from "@/cli";
 import type { PackageManager } from "@/utils/get-user-pkg-manager";
+import type { MonorepoInfo } from "@/utils/monorepo-detection";
 import { biomeInstaller } from "./biome";
 import { drizzleInstaller } from "./drizzle";
 import { eslintInstaller } from "./eslint";
@@ -61,9 +62,10 @@ export interface InstallerOptions {
 	databaseProvider: Provider;
 	linter: Linter;
 	setupVSCode?: boolean;
+	monorepoInfo?: MonorepoInfo;
 }
 
-export type Installer = (opts: InstallerOptions) => void;
+export type Installer = (opts: InstallerOptions) => void | Promise<void>;
 
 export const buildInstallerMap = (
 	selectedOrm: Orm = "none",

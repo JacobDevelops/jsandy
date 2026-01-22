@@ -1,5 +1,4 @@
 import path from "node:path";
-import fs from "fs-extra";
 import sortPackageJson from "sort-package-json";
 import type { PackageJson } from "type-fest";
 import {
@@ -7,16 +6,15 @@ import {
 	dependencyVersionMap,
 } from "@/installers/dep-version-map";
 
-export const addPackageDependency = (opts: {
+export const addPackageDependency = async (opts: {
 	dependencies: AvailableDependencies[];
 	devDependencies: boolean;
 	projectDir: string;
 }) => {
 	const { dependencies, devDependencies, projectDir } = opts;
 
-	const pkgJson = structuredClone(
-		fs.readJSONSync(path.join(projectDir, "package.json")),
-	) as PackageJson;
+	const packageJsonPath = path.join(projectDir, "package.json");
+	const pkgJson = (await Bun.file(packageJsonPath).json()) as PackageJson;
 
 	for (const pkgName of dependencies) {
 		const version = dependencyVersionMap[pkgName];
@@ -33,7 +31,5 @@ export const addPackageDependency = (opts: {
 
 	const sortedPkgJson = sortPackageJson(pkgJson);
 
-	fs.writeJSONSync(path.join(projectDir, "package.json"), sortedPkgJson, {
-		spaces: 2,
-	});
+	await Bun.write(packageJsonPath, JSON.stringify(sortedPkgJson, null, 2));
 };

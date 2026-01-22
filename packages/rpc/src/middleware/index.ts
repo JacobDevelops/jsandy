@@ -24,10 +24,18 @@ export const queryParsingMiddleware: MiddlewareHandler =
 
 /**
  * Middleware to parse POST-requests using SuperJSON
+ * Safely handles missing or empty request bodies
  */
 export const bodyParsingMiddleware: MiddlewareHandler =
 	async function bodyParsingMiddleware(c, next) {
-		const rawBody = await c.req.json();
+		let rawBody: Record<string, unknown> = {};
+
+		try {
+			rawBody = await c.req.json();
+		} catch {
+			// No body or invalid JSON - use empty object
+		}
+
 		const parsedBody: Record<string, unknown> = {};
 
 		for (const [key, value] of Object.entries(rawBody)) {

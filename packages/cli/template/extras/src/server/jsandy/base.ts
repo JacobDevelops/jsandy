@@ -1,8 +1,8 @@
 import { jsandy } from "@jsandy/rpc";
 
 interface Env {
-	// Replace with your own binding types
-	Bindings: Record<string, unknown>;
+	// Cloudflare bindings from wrangler types
+	Bindings: CloudflareBindings;
 }
 
 export const j = jsandy.init<Env>();

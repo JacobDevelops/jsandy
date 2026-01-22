@@ -2,17 +2,7 @@ import Bun from "bun";
 
 Bun.build({
 	entrypoints: ["./src/index.ts"],
-	external: [
-		"@clack/prompts",
-		"chalk",
-		"execa",
-		"fs-extra",
-		"hono",
-		"jsandy",
-		"ora",
-		"sort-package-json",
-		"@jsandy/rpc",
-	],
+	external: ["@clack/prompts", "chalk", "execa", "ora", "sort-package-json"],
 	outdir: "./dist",
 	sourcemap: "linked",
 	target: "node",

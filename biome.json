@@ -72,11 +72,12 @@
 			},
 			"correctness": {
 				"noNestedComponentDefinitions": "off",
-				"noUnusedImports": "error",
+				"noUnusedImports": { "fix": "safe", "level": "error" },
 				"noUnusedVariables": "error",
 				"useUniqueElementIds": "off"
 			},
 			"recommended": true,
+			"style": { "useTemplate": { "fix": "safe", "level": "error" } },
 			"suspicious": {
 				"noUnknownAtRules": "off"
 			}

@@ -1,16 +1,16 @@
+import { mkdir } from "node:fs/promises";
 import path from "node:path";
-import fs from "fs-extra";
 
 import { PKG_ROOT } from "@/constants";
 import { addPackageDependency } from "@/utils/add-package-dep";
 import { logger } from "@/utils/logger";
 import type { Installer } from "./index";
 
-export const postgresInstaller: Installer = ({ projectDir }) => {
+export const postgresInstaller: Installer = async ({ projectDir }) => {
 	const extrasDir = path.join(PKG_ROOT, "template/extras");
 	logger.info("Installing Postgres...");
 
-	addPackageDependency({
+	await addPackageDependency({
 		dependencies: ["postgres"],
 		devDependencies: false,
 		projectDir,
@@ -33,11 +33,11 @@ export const postgresInstaller: Installer = ({ projectDir }) => {
 	);
 	const jsandyDest = path.join(projectDir, "src/server/jsandy.ts");
 
-	fs.ensureDirSync(path.dirname(configDest));
-	fs.ensureDirSync(path.dirname(schemaDest));
-	fs.ensureDirSync(path.dirname(jsandyDest));
+	await mkdir(path.dirname(configDest), { recursive: true });
+	await mkdir(path.dirname(schemaDest), { recursive: true });
+	await mkdir(path.dirname(jsandyDest), { recursive: true });
 
-	fs.copySync(configFile, configDest);
-	fs.copySync(schemaSrc, schemaDest);
-	fs.copySync(jsandySrc, jsandyDest);
+	await Bun.write(configDest, Bun.file(configFile));
+	await Bun.write(schemaDest, Bun.file(schemaSrc));
+	await Bun.write(jsandyDest, Bun.file(jsandySrc));
 };

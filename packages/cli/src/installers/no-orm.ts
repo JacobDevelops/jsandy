@@ -1,9 +1,9 @@
+import { mkdir } from "node:fs/promises";
 import path from "node:path";
-import fs from "fs-extra";
 import { PKG_ROOT } from "@/constants";
 import type { Installer } from "./index";
 
-export const noOrmInstaller: Installer = ({ projectDir }) => {
+export const noOrmInstaller: Installer = async ({ projectDir }) => {
 	const extrasDir = path.join(PKG_ROOT, "template/extras");
 
 	const routerSrc = path.join(extrasDir, "src/server/routers/post/base.ts");
@@ -12,9 +12,10 @@ export const noOrmInstaller: Installer = ({ projectDir }) => {
 	const jsandySrc = path.join(extrasDir, "src/server/jsandy", "base.ts");
 	const jsandyDest = path.join(projectDir, "src/server/jsandy.ts");
 
-	fs.ensureDirSync(path.dirname(routerDest));
-	fs.ensureDirSync(path.dirname(jsandyDest));
+	await mkdir(path.dirname(routerDest), { recursive: true });
+	await mkdir(path.dirname(jsandyDest), { recursive: true });
 
-	fs.copySync(routerSrc, routerDest);
-	fs.copySync(jsandySrc, jsandyDest);
+	// Copy files using Bun
+	await Bun.write(routerDest, Bun.file(routerSrc));
+	await Bun.write(jsandyDest, Bun.file(jsandySrc));
 };
