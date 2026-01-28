@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "jsandy-mcp": {
+      "type": "url",
+      "url": "https://mcp.jsandy.com/mcp"
+    },
+    "jsandy-mcp-local": {
+      "type": "url",
+      "url": "http://localhost:8787/mcp"
+    }
+  }
+}

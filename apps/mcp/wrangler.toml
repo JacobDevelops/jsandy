@@ -1,0 +1,17 @@
+name = "jsandy-mcp"
+account_id = "9095722a1cb3e114ae640b422767d94a"
+main = "./build/worker.mjs"
+compatibility_date = "2025-06-01"
+
+[build]
+command = "make build"
+
+[observability]
+enabled = true
+
+[placement]
+mode = "smart"
+
+[[routes]]
+pattern = "mcp.jsandy.com"
+custom_domain = true
