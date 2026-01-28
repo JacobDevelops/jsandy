@@ -1,0 +1,96 @@
+name: MCP Server
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/mcp/**"
+  pull_request:
+    paths:
+      - "apps/mcp/**"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: apps/mcp
+
+jobs:
+  test:
+    name: Test
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+          cache-dependency-path: apps/mcp/go.sum
+
+      - name: Run tests
+        run: go test ./internal/... -count=1 -timeout 120s -v
+
+  build:
+    name: Build & Size Check
+    needs: [test]
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+          cache-dependency-path: apps/mcp/go.sum
+
+      - name: Build WASM binary
+        run: make build
+
+      - name: Check binary size
+        run: |
+          size=$(stat -c%s ./build/app.wasm)
+          mb=$(echo "scale=2; $size / 1048576" | bc)
+          echo "Binary size: ${mb}MB ($size bytes)"
+          echo "## WASM Binary Size" >> $GITHUB_STEP_SUMMARY
+          echo "**${mb}MB** ($size bytes)" >> $GITHUB_STEP_SUMMARY
+          if [ $size -gt 10485760 ]; then
+            echo "::error::Binary exceeds 10MB Cloudflare Workers limit!"
+            exit 1
+          fi
+          if [ $size -gt 8388608 ]; then
+            echo "::warning::Binary exceeds 8MB target size"
+          fi
+
+  deploy:
+    name: Deploy
+    needs: [build]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+          cache-dependency-path: apps/mcp/go.sum
+
+      - name: Build WASM binary
+        run: make build
+
+      - name: Deploy to Cloudflare Workers
+        run: npx --yes wrangler@4 deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+      - name: Verify deployment
+        run: |
+          echo "Waiting for deployment to propagate..."
+          sleep 10
+          status=$(curl -s -o /dev/null -w "%{http_code}" https://mcp.jsandy.com/health)
+          if [ "$status" = "200" ]; then
+            echo "Health check passed (HTTP $status)"
+          else
+            echo "::warning::Health check returned HTTP $status (deployment may still be propagating)"
+          fi

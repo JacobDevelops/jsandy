@@ -11,3 +11,7 @@ enabled = true
 
 [placement]
 mode = "smart"
+
+[[routes]]
+pattern = "mcp.jsandy.com"
+custom_domain = true

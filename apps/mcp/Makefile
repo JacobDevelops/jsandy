@@ -22,8 +22,11 @@ dev: build
 	npx wrangler dev
 
 # Deploy to Cloudflare
+# Runs wrangler from /tmp to avoid bun's hoisted node_modules resolving
+# miniflare's internal zod v3 calls to the monorepo's zod v4.
+# --cwd points wrangler back to this directory for config and artifact resolution.
 deploy: check-size
-	npx wrangler deploy
+	cd /tmp && npx --yes wrangler@4 deploy --cwd $(CURDIR)
 
 # Clean build artifacts
 clean:
