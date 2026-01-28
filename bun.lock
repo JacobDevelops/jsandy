@@ -17,6 +17,13 @@
         "nx": "^22.3.3",
       },
     },
+    "apps/mcp": {
+      "name": "@jsandy/mcp",
+      "version": "0.1.0",
+      "devDependencies": {
+        "wrangler": "^4",
+      },
+    },
     "apps/www": {
       "name": "www",
       "version": "0.0.0",
@@ -732,6 +739,8 @@
     "@jridgewell/trace-mapping": ["@jridgewell/trace-mapping@0.3.30", "", { "dependencies": { "@jridgewell/resolve-uri": "^3.1.0", "@jridgewell/sourcemap-codec": "^1.4.14" } }, "sha512-GQ7Nw5G2lTu/BtHTKfXhKHok2WGetd4XYcVKGx00SjAk8GMwgJM3zr6zORiPGuOE+/vkc90KtTosSSvaCjKb2Q=="],
 
     "@jsandy/builder": ["@jsandy/builder@workspace:packages/builder"],
+
+    "@jsandy/mcp": ["@jsandy/mcp@workspace:apps/mcp"],
 
     "@jsandy/rpc": ["@jsandy/rpc@workspace:packages/rpc"],
 

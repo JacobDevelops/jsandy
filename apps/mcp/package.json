@@ -1,0 +1,16 @@
+{
+  "name": "@jsandy/mcp",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "make build",
+    "build:check-size": "make check-size",
+    "dev": "make dev",
+    "deploy": "make deploy",
+    "test": "go test ./...",
+    "clean": "make clean"
+  },
+  "devDependencies": {
+    "wrangler": "^4"
+  }
+}
